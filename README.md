@@ -1,5 +1,5 @@
 # ecommerce-app
-# E-Commerce Backend (Spring Boot + React + MySQL)
+# E-Commerce (Spring Boot + React + MySQL)
 
 ## 🗄️ Database Entity Relationship (ER) Diagram
 
