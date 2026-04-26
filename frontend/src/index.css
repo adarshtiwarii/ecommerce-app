@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Font Poppins (optional – add in index.html <head> separately) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;600;700&display=swap');
+
 @layer components {
   .glass-card {
     background: rgba(17, 27, 22, 0.6);
@@ -29,4 +32,17 @@ body {
   font-family: 'Poppins', sans-serif;
   margin: 0;
   padding: 0;
+  color: #E0E0E0;
+}
+
+/* Custom scrollbar (optional) */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D1A12;
+}
+::-webkit-scrollbar-thumb {
+  background: #00FF88;
+  border-radius: 10px;
 }
