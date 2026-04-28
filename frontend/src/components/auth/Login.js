@@ -1,4 +1,4 @@
-// src/components/Login.js
+// src/components/auth/Login.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -41,6 +41,9 @@ function Login() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userEmail', data.email);
         if (data.fullName) localStorage.setItem('userName', data.fullName);
+        // Store role and userId (required for role‑based UI)
+        if (data.role) localStorage.setItem('userRole', data.role);
+        if (data.userId) localStorage.setItem('userId', data.userId);
         // Handle "Remember me"
         if (rememberMe) {
           localStorage.setItem('savedEmail', formData.emailOrPhone);
@@ -50,6 +53,7 @@ function Login() {
           localStorage.removeItem('savedPassword');
         }
         setMessage({ text: '✅ Login successful! Redirecting...', type: 'success' });
+        // ✅ Redirect to home page
         setTimeout(() => navigate('/home'), 1500);
       } else {
         const errorMsg = await response.text();
@@ -99,7 +103,7 @@ function Login() {
               value={formData.emailOrPhone}
               onChange={handleChange}
               required
-              className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 hover:border-neon-green/60"
+              className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200"
               placeholder="you@example.com or 9876543210"
             />
           </div>
