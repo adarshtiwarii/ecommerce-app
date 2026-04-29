@@ -1,4 +1,4 @@
-// src/components/auth/Login.js
+// src/components/auth/Login.js (updated)
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -76,40 +76,42 @@ function Login() {
         <h2 className="text-2xl font-light text-center text-white mb-6">Welcome Back</h2>
 
         {message.text && (
-          <div
-            className={`mb-4 p-3 rounded-xl text-center text-sm ${
-              message.type === 'success'
-                ? 'bg-green-900/40 border border-neon-green text-neon-green'
-                : 'bg-red-900/40 border border-red-500 text-red-400'
-            }`}
-          >
+          <div className={`mb-4 p-3 rounded-xl text-center text-sm ${
+            message.type === 'success'
+              ? 'bg-green-900/40 border border-neon-green text-neon-green'
+              : 'bg-red-900/40 border border-red-500 text-red-400'
+          }`}>
             {message.text}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-light text-gray-300 mb-1">
+            <label htmlFor="emailOrPhone" className="block text-sm font-light text-gray-300 mb-1">
               Email or Phone Number
             </label>
             <input
               type="text"
+              id="emailOrPhone"
               name="emailOrPhone"
               value={formData.emailOrPhone}
               onChange={handleChange}
               required
+              autoComplete="username"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 hover:border-neon-green/60"
               placeholder="you@example.com or 9876543210"
             />
           </div>
           <div className="relative">
-            <label className="block text-sm font-light text-gray-300 mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm font-light text-gray-300 mb-1">Password</label>
             <input
               type={showPassword ? 'text' : 'password'}
+              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
+              autoComplete="current-password"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 pr-10"
               placeholder="Password"
             />

@@ -1,4 +1,4 @@
-// src/components/Register.js
+// src/components/auth/Register.js (updated)
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -27,7 +27,6 @@ function Register() {
     setLoading(true);
     setMessage({ text: '', type: '' });
 
-    // Client-side validations
     if (formData.password !== formData.confirmPassword) {
       setMessage({ text: 'Passwords do not match!', type: 'error' });
       setLoading(false);
@@ -56,7 +55,6 @@ function Register() {
           password: '',
           confirmPassword: '',
         });
-        // Auto‑redirect to login after 2 seconds
         setTimeout(() => navigate('/login'), 2000);
       } else {
         setMessage({ text: data || 'Registration failed. Please try again.', type: 'error' });
@@ -79,59 +77,64 @@ function Register() {
         <h2 className="text-2xl font-light text-center text-white mb-6">Create Account</h2>
 
         {message.text && (
-          <div
-            className={`mb-4 p-3 rounded-xl text-center text-sm ${
-              message.type === 'success'
-                ? 'bg-green-900/40 border border-neon-green text-neon-green'
-                : 'bg-red-900/40 border border-red-500 text-red-400'
-            }`}
-          >
+          <div className={`mb-4 p-3 rounded-xl text-center text-sm ${
+            message.type === 'success'
+              ? 'bg-green-900/40 border border-neon-green text-neon-green'
+              : 'bg-red-900/40 border border-red-500 text-red-400'
+          }`}>
             {message.text}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-light text-gray-300 mb-1">Full Name</label>
+            <label htmlFor="fullName" className="block text-sm font-light text-gray-300 mb-1">Full Name</label>
             <input
               type="text"
+              id="fullName"
               name="fullName"
               value={formData.fullName}
               onChange={handleChange}
               required
+              autoComplete="name"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 hover:border-neon-green/60"
               placeholder="Adarsh Tiwari"
             />
           </div>
           <div>
-            <label className="block text-sm font-light text-gray-300 mb-1">Email</label>
+            <label htmlFor="email" className="block text-sm font-light text-gray-300 mb-1">Email</label>
             <input
               type="email"
+              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
+              autoComplete="email"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 hover:border-neon-green/60"
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-light text-gray-300 mb-1">Phone Number</label>
+            <label htmlFor="phoneNumber" className="block text-sm font-light text-gray-300 mb-1">Phone Number</label>
             <input
               type="tel"
+              id="phoneNumber"
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
               required
               pattern="[0-9]{10}"
               maxLength="10"
+              autoComplete="tel"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 hover:border-neon-green/60"
               placeholder="9876543210"
             />
           </div>
           <div>
-            <label className="block text-sm font-light text-gray-300 mb-1">Gender</label>
+            <label htmlFor="gender" className="block text-sm font-light text-gray-300 mb-1">Gender</label>
             <select
+              id="gender"
               name="gender"
               value={formData.gender}
               onChange={handleChange}
@@ -145,14 +148,16 @@ function Register() {
             </select>
           </div>
           <div className="relative">
-            <label className="block text-sm font-light text-gray-300 mb-1">Password</label>
+            <label htmlFor="password" className="block text-sm font-light text-gray-300 mb-1">Password</label>
             <input
               type={showPassword ? 'text' : 'password'}
+              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               required
               minLength="6"
+              autoComplete="new-password"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 pr-10"
               placeholder="Min 6 characters"
             />
@@ -165,13 +170,15 @@ function Register() {
             </button>
           </div>
           <div className="relative">
-            <label className="block text-sm font-light text-gray-300 mb-1">Confirm Password</label>
+            <label htmlFor="confirmPassword" className="block text-sm font-light text-gray-300 mb-1">Confirm Password</label>
             <input
               type={showConfirmPassword ? 'text' : 'password'}
+              id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
               required
+              autoComplete="off"
               className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 pr-10"
               placeholder="Confirm your password"
             />

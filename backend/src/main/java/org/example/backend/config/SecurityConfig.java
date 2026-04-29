@@ -19,7 +19,6 @@ public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
 
-    // Constructor injection – Spring will autowire the JwtRequestFilter bean
     public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
     }
@@ -34,12 +33,17 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Login/Register — bina token ke allow
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Products GET — publicly visible
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
+                        // Baaki sab — authenticated hona chahiye
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }
