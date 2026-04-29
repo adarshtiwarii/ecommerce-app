@@ -11,7 +11,6 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Load saved credentials if "Remember me" was checked before
   useEffect(() => {
     const savedEmail = localStorage.getItem('savedEmail');
     const savedPassword = localStorage.getItem('savedPassword');
@@ -37,14 +36,11 @@ function Login() {
       });
       if (response.ok) {
         const data = await response.json();
-        // Store authentication data
         localStorage.setItem('token', data.token);
         localStorage.setItem('userEmail', data.email);
         if (data.fullName) localStorage.setItem('userName', data.fullName);
-        // Store role and userId (required for role‑based UI)
         if (data.role) localStorage.setItem('userRole', data.role);
         if (data.userId) localStorage.setItem('userId', data.userId);
-        // Handle "Remember me"
         if (rememberMe) {
           localStorage.setItem('savedEmail', formData.emailOrPhone);
           localStorage.setItem('savedPassword', formData.password);
@@ -53,7 +49,6 @@ function Login() {
           localStorage.removeItem('savedPassword');
         }
         setMessage({ text: '✅ Login successful! Redirecting...', type: 'success' });
-        // ✅ Redirect to home page
         setTimeout(() => navigate('/home'), 1500);
       } else {
         const errorMsg = await response.text();
@@ -103,7 +98,7 @@ function Login() {
               value={formData.emailOrPhone}
               onChange={handleChange}
               required
-              className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200"
+              className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-neon-green focus:ring-1 focus:ring-neon-green transition-all duration-200 hover:border-neon-green/60"
               placeholder="you@example.com or 9876543210"
             />
           </div>

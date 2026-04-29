@@ -15,7 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component   // ✅ This is required for Spring to detect it as a bean
+@Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -29,14 +29,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String requestPath = request.getRequestURI();
-        String method = request.getMethod();
 
-        // Skip JWT validation for public GET endpoints on /api/products
-        if (method.equalsIgnoreCase("GET") && requestPath.startsWith("/api/products")) {
-            chain.doFilter(request, response);
-            return;
-        }
-        // Skip for auth endpoints
+        // Skip token validation for public authentication endpoints
         if (requestPath.startsWith("/api/auth/")) {
             chain.doFilter(request, response);
             return;
