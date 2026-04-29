@@ -1,9 +1,9 @@
+// frontend/src/App.js
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
-import ProductGrid from './components/product/ProductGrid';
 import ProductDetail from './components/product/ProductDetail';
 import Cart from './components/cart/Cart';
 import Login from './components/auth/Login';
@@ -14,19 +14,7 @@ import Profile from './components/user/Profile';
 import Home from './components/Home';
 import ProtectedRoute from './components/ProtectedRoute';
 import Logout from './components/Logout';
-
-// Fallback product listing page for "/" (if you prefer)
-const ProductListing = () => {
-  const [products, setProducts] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  React.useEffect(() => {
-    fetch('http://localhost:8080/api/products?page=0&size=20')
-      .then(res => res.json())
-      .then(data => { setProducts(data.content); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
-  return <ProductGrid products={products} loading={loading} />;
-};
+import ProductListingPage from './pages/ProductListingPage';   // ✅ new import
 
 function App() {
   return (
@@ -34,9 +22,9 @@ function App() {
       <BrowserRouter basename="/ecommerce-app">
         <Navbar />
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<ProductListing />} />
-          <Route path="/search" element={<ProductListing />} />
+          {/* Public routes - product listing now uses dedicated page */}
+          <Route path="/" element={<ProductListingPage />} />
+          <Route path="/search" element={<ProductListingPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

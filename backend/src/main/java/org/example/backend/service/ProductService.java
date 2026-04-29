@@ -56,6 +56,10 @@ public class ProductService {
     public Page<Product> getProductsByCategory(String category, int page, int size) {
         return productRepository.findByCategoryAndEnabledTrue(category, PageRequest.of(page, size));
     }
+    //filter Product
+    public Page<Product> filterProducts(String category, Double minPrice, Double maxPrice, int page, int size) {
+        return productRepository.filterProducts(category, minPrice, maxPrice, PageRequest.of(page, size));
+    }
 
     // Delete product by ID
     public void deleteProduct(Long id) {
@@ -64,4 +68,5 @@ public class ProductService {
             productRepository.deleteById(id);
         }
     }
+
 }

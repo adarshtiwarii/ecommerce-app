@@ -142,4 +142,14 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.ok("Product deleted successfully");
     }
+    @GetMapping("/filter")
+    public ResponseEntity<Page<Product>> filterProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        Page<Product> products = productService.filterProducts(category, minPrice, maxPrice, page, size);
+        return ResponseEntity.ok(products);
+    }
 }

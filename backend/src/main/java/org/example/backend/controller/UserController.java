@@ -74,7 +74,7 @@ public class UserController {
 
     // ✅ TEMPORARY: Create Admin account (use once, then disable)
     @PostMapping("/create-admin")
-    public ResponseEntity<?> createAdmin() {
+    public ResponseEntity<?> Admin() {
         if (userRepository.existsByEmail("adarsht072@gmail.com")) {
             return ResponseEntity.badRequest().body("Admin already exists!");
         }
