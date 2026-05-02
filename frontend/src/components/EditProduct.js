@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaSpinner } from 'react-icons/fa';
-import { getAuthHeaders } from '../utils/auth';
+import api from '../utils/api';
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -21,16 +20,15 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/products/${id}`);
-        if (!res.ok) throw new Error('Product not found');
-        const data = await res.json();
+        const res = await api.get(`/products/${id}`);
+        const p = res.data;
         setForm({
-          name: data.name || '',
-          description: data.description || '',
-          price: data.price,
-          stockQuantity: data.stockQuantity,
-          imageUrl: data.imageUrl || '',
-          category: data.category || '',
+          name: p.name || '',
+          description: p.description || '',
+          price: p.price,
+          stockQuantity: p.stockQuantity,
+          imageUrl: p.imageUrl || '',
+          category: p.category || '',
         });
       } catch (err) {
         setError('Failed to load product');
@@ -41,9 +39,7 @@ const EditProduct = () => {
     fetchProduct();
   }, [id]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,97 +48,40 @@ const EditProduct = () => {
     const payload = {
       ...form,
       price: parseFloat(form.price),
-      stockQuantity: parseInt(form.stockQuantity, 10),
+      stockQuantity: parseInt(form.stockQuantity),
     };
     try {
-      const res = await fetch(`http://localhost:8080/api/products/${id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      });
-      if (res.ok) {
-        alert('Product updated successfully!');
-        navigate('/admin');
-      } else {
-        const msg = await res.text();
-        setError(msg || 'Update failed');
-      }
+      await api.put(`/products/${id}`, payload);
+      alert('Product updated successfully');
+      navigate('/admin');
     } catch (err) {
-      setError('Server error');
+      setError(err.response?.data?.message || 'Update failed');
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetchLoading) return <div className="text-center py-10 text-white">Loading product...</div>;
+  if (fetchLoading) return <div className="text-center py-10 text-cinematic-text">Loading product...</div>;
   if (error) return <div className="text-center py-10 text-red-400">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-forest-dark via-forest-deep to-black flex items-center justify-center px-4 py-8">
-      <div className="glass-card w-full max-w-2xl p-6 md:p-8 rounded-2xl">
-        <h2 className="text-2xl font-light text-white mb-6">Edit Product</h2>
-        {error && <div className="bg-red-900/40 text-red-400 p-2 rounded mb-4">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Product Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-2 text-white"
-          />
-          <textarea
-            name="description"
-            placeholder="Description"
-            value={form.description}
-            onChange={handleChange}
-            rows="3"
-            className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-2 text-white"
-          />
-          <input
-            type="number"
-            step="0.01"
-            name="price"
-            placeholder="Price"
-            value={form.price}
-            onChange={handleChange}
-            required
-            className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-2 text-white"
-          />
-          <input
-            type="number"
-            name="stockQuantity"
-            placeholder="Stock Quantity"
-            value={form.stockQuantity}
-            onChange={handleChange}
-            required
-            className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-2 text-white"
-          />
-          <input
-            type="text"
-            name="imageUrl"
-            placeholder="Image URL"
-            value={form.imageUrl}
-            onChange={handleChange}
-            className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-2 text-white"
-          />
-          <input
-            type="text"
-            name="category"
-            placeholder="Category"
-            value={form.category}
-            onChange={handleChange}
-            className="w-full bg-forest-surface/50 border border-neon-green/30 rounded-xl px-4 py-2 text-white"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-neon-green/20 hover:bg-neon-green/40 text-neon-green font-semibold py-2 rounded-xl transition flex items-center justify-center gap-2"
-          >
-            {loading ? <FaSpinner className="animate-spin" /> : 'Update Product'}
-          </button>
-        </form>
+    <div className="bg-cinematic-dark min-h-screen py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="bg-cinematic-card rounded-xl shadow-lg p-6">
+          <h1 className="text-2xl font-bold text-cinematic-text mb-6">Edit Product</h1>
+          {error && <div className="bg-red-900/30 border border-red-500 text-red-300 p-2 rounded mb-4">{error}</div>}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input type="text" name="name" value={form.name} onChange={handleChange} required className="w-full bg-gray-800 border border-cinematic-border rounded-lg px-4 py-2 text-white" />
+            <textarea name="description" value={form.description} onChange={handleChange} rows="3" className="w-full bg-gray-800 border border-cinematic-border rounded-lg px-4 py-2 text-white" />
+            <input type="number" step="0.01" name="price" value={form.price} onChange={handleChange} required className="w-full bg-gray-800 border border-cinematic-border rounded-lg px-4 py-2 text-white" />
+            <input type="number" name="stockQuantity" value={form.stockQuantity} onChange={handleChange} required className="w-full bg-gray-800 border border-cinematic-border rounded-lg px-4 py-2 text-white" />
+            <input type="text" name="imageUrl" value={form.imageUrl} onChange={handleChange} className="w-full bg-gray-800 border border-cinematic-border rounded-lg px-4 py-2 text-white" />
+            <input type="text" name="category" value={form.category} onChange={handleChange} className="w-full bg-gray-800 border border-cinematic-border rounded-lg px-4 py-2 text-white" />
+            <button type="submit" disabled={loading} className="w-full bg-cinematic-accent hover:opacity-90 text-white font-semibold py-2 rounded-lg transition">
+              {loading ? 'Updating...' : 'Update Product'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
