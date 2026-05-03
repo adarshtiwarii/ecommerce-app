@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000") // ✅ Frontend URL — production me change karna
 public class UserController {
 
     @Autowired
@@ -37,27 +37,50 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // ============================================================
+    // 📝 REGISTER
+    // ============================================================
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request, BindingResult bindingResult) {
+    public ResponseEntity<?> registerUser(
+            @Valid @RequestBody RegisterRequest request,
+            BindingResult bindingResult) {
+
+        // ✅ Validation errors check karo
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error ->
                     errors.put(error.getField(), error.getDefaultMessage()));
             return ResponseEntity.badRequest().body(errors);
         }
+
         try {
             User user = userService.registerUser(request);
+
+            // ✅ Password hash response me nahi aana chahiye
+            user.setPasswordHash(null);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
+    // ============================================================
+    // 🔐 LOGIN
+    // ============================================================
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            User user = userService.authenticateUser(loginRequest.getEmailOrPhone(), loginRequest.getPassword());
+            // ✅ Email ya Phone dono se authenticate hoga
+            User user = userService.authenticateUser(
+                    loginRequest.getEmailOrPhone(),
+                    loginRequest.getPassword()
+            );
+
+            // ✅ Role name automatically "ROLE_" prefix milega JwtUtil me
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+
+            // ✅ Response build karo
             LoginResponse response = new LoginResponse(
                     "Login successful",
                     user.getEmail(),
@@ -66,35 +89,53 @@ public class UserController {
                     token
             );
             response.setUserId(user.getUserId());
+
             return ResponseEntity.ok(response);
+
         } catch (RuntimeException e) {
+            // ❌ Wrong credentials
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
-    // ✅ TEMPORARY: Create Admin account (use once, then disable)
+    // ============================================================
+    // ⚠️ TEMPORARY — ADMIN CREATE (Production me DELETE karo)
+    // ============================================================
     @PostMapping("/create-admin")
-    public ResponseEntity<?> Admin() {
+    public ResponseEntity<?> createAdmin() {
+
+        // ✅ Already exist karta hai toh dobara mat banao
         if (userRepository.existsByEmail("adarsht072@gmail.com")) {
             return ResponseEntity.badRequest().body("Admin already exists!");
         }
+
         User admin = new User();
         admin.setFullName("Adarsh Tiwari");
         admin.setEmail("adarsht072@gmail.com");
         admin.setPhoneNumber("7007417650");
-        admin.setPasswordHash(passwordEncoder.encode("Adarsh@123"));
+        admin.setPasswordHash(passwordEncoder.encode("Adarsh@123")); // ✅ BCrypt hash hoga
         admin.setRole(User.Role.ADMIN);
         admin.setGender(User.Gender.MALE);
         userRepository.save(admin);
-        return ResponseEntity.ok("Admin created. Email: adarsht072@gmail.com, Password: Adarsh@123");
+
+        // ⚠️ Production me ye endpoint DELETE karo ya @Profile("dev") lagao
+        return ResponseEntity.ok(Map.of(
+                "message", "Admin created successfully",
+                "email", "adarsht072@gmail.com"
+                // ❌ Password response me mat bhejo — security risk
+        ));
     }
 
-    // ✅ TEMPORARY: Create Seller account (use once, then disable)
+    // ============================================================
+    // ⚠️ TEMPORARY — SELLER CREATE (Production me DELETE karo)
+    // ============================================================
     @PostMapping("/create-seller")
     public ResponseEntity<?> createSeller() {
+
         if (userRepository.existsByEmail("seller@example.com")) {
             return ResponseEntity.badRequest().body("Seller already exists!");
         }
+
         User seller = new User();
         seller.setFullName("Test Seller");
         seller.setEmail("seller@example.com");
@@ -103,10 +144,19 @@ public class UserController {
         seller.setRole(User.Role.SELLER);
         seller.setGender(User.Gender.MALE);
         userRepository.save(seller);
-        return ResponseEntity.ok("Seller created. Email: seller@example.com, Password: seller123");
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Seller created successfully",
+                "email", "seller@example.com"
+                // ❌ Password response me mat bhejo
+        ));
     }
 
-    // Exception handlers...
+    // ============================================================
+    // ❗ EXCEPTION HANDLERS
+    // ============================================================
+
+    // ✅ @Valid validation fail hone pe
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -115,11 +165,13 @@ public class UserController {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    // ✅ JSON parse error pe
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> handleNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest().body("Invalid request body: " + ex.getMessage());
     }
 
+    // ✅ Koi bhi unexpected error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

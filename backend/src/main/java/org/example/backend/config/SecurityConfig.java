@@ -33,11 +33,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Login/Register — bina token ke allow
+                        // ✅ Auth routes — token nahi chahiye
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Products GET — publicly visible
+                        // ✅ Products GET — public
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
-                        // Baaki sab — authenticated hona chahiye
+                        // ✅ Baaki sab authenticated — cart bhi
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

@@ -1,9 +1,15 @@
 package org.example.backend.config;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,28 +22,31 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // ✅ application.properties se inject ho raha hai — hardcoded nahi
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
+
     private final SecretKey SECRET_KEY;
     private final long EXPIRATION_TIME;
 
-    // Constructor injection — @Value yahan best practice hai
     public JwtUtil(
             @Value("${app.jwtSecret}") String secret,
             @Value("${app.jwtExpirationMs}") long expirationMs
     ) {
-        // ✅ Plain string ko bytes mein convert karke key banao
         this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes());
         this.EXPIRATION_TIME = expirationMs;
     }
 
-    // Token generate karna — email aur role ke saath
+    // ============================================================
+    // 📦 TOKEN GENERATE KARNA
+    // ============================================================
+
     public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", role);
+        // ✅ FIX — sirf "ADMIN" store karo, ROLE_ prefix mat lagao
+        // JwtRequestFilter me "ROLE_" + role se SimpleGrantedAuthority banega
+        claims.put("role", role); // ADMIN / SELLER / CUSTOMER
         return createToken(claims, email);
     }
 
-    // JWT build karna
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -48,28 +57,27 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Token se email nikalna
+    // ============================================================
+    // 📖 TOKEN SE DATA NIKALNA
+    // ============================================================
+
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // Token se role nikalna
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
-    // Token se expiry date nikalna
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // Generic claim extractor
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    // JWT parse karna — same key use hogi jo generate mein use hui
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
@@ -78,14 +86,33 @@ public class JwtUtil {
                 .getBody();
     }
 
-    // Token expire hua hai ya nahi check karna
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    // ============================================================
+    // ✅ TOKEN VALIDATE KARNA
+    // ============================================================
+
+    public Boolean validateToken(String token, String email) {
+        try {
+            final String extractedEmail = extractEmail(token);
+            return extractedEmail.equals(email) && !isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            logger.warn("JWT expired: {}", e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            logger.warn("JWT unsupported: {}", e.getMessage());
+        } catch (MalformedJwtException e) {
+            logger.warn("JWT malformed: {}", e.getMessage());
+        } catch (SignatureException e) {
+            logger.warn("JWT signature invalid: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.warn("JWT empty/null: {}", e.getMessage());
+        }
+        return false;
     }
 
-    // Token valid hai ya nahi
-    public Boolean validateToken(String token, String email) {
-        final String extractedEmail = extractEmail(token);
-        return (extractedEmail.equals(email) && !isTokenExpired(token));
+    // ============================================================
+    // 🕐 EXPIRY CHECK
+    // ============================================================
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 }
