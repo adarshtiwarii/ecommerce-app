@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  FiShoppingCart, FiUser, FiSearch, FiMenu, FiX, FiHeart, FiLogOut,
-  FiHome, FiMonitor, FiSmartphone, FiTablet, FiGrid, FiUser as FiUserIcon, 
-  FiUsers, FiTool, FiHome as FiHomeFurniture, FiSmile
+import {
+  FiShoppingCart, FiUser, FiSearch, FiMenu, FiX, FiHeart, FiLogOut, FiPackage,
+  FiGrid, FiMonitor, FiSmartphone, FiHome, FiTool, FiSmile
 } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
+
+const categories = [
+  { name: 'All', link: '/', icon: FiGrid },
+  { name: 'Electronics', link: '/category/Electronics', icon: FiMonitor },
+  { name: 'Mobiles', link: '/category/Electronics', icon: FiSmartphone },
+  { name: 'Fashion', link: '/category/Fashion', icon: FiUser },
+  { name: 'Home', link: '/category/Home', icon: FiHome },
+  { name: 'Appliances', link: '/category/Appliances', icon: FiTool },
+  { name: 'Beauty', link: '/category/Beauty', icon: FiSmile },
+];
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,157 +25,103 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    const q = searchQuery.trim();
+    if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
   };
 
-  const navCategories = [
-    { name: 'For You', link: '/', icon: FiHome },
-    { name: 'Electronics', link: '/category/Electronics', icon: FiMonitor },
-    { name: 'Mobiles', link: '/category/Electronics', icon: FiSmartphone },
-    { name: 'Laptops', link: '/category/Electronics', icon: FiTablet },
-    { name: 'Fashion', link: '/category/Fashion', icon: FiGrid },
-    { name: 'Men', link: '/category/Fashion', icon: FiUserIcon },
-    { name: 'Women', link: '/category/Fashion', icon: FiUsers },
-    { name: 'Appliances', link: '/category/Appliances', icon: FiTool },
-    { name: 'Home & Furniture', link: '/category/Home', icon: FiHomeFurniture },
-    { name: 'Beauty', link: '/category/Beauty', icon: FiSmile },
-  ];
-
   return (
-    <nav className="bg-cinematic-dark border-b border-cinematic-border sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center h-16 gap-4">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <div className="text-white font-bold">
-              <span className="text-2xl tracking-tight text-cinematic-accent">EcoMart</span>
-              <div className="flex items-center gap-1 text-xs text-cinematic-text-muted">
-                <span className="italic">Shop</span>
-                <span className="italic">Responsibly</span>
-                <span className="text-cinematic-accent">🌿</span>
-              </div>
-            </div>
+    <header className="sticky top-0 z-50 shadow-sm">
+      <div className="bg-orange-500 text-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 flex items-center gap-3">
+          <Link to="/" className="shrink-0 leading-tight">
+            <div className="font-black text-xl tracking-tight">EcoMart</div>
+            <div className="text-[10px] text-orange-100 -mt-1">Explore Plus</div>
           </Link>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl hidden sm:flex">
-            <div className="flex w-full bg-gray-800 rounded-full overflow-hidden border border-cinematic-border focus-within:ring-2 focus-within:ring-cinematic-accent">
+          <form onSubmit={handleSearch} className="hidden sm:flex flex-1 max-w-2xl">
+            <div className="flex w-full bg-white rounded-sm overflow-hidden shadow-sm">
               <input
-                type="text"
-                placeholder="Search for products..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="flex-1 px-5 py-2.5 text-sm bg-gray-800 text-white placeholder-gray-400 outline-none"
+                placeholder="Search for products, brands and more"
+                className="flex-1 px-4 py-2 text-sm text-gray-800 outline-none"
               />
-              <button type="submit" className="px-4 text-cinematic-accent hover:text-white transition">
-                <FiSearch size={20} />
-              </button>
+              <button type="submit" className="px-4 text-orange-500 hover:bg-orange-50"><FiSearch size={20} /></button>
             </div>
           </form>
 
-          {/* Right Icons with Text Labels */}
-          <div className="flex items-center gap-4 ml-auto">
-            <div className="relative flex items-center">
-              <button onClick={() => setShowUserMenu(!showUserMenu)} className="flex items-center gap-1 text-cinematic-text hover:text-cinematic-accent transition">
-                <FiUser size={20} />
-                <span className="text-sm font-medium hidden sm:inline">Account</span>
+          <nav className="ml-auto flex items-center gap-3 sm:gap-5 text-sm font-semibold">
+            <div className="relative">
+              <button onClick={() => setShowUserMenu(v => !v)} className="flex items-center gap-1 hover:text-orange-100">
+                <FiUser size={19} /> <span className="hidden sm:inline">{user ? user.name || 'Account' : 'Login'}</span>
               </button>
               {showUserMenu && (
-                <div className="absolute right-0 top-10 bg-cinematic-card rounded-lg shadow-xl w-48 z-50 border border-cinematic-border">
+                <div className="absolute right-0 top-9 w-56 bg-white text-gray-800 rounded-sm shadow-xl border z-50">
                   {!user ? (
-                    <div className="p-4">
-                      <p className="text-sm text-cinematic-text-muted mb-2">New Customer?</p>
-                      <Link to="/login" onClick={() => setShowUserMenu(false)} className="block w-full text-center bg-cinematic-accent text-white py-2 rounded text-sm font-medium mb-2 hover:opacity-90 transition">Sign Up</Link>
-                      <Link to="/login" onClick={() => setShowUserMenu(false)} className="block w-full text-center border border-cinematic-accent text-cinematic-accent py-2 rounded text-sm font-medium hover:bg-cinematic-accent/10 transition">Login</Link>
+                    <div className="p-3">
+                      <div className="flex items-center justify-between text-sm mb-3">
+                        <span>New customer?</span>
+                        <Link to="/login" onClick={() => setShowUserMenu(false)} className="text-orange-500 font-bold">Sign Up</Link>
+                      </div>
+                      <Link to="/login" onClick={() => setShowUserMenu(false)} className="block bg-orange-500 text-white text-center py-2 rounded-sm font-bold">Login</Link>
                     </div>
                   ) : (
-                    <div>
-                      <div className="p-3 border-b border-cinematic-border">
-                        <p className="font-medium text-white">{user.name}</p>
-                        <p className="text-xs text-cinematic-text-muted">{user.email}</p>
-                        <p className="text-xs text-cinematic-accent mt-1">Role: {user.role}</p>
+                    <div className="py-1">
+                      <div className="px-4 py-3 border-b">
+                        <div className="font-bold">{user.name}</div>
+                        <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                        <div className="text-xs text-orange-500 mt-1">{user.role}</div>
                       </div>
-                      {user.role === 'ADMIN' && <Link to="/admin" onClick={() => setShowUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-800 text-cinematic-text"><FiUser size={14} /> Admin Panel</Link>}
-                      {user.role === 'SELLER' && <Link to="/seller" onClick={() => setShowUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-800 text-cinematic-text"><FiUser size={14} /> Seller Dashboard</Link>}
-                      <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-800 text-cinematic-text"><FiHeart size={14} /> Wishlist</Link>
-                      <button onClick={logout} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-800 w-full text-red-400"><FiLogOut size={14} /> Logout</button>
+                      {user.role === 'ADMIN' && <Link to="/admin" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Admin Dashboard</Link>}
+                      <Link to="/orders" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">My Orders</Link>
+                      <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Wishlist</Link>
+                      <button onClick={logout} className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50 flex items-center gap-2"><FiLogOut /> Logout</button>
                     </div>
                   )}
                 </div>
               )}
             </div>
 
-            <Link to="/wishlist" className="flex items-center gap-1 text-cinematic-text hover:text-cinematic-accent transition">
-              <FiHeart size={20} />
-              <span className="text-sm font-medium hidden sm:inline">Wishlist</span>
+            <Link to="/wishlist" className="hidden md:flex items-center gap-1 hover:text-orange-100"><FiHeart /> Wishlist</Link>
+            {user && <Link to="/orders" className="hidden md:flex items-center gap-1 hover:text-orange-100"><FiPackage /> Orders</Link>}
+            <Link to="/cart" className="relative flex items-center gap-1 hover:text-orange-100">
+              <FiShoppingCart size={20} /> <span className="hidden sm:inline">Cart</span>
+              {totalItems > 0 && <span className="absolute -top-2 -right-3 bg-yellow-400 text-orange-900 text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-black">{totalItems}</span>}
             </Link>
-
-            <Link to="/cart" className="relative flex items-center gap-1 text-cinematic-text hover:text-cinematic-accent transition">
-              <FiShoppingCart size={20} />
-              <span className="text-sm font-medium hidden sm:inline">Cart</span>
-              {totalItems > 0 && (
-                <span className="absolute -top-2 -right-3 bg-cinematic-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
-
-            <button className="sm:hidden text-cinematic-text" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-            </button>
+            <button className="sm:hidden" onClick={() => setMobileMenuOpen(v => !v)}>{mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}</button>
+          </nav>
+        </div>
+        <form onSubmit={handleSearch} className="sm:hidden px-3 pb-3">
+          <div className="flex bg-white rounded-sm overflow-hidden">
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search products" className="flex-1 px-3 py-2 text-sm text-gray-800 outline-none" />
+            <button className="px-3 text-orange-500"><FiSearch /></button>
           </div>
-        </div>
-
-        <div className="sm:hidden pb-2">
-          <form onSubmit={handleSearch} className="flex bg-gray-800 rounded-full overflow-hidden border border-cinematic-border">
-            <input type="text" placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="flex-1 px-4 py-2 text-sm bg-gray-800 text-white outline-none" />
-            <button type="submit" className="px-3 text-cinematic-accent"><FiSearch size={18} /></button>
-          </form>
-        </div>
+        </form>
       </div>
 
-      {/* Desktop Category Bar – text "For You" will appear here */}
-      <div className="bg-cinematic-card border-t border-cinematic-border hidden sm:block">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-6 overflow-x-auto py-2">
-            {navCategories.map(cat => {
-              const Icon = cat.icon;
-              return (
-                <Link
-                  key={cat.name}
-                  to={cat.link}
-                  className="flex items-center gap-2 py-2 text-sm font-semibold text-cinematic-text hover:text-cinematic-accent whitespace-nowrap transition drop-shadow-sm"
-                >
-                  <Icon size={16} className="text-cinematic-accent" />
-                  {cat.name}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Category Menu */}
-      {mobileMenuOpen && (
-        <div className="sm:hidden bg-cinematic-card border-t border-cinematic-border">
-          {navCategories.map(cat => {
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 flex items-center gap-6 overflow-x-auto h-11">
+          {categories.map(cat => {
             const Icon = cat.icon;
-            return (
-              <Link
-                key={cat.name}
-                to={cat.link}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-cinematic-text hover:bg-gray-800 border-b border-cinematic-border"
-              >
-                <Icon size={18} className="text-cinematic-accent" />
-                {cat.name}
-              </Link>
-            );
+            return <Link key={cat.name} to={cat.link} className="flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-gray-700 hover:text-orange-500"><Icon size={16} /> {cat.name}</Link>;
+          })}
+        </div>
+      </div>
+
+      {mobileMenuOpen && (
+        <div className="sm:hidden bg-white border-b shadow">
+          {user && <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700 font-semibold"><FiPackage /> My Orders</Link>}
+          {categories.map(cat => {
+            const Icon = cat.icon;
+            return <Link key={cat.name} to={cat.link} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700"><Icon /> {cat.name}</Link>;
           })}
         </div>
       )}
-    </nav>
+    </header>
   );
 };
 
 export default Navbar;
+
+
+

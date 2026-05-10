@@ -5,14 +5,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>   <!-- Corrected version -->
+        <version>3.2.5</version>
         <relativePath/>
     </parent>
     <groupId>org.example</groupId>
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>backend</name>
-    <description>backend</description>
+    <description>E-commerce Backend API</description>
 
     <properties>
         <java.version>17</java.version>
@@ -34,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>   <!-- Changed from webmvc -->
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- DevTools & Database -->
@@ -57,7 +57,21 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- JWT Dependencies ( Now inside <dependencies>) -->
+        <!-- Cloudinary -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.38.0</version>
+        </dependency>
+
+        <!-- Dotenv -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -76,7 +90,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Test Dependencies-->
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -95,6 +109,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- 🔥 MAIN CLASS ADDED - FIXES mvn spring-boot:run -->
+                    <mainClass>org.example.backend.BackendApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

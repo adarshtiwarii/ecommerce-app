@@ -74,6 +74,11 @@ public class UserService {
         }
 
         // ✅ Password match karo — BCrypt compare karega
+        if (!user.isEnabled()) {
+            user.setEnabled(true);
+            userRepository.save(user);
+        }
+
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
             throw new RuntimeException("Invalid password");
         }

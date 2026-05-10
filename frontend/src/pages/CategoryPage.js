@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../utils/api';
 import ProductCard from '../components/Product/ProductCard';
@@ -11,11 +11,13 @@ const CategoryPage = () => {
 
   useEffect(() => {
     const fetchCategory = async () => {
+      setLoading(true);
       try {
-        const res = await api.get(`/products/category/${category}?page=0&size=50`);
-        setProducts(res.data.content);
+        const res = await api.get(`/products/category/${encodeURIComponent(category)}?page=0&size=80`);
+        setProducts(res.data?.content || []);
       } catch (err) {
         console.error('Failed to fetch category', err);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -23,49 +25,41 @@ const CategoryPage = () => {
     fetchCategory();
   }, [category]);
 
-  const filtered = [...products];
-  switch (sortBy) {
-    case 'price-low': filtered.sort((a,b)=>a.price-b.price); break;
-    case 'price-high': filtered.sort((a,b)=>b.price-a.price); break;
-    case 'rating': filtered.sort((a,b)=>b.rating-a.rating); break;
-    case 'discount': filtered.sort((a,b)=>b.discount-a.discount); break;
-    default: break;
-  }
+  const sorted = useMemo(() => {
+    const list = [...products];
+    switch (sortBy) {
+      case 'price-low': return list.sort((a, b) => a.price - b.price);
+      case 'price-high': return list.sort((a, b) => b.price - a.price);
+      case 'rating': return list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      case 'discount': return list.sort((a, b) => ((b.mrp || b.price) - b.price) - ((a.mrp || a.price) - a.price));
+      default: return list;
+    }
+  }, [products, sortBy]);
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen text-cinematic-text text-lg font-bold">Loading products...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" /></div>;
 
   return (
-    <div className="bg-cinematic-dark min-h-screen py-6">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="bg-cinematic-card rounded-lg shadow-md p-4 mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-cinematic-text capitalize">
-            {category} <span className="text-cinematic-text-muted text-sm font-normal">({filtered.length} items)</span>
-          </h1>
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            className="bg-gray-800 border border-cinematic-border rounded-lg px-3 py-1.5 text-sm text-cinematic-text focus:outline-none focus:ring-2 focus:ring-cinematic-accent"
-          >
-            <option value="relevance">Relevance</option>
+    <div className="bg-gray-100 min-h-screen py-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="bg-white border rounded-sm shadow-sm p-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 capitalize">{category}</h1>
+            <p className="text-sm text-gray-500">{sorted.length} products available</p>
+          </div>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded-sm px-3 py-2 text-sm bg-white">
+            <option value="relevance">Sort by Relevance</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
             <option value="rating">Rating</option>
             <option value="discount">Discount</option>
           </select>
         </div>
-        {filtered.length === 0 ? (
-          <div className="bg-cinematic-card rounded-lg p-12 text-center">
-            <p className="text-4xl mb-2">📦</p>
-            <p className="text-cinematic-text font-medium">No products found in this category.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filtered.map(p => <ProductCard key={p.id} product={p} />)}
-          </div>
-        )}
+        {sorted.length === 0 ? <div className="bg-white border rounded-sm p-12 text-center text-gray-500">No products found in this category.</div> : <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{sorted.map(p => <ProductCard key={p.id} product={p} />)}</div>}
       </div>
     </div>
   );
 };
 
 export default CategoryPage;
+
+

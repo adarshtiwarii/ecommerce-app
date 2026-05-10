@@ -19,6 +19,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Utility class for JWT (JSON Web Token) operations.
+ * Handles token generation, extraction of claims, and validation.
+ */
 @Component
 public class JwtUtil {
 
@@ -27,26 +31,48 @@ public class JwtUtil {
     private final SecretKey SECRET_KEY;
     private final long EXPIRATION_TIME;
 
+    /**
+     * Constructor – reads the secret key and expiration time from application.properties.
+     * The secret must be at least 32 characters (256 bits) for HS256 algorithm.
+     *
+     * @param secret       JWT signing secret (from app.jwtSecret)
+     * @param expirationMs token validity in milliseconds (from app.jwtExpirationMs)
+     */
     public JwtUtil(
             @Value("${app.jwtSecret}") String secret,
             @Value("${app.jwtExpirationMs}") long expirationMs
     ) {
+        // Convert the string secret into a SecretKey object suitable for HMAC-SHA256
         this.SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes());
         this.EXPIRATION_TIME = expirationMs;
     }
 
     // ============================================================
-    // 📦 TOKEN GENERATE KARNA
+    // 📦 TOKEN GENERATION
     // ============================================================
 
+    /**
+     * Generates a JWT token for the given email and role.
+     * The role is stored as a claim without the "ROLE_" prefix; the JwtRequestFilter
+     * will add the prefix later to create a Spring Security authority.
+     *
+     * @param email user's email (subject)
+     * @param role  user's role (ADMIN, SELLER, CUSTOMER)
+     * @return compact JWT string
+     */
     public String generateToken(String email, String role) {
         Map<String, Object> claims = new HashMap<>();
-        // ✅ FIX — sirf "ADMIN" store karo, ROLE_ prefix mat lagao
-        // JwtRequestFilter me "ROLE_" + role se SimpleGrantedAuthority banega
-        claims.put("role", role); // ADMIN / SELLER / CUSTOMER
+        claims.put("role", role);   // store raw role (no "ROLE_" prefix)
         return createToken(claims, email);
     }
 
+    /**
+     * Builds the actual JWT token with claims, subject, issued time, expiry, and signature.
+     *
+     * @param claims  additional claims (e.g., role)
+     * @param subject the email address
+     * @return signed JWT string
+     */
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -58,26 +84,59 @@ public class JwtUtil {
     }
 
     // ============================================================
-    // 📖 TOKEN SE DATA NIKALNA
+    // 📖 TOKEN CLAIM EXTRACTION
     // ============================================================
 
+    /**
+     * Extracts the email (subject) from the token.
+     *
+     * @param token JWT string
+     * @return email address
+     */
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    /**
+     * Extracts the role claim from the token.
+     *
+     * @param token JWT string
+     * @return role (e.g., "ADMIN")
+     */
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
+    /**
+     * Extracts the expiration date from the token.
+     *
+     * @param token JWT string
+     * @return expiration Date
+     */
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    /**
+     * Generic method to extract any claim using a resolver function.
+     *
+     * @param token          JWT string
+     * @param claimsResolver function that maps Claims to desired value
+     * @param <T>            type of the result
+     * @return extracted claim value
+     */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
+    /**
+     * Parses the token and retrieves all claims.
+     * Throws various exceptions if the token is invalid (handled in validateToken).
+     *
+     * @param token JWT string
+     * @return Claims object
+     */
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
@@ -87,9 +146,19 @@ public class JwtUtil {
     }
 
     // ============================================================
-    // ✅ TOKEN VALIDATE KARNA
+    // ✅ TOKEN VALIDATION
     // ============================================================
 
+    /**
+     * Validates the token by checking:
+     * 1. The extracted email matches the expected email.
+     * 2. The token is not expired.
+     * Catches all possible JWT exceptions and logs them.
+     *
+     * @param token JWT string
+     * @param email expected user email
+     * @return true if token is valid, false otherwise
+     */
     public Boolean validateToken(String token, String email) {
         try {
             final String extractedEmail = extractEmail(token);
@@ -112,6 +181,12 @@ public class JwtUtil {
     // 🕐 EXPIRY CHECK
     // ============================================================
 
+    /**
+     * Checks if the token has expired.
+     *
+     * @param token JWT string
+     * @return true if expired, false otherwise
+     */
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }

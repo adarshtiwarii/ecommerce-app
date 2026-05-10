@@ -1,8 +1,14 @@
 package org.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
+/**
+ * OrderItem Entity - T043: Order item as part of Order
+ * T044: DB relationship - Many-to-One with Order and Product
+ * T046: Stores price snapshot at purchase time (priceAtPurchase)
+ */
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
@@ -11,17 +17,25 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderItemId;
 
+    // ✅ Option 1: Store only productId (no direct Product entity link)
+    // Agar aage product details (name, image) chahiye to alag se fetch karna hoga.
     private Long productId;
 
     private Integer quantity;
 
+    // ✅ T046: Price snapshot -  product ki current price nahi, jo price thi order ke time
     private BigDecimal priceAtPurchase;
 
+    /**
+     * T044: Many-to-One relationship with Order
+     * Yeh field order table ki foreign key (order_id) banata hai
+     */
     @ManyToOne
     @JoinColumn(name = "order_id")
-    private Order order;   // ✅ Add this field
+    @JsonIgnore
+    private Order order;
 
-    // Default constructor
+    // Default constructor (JPA required)
     public OrderItem() {}
 
     // Constructor with fields
@@ -31,7 +45,7 @@ public class OrderItem {
         this.priceAtPurchase = priceAtPurchase;
     }
 
-    // Getters and Setters
+    // ========== Getters and Setters ==========
     public Long getOrderItemId() {
         return orderItemId;
     }
@@ -69,9 +83,9 @@ public class OrderItem {
     }
 
     public void setOrder(Order order) {
-        this.order = order;   // ✅ now sets the field
+        this.order = order;
     }
 
-    public void setOrderId(Long orderId) {
-    }
+    //  Remove this method - not needed and does nothing
+    // public void setOrderId(Long orderId) { }
 }

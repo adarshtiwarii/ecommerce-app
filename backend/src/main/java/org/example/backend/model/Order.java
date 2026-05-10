@@ -6,33 +6,48 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Order Entity - T043: Create Order entity
+ * T044: Design DB relationships
+ *
+ * Yeh table 'orders' se map hoti hai database mein.
+ * Har order ek user se belong karti hai (userId field se relationship).
+ * Order ke multiple OrderItem hote hain (One-to-Many relationship).
+ */
 @Entity
 @Table(name = "orders")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long orderId;
+    private Long orderId;          // Primary key - auto increment
 
-    private Long userId;
+    // Yeh field User entity ki jagah simple foreign key store karta hai
+    // NOTE: Agar aage relationship @ManyToOne banana chahe to User object bana sakte ho
+    private Long userId;           // User ka ID (FK reference)
 
-    private LocalDateTime orderDate = LocalDateTime.now();
+    private LocalDateTime orderDate = LocalDateTime.now();   // Order place karne ka date/time
 
-    private BigDecimal totalAmount;
+    private BigDecimal totalAmount;   // T046: Total price calculated from cart items
 
-    private String status = "PENDING";
+    private String status = "PENDING";   // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
 
-    private String shippingAddress;
+    private String shippingAddress;      // Delivery address (Checkout se aayega)
 
-    private String paymentMethod;
+    private String paymentMethod;        // COD, CARD, UPI, etc.
 
+    /**
+     * T044: DB relationship - One-to-Many with OrderItem
+     * cascade = CascadeType.ALL: Order save/delete hone par items bhi save/delete honge
+     * orphanRemoval = true: Agar item list se hata diya to DB se bhi delete ho jayega
+     */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    // Default constructor (required by JPA)
+    // Default constructor (JPA ke liye mandatory)
     public Order() {}
 
-    // Constructor with essential fields
+    // Constructor with essential fields (optional)
     public Order(Long userId, BigDecimal totalAmount, String shippingAddress, String paymentMethod) {
         this.userId = userId;
         this.totalAmount = totalAmount;
@@ -40,7 +55,7 @@ public class Order {
         this.paymentMethod = paymentMethod;
     }
 
-    // Getters and Setters
+    // ==================== Getters and Setters ====================
     public Long getOrderId() {
         return orderId;
     }
@@ -105,13 +120,19 @@ public class Order {
         this.orderItems = orderItems;
     }
 
-    // Helper method to add an order item
+    // ==================== Helper Methods ====================
+    /**
+     * Helper method: Order mein naya item add karne ke liye
+     * Bidirectional relationship maintain karta hai
+     */
     public void addOrderItem(OrderItem item) {
         orderItems.add(item);
         item.setOrder(this);
     }
 
-    // Helper method to remove an order item
+    /**
+     * Helper method: Order se item remove karne ke liye
+     */
     public void removeOrderItem(OrderItem item) {
         orderItems.remove(item);
         item.setOrder(null);

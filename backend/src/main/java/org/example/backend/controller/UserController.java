@@ -12,17 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000") // ✅ Frontend URL — production me change karna
+@CrossOrigin(origins = "http://localhost:3000")  // ✅ Allows frontend (React) to call this API
 public class UserController {
 
     @Autowired
@@ -38,14 +41,14 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
     // ============================================================
-    // 📝 REGISTER
+    // 📝 REGISTER – Create a new user account
     // ============================================================
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
             @Valid @RequestBody RegisterRequest request,
             BindingResult bindingResult) {
 
-        // ✅ Validation errors check karo
+        // 1. Handle validation errors (e.g., missing fields, invalid email)
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error ->
@@ -55,10 +58,7 @@ public class UserController {
 
         try {
             User user = userService.registerUser(request);
-
-            // ✅ Password hash response me nahi aana chahiye
-            user.setPasswordHash(null);
-
+            user.setPasswordHash(null); // ✅ Remove password hash from response (security)
             return ResponseEntity.status(HttpStatus.CREATED).body(user);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -66,21 +66,19 @@ public class UserController {
     }
 
     // ============================================================
-    // 🔐 LOGIN
+    // 🔐 LOGIN – Authenticate user and return JWT token
     // ============================================================
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            // ✅ Email ya Phone dono se authenticate hoga
+            // 1. Validate credentials
             User user = userService.authenticateUser(
                     loginRequest.getEmailOrPhone(),
                     loginRequest.getPassword()
             );
-
-            // ✅ Role name automatically "ROLE_" prefix milega JwtUtil me
+            // 2. Generate JWT token (includes email and role)
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-
-            // ✅ Response build karo
+            // 3. Build response with user details and token
             LoginResponse response = new LoginResponse(
                     "Login successful",
                     user.getEmail(),
@@ -88,54 +86,86 @@ public class UserController {
                     user.getRole().toString(),
                     token
             );
-            response.setUserId(user.getUserId());
-
+            response.setUserId(user.getUserId());  // ✅ Frontend needs userId for cart, etc.
             return ResponseEntity.ok(response);
-
         } catch (RuntimeException e) {
-            // ❌ Wrong credentials
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 
     // ============================================================
-    // ⚠️ TEMPORARY — ADMIN CREATE (Production me DELETE karo)
+    // 📊 ADMIN – Get total number of registered users (for dashboard)
     // ============================================================
+    @GetMapping("/count")
+    @PreAuthorize("hasRole('ADMIN')")  // ✅ Only users with ADMIN role can access
+    public ResponseEntity<Long> getUserCount() {
+        long count = userRepository.count();  // JPA method – counts all users
+        return ResponseEntity.ok(count);
+        // Note: Returns plain number (e.g., 12). Frontend can read as res.data
+    }
+
+    // ============================================================
+    // ⚠️ TEMPORARY — Create admin account (use once, then disable in production)
+    // ============================================================
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        users.forEach(user -> user.setPasswordHash(null));
+        return ResponseEntity.ok(users);
+    }
+
+    @PatchMapping("/users/{id}/toggle")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id, Authentication authentication) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (authentication != null && authentication.getName().equalsIgnoreCase(user.getEmail())) {
+            return ResponseEntity.badRequest().body("You cannot deactivate your own account");
+        }
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of(
+                "message", user.isEnabled() ? "User activated" : "User deactivated",
+                "enabled", user.isEnabled()
+        ));
+    }
+
     @PostMapping("/create-admin")
     public ResponseEntity<?> createAdmin() {
-
-        // ✅ Already exist karta hai toh dobara mat banao
         if (userRepository.existsByEmail("adarsht072@gmail.com")) {
-            return ResponseEntity.badRequest().body("Admin already exists!");
+            User admin = userRepository.findByEmail("adarsht072@gmail.com")
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            admin.setEnabled(true);
+            userRepository.save(admin);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Admin already exists and has been activated",
+                    "email", "adarsht072@gmail.com"
+            ));
         }
-
         User admin = new User();
         admin.setFullName("Adarsh Tiwari");
         admin.setEmail("adarsht072@gmail.com");
         admin.setPhoneNumber("7007417650");
-        admin.setPasswordHash(passwordEncoder.encode("Adarsh@123")); // ✅ BCrypt hash hoga
+        admin.setPasswordHash(passwordEncoder.encode("Adarsh@123"));
         admin.setRole(User.Role.ADMIN);
         admin.setGender(User.Gender.MALE);
+        admin.setEnabled(true);
         userRepository.save(admin);
-
-        // ⚠️ Production me ye endpoint DELETE karo ya @Profile("dev") lagao
         return ResponseEntity.ok(Map.of(
                 "message", "Admin created successfully",
                 "email", "adarsht072@gmail.com"
-                // ❌ Password response me mat bhejo — security risk
         ));
     }
 
     // ============================================================
-    // ⚠️ TEMPORARY — SELLER CREATE (Production me DELETE karo)
+    // ⚠️ TEMPORARY — Create seller account (use once, then disable)
     // ============================================================
     @PostMapping("/create-seller")
     public ResponseEntity<?> createSeller() {
-
         if (userRepository.existsByEmail("seller@example.com")) {
             return ResponseEntity.badRequest().body("Seller already exists!");
         }
-
         User seller = new User();
         seller.setFullName("Test Seller");
         seller.setEmail("seller@example.com");
@@ -143,20 +173,19 @@ public class UserController {
         seller.setPasswordHash(passwordEncoder.encode("seller123"));
         seller.setRole(User.Role.SELLER);
         seller.setGender(User.Gender.MALE);
+        seller.setEnabled(true);
         userRepository.save(seller);
-
         return ResponseEntity.ok(Map.of(
                 "message", "Seller created successfully",
                 "email", "seller@example.com"
-                // ❌ Password response me mat bhejo
         ));
     }
 
     // ============================================================
-    // ❗ EXCEPTION HANDLERS
+    // ❗ GLOBAL EXCEPTION HANDLERS
     // ============================================================
 
-    // ✅ @Valid validation fail hone pe
+    // Handles validation failures from @Valid (e.g., @NotBlank, @Email)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -165,13 +194,13 @@ public class UserController {
         return ResponseEntity.badRequest().body(errors);
     }
 
-    // ✅ JSON parse error pe
+    // Handles malformed JSON (e.g., missing request body)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<?> handleNotReadable(HttpMessageNotReadableException ex) {
         return ResponseEntity.badRequest().body("Invalid request body: " + ex.getMessage());
     }
 
-    // ✅ Koi bhi unexpected error
+    // Catch-all for any other unexpected errors
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

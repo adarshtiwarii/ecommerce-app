@@ -1,3 +1,4 @@
+// src/context/AppContext.js
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import api from '../utils/api';
 
@@ -44,84 +45,98 @@ const cartReducer = (state, action) => {
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { cart: [] });
-  const [user, setUser] = useState(null);
+  const [user,     setUser]     = useState(null);
   const [wishlist, setWishlist] = useState([]);
 
-  // ✅ Page reload pe user aur cart restore karo
+  // ── Page reload pe user + cart restore ──────────────────
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const email = localStorage.getItem('userEmail');
-    const role = localStorage.getItem('userRole');
-    const name = localStorage.getItem('userName');
+    const token  = localStorage.getItem('token');
+    const email  = localStorage.getItem('userEmail');
+    const role   = localStorage.getItem('userRole');
+    const name   = localStorage.getItem('userName');
     const userId = localStorage.getItem('userId');
 
     if (token && email && userId) {
-      const numericUserId = Number(userId); // ✅ String → Number
+      const numericUserId = Number(userId);
       setUser({ email, role, name, id: numericUserId });
 
-      // ✅ Cart load karo
       api.get(`/cart?userId=${numericUserId}`)
         .then(res => dispatch({ type: 'SET_CART', payload: res.data }))
         .catch(err => console.error('Failed to load cart', err));
     }
   }, []);
 
-  // ✅ Login
+  // ── Login ────────────────────────────────────────────────
   const login = async (emailOrPhone, password) => {
     try {
       const res = await api.post('/auth/login', { emailOrPhone, password });
       const { token, email, fullName, role, userId } = res.data;
 
-      // ✅ Token aur user data save karo
-      localStorage.setItem('token', token);
+      localStorage.setItem('token',     token);
       localStorage.setItem('userEmail', email);
-      localStorage.setItem('userName', fullName);
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userId', String(userId));
+      localStorage.setItem('userName',  fullName);
+      localStorage.setItem('userRole',  role);
+      localStorage.setItem('userId',    String(userId));
 
-      const numericUserId = Number(userId); // ✅ Number rakho
+      const numericUserId = Number(userId);
       setUser({ email, role, name: fullName, id: numericUserId });
 
-      // ✅ Login ke baad cart load karo
       const cartRes = await api.get(`/cart?userId=${numericUserId}`);
       dispatch({ type: 'SET_CART', payload: cartRes.data });
 
-      return true;
+      return { success: true };
     } catch (err) {
-      console.error('Login failed', err);
-      return false;
+      console.error('Login failed:', err.response?.data);
+
+      // ✅ Exact backend error message return karo
+      const message =
+        err.response?.data?.message ||
+        err.response?.data ||
+        'Invalid email/phone or password';
+
+      return { success: false, message };
     }
   };
 
-  // ✅ Register
+  // ── Register ─────────────────────────────────────────────
   const register = async (userData) => {
     try {
       await api.post('/auth/register', userData);
-      return true;
+      return { success: true };
     } catch (err) {
-      console.error('Registration failed', err);
-      return false;
+      console.error('Registration failed:', err.response?.data);
+
+      // ✅ Backend ka exact error message capture karo
+      const message =
+        err.response?.data?.message ||          // { message: "Email already exists" }
+        err.response?.data?.error ||            // { error: "Bad Request" }
+        (typeof err.response?.data === 'string' // plain string response
+          ? err.response.data
+          : null) ||
+        'Registration failed. Please try again.';
+
+      return { success: false, message };
     }
   };
 
-  // ✅ Logout
-  const logout = () => {
-    localStorage.clear();
-    setUser(null);
-    dispatch({ type: 'CLEAR_CART' });
-    window.location.href = '/login';
-  };
+  // ── Logout ───────────────────────────────────────────────
+  // AppContext.js mein sirf logout function badlo
+const logout = () => {
+  localStorage.clear();
+  setUser(null);
+  dispatch({ type: 'CLEAR_CART' });
+  // ✅ Custom event fire karo — LogoutHandler sun ke /login pe navigate karega
+  window.dispatchEvent(new Event('app-logout'));
+};
 
-  // ✅ Cart me item add karo
+  // ── Add to Cart ──────────────────────────────────────────
   const addToCart = async (product, quantity = 1) => {
     if (!user) {
       alert('Please login to add items to cart');
       return;
     }
 
-    // ✅ FIX — productId sahi field se lo
     const productId = product.productId || product.id;
-
     if (!productId) {
       console.error('Product ID missing:', product);
       return;
@@ -129,7 +144,6 @@ export const AppProvider = ({ children }) => {
 
     try {
       await api.post(`/cart/add?userId=${user.id}&productId=${productId}&quantity=${quantity}`);
-      // ✅ Backend se fresh cart lo
       const updatedCart = await api.get(`/cart?userId=${user.id}`);
       dispatch({ type: 'SET_CART', payload: updatedCart.data });
     } catch (err) {
@@ -138,7 +152,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Cart se item remove karo
+  // ── Remove from Cart ─────────────────────────────────────
   const removeFromCart = async (productId) => {
     if (!user) return;
     try {
@@ -149,15 +163,13 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Quantity update karo
+  // ── Update Quantity ──────────────────────────────────────
   const updateQuantity = async (productId, quantity) => {
     if (!user) return;
-
     if (!productId) {
       console.error('productId is undefined in updateQuantity');
       return;
     }
-
     try {
       await api.put(`/cart/update?userId=${user.id}&productId=${productId}&quantity=${quantity}`);
       dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, quantity } });
@@ -166,7 +178,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Cart clear karo
+  // ── Clear Cart ───────────────────────────────────────────
   const clearCart = async () => {
     if (!user) return;
     try {
@@ -177,7 +189,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ✅ Wishlist
+  // ── Wishlist ─────────────────────────────────────────────
   const toggleWishlist = (productId) => {
     setWishlist(prev =>
       prev.includes(productId)
@@ -188,29 +200,17 @@ export const AppProvider = ({ children }) => {
 
   const isWishlisted = (productId) => wishlist.includes(productId);
 
-  // ✅ Cart totals
+  // ── Cart totals ──────────────────────────────────────────
   const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
-    <AppContext.Provider
-      value={{
-        user,
-        login,
-        register,
-        logout,
-        wishlist,
-        toggleWishlist,
-        isWishlisted,
-        cart: state.cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        totalPrice,
-      }}
-    >
+    <AppContext.Provider value={{
+      user, login, register, logout,
+      wishlist, toggleWishlist, isWishlisted,
+      cart: state.cart, addToCart, removeFromCart,
+      updateQuantity, clearCart, totalItems, totalPrice,
+    }}>
       {children}
     </AppContext.Provider>
   );

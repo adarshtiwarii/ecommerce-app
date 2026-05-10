@@ -2,6 +2,7 @@ package org.example.backend.service;
 
 import org.example.backend.dto.CartItemDTO;
 import org.example.backend.model.Cart;
+import org.example.backend.model.CartItem;
 import org.example.backend.model.Product;
 import org.example.backend.repository.CartRepository;
 import org.example.backend.repository.ProductRepository;
@@ -29,52 +30,94 @@ public class CartService {
         if (!product.isEnabled()) {
             throw new RuntimeException("Product is not available");
         }
-        // check if already in cart
-        Cart existing = cartRepository.findByUserIdAndProductId(userId, productId).orElse(null);
+
+        Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> {
+            Cart newCart = new Cart();
+            newCart.setUserId(userId);
+            return newCart;
+        });
+
+        CartItem existing = findCartItem(cart, productId);
         if (existing != null) {
             existing.setQuantity(existing.getQuantity() + quantity);
-            cartRepository.save(existing);
         } else {
-            Cart cartItem = new Cart(userId, productId, quantity);
-            cartRepository.save(cartItem);
+            CartItem cartItem = new CartItem();
+            cartItem.setProductId(productId);
+            cartItem.setQuantity(quantity);
+            cart.addItem(cartItem);
         }
+        cartRepository.save(cart);
     }
 
     @Transactional
     public void updateCartItemQuantity(Long userId, Long productId, Integer quantity) {
-        Cart cartItem = cartRepository.findByUserIdAndProductId(userId, productId)
-                .orElseThrow(() -> new RuntimeException("Item not in cart"));
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        CartItem cartItem = findCartItem(cart, productId);
+        if (cartItem == null) {
+            throw new RuntimeException("Item not in cart");
+        }
+
         if (quantity <= 0) {
-            cartRepository.delete(cartItem);
+            cart.removeItem(cartItem);
         } else {
             cartItem.setQuantity(quantity);
-            cartRepository.save(cartItem);
         }
+        cartRepository.save(cart);
     }
 
     @Transactional
     public void removeFromCart(Long userId, Long productId) {
-        cartRepository.deleteByUserIdAndProductId(userId, productId);
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        CartItem cartItem = findCartItem(cart, productId);
+        if (cartItem != null) {
+            cart.removeItem(cartItem);
+            cartRepository.save(cart);
+        }
     }
 
     public List<CartItemDTO> getCartItems(Long userId) {
-        List<Cart> cartItems = cartRepository.findByUserId(userId);
-        return cartItems.stream().map(cart -> {
-            Product product = productRepository.findById(cart.getProductId()).orElse(null);
+        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        if (cart == null) {
+            return List.of();
+        }
+
+        return cart.getItems().stream().map(item -> {
+            Product product = productRepository.findById(item.getProductId()).orElse(null);
             if (product == null) return null;
             return new CartItemDTO(
                     product.getId(),
-                    cart.getQuantity(),
+                    item.getQuantity(),
                     product.getName(),
                     product.getPrice().doubleValue(),
-                    product.getImageUrl()
+                    getPrimaryImage(product)
             );
         }).filter(item -> item != null).collect(Collectors.toList());
     }
 
     @Transactional
     public void clearCart(Long userId) {
-        List<Cart> cartItems = cartRepository.findByUserId(userId);
-        cartRepository.deleteAll(cartItems);
+        cartRepository.findByUserId(userId).ifPresent(cart -> {
+            cart.getItems().clear();
+            cartRepository.save(cart);
+        });
+    }
+
+    private CartItem findCartItem(Cart cart, Long productId) {
+        return cart.getItems().stream()
+                .filter(item -> item.getProductId().equals(productId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String getPrimaryImage(Product product) {
+        if (product.getImageUrl() != null && !product.getImageUrl().isBlank()) {
+            return product.getImageUrl();
+        }
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            return product.getImages().get(0);
+        }
+        return null;
     }
 }

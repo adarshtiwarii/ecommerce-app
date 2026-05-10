@@ -12,17 +12,26 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Spring Security configuration for the e‑commerce application.
+ *
+ * <p>Uses JWT for stateless authentication. Public endpoints (login, register,
+ * public product GET) are open; all other requests require a valid JWT token.
+ * Role‑based access is controlled via @PreAuthorize annotations on controllers.</p>
+ */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true)   // enables @PreAuthorize on methods
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
 
+    // Constructor injection of the JWT filter bean
     public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
     }
 
+    // Password encoder for hashing user passwords (BCrypt is industry standard)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -31,17 +40,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Disable CSRF because we use stateless JWT (no sessions)
                 .csrf(csrf -> csrf.disable())
+
+                // Define which endpoints are public and which require authentication
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Auth routes — token nahi chahiye
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // ✅ Products GET — public
+                        // 1. Authentication endpoints (login, register, etc.) – no token needed
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/create-admin",
+                                "/api/auth/create-seller"
+                        ).permitAll()
+
+                        // 2. Public GET requests for products (listing, detail, search, category)
+                        //    This allows users to browse products without logging in.
+                        //    POST, PUT, DELETE, PATCH on /api/products require authentication.
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
-                        // ✅ Baaki sab authenticated — cart bhi
+
+                        // 3. All other requests (including cart, orders, admin endpoints) must be authenticated
                         .anyRequest().authenticated()
                 )
+
+                // Stateless session – do not create or use JSESSIONID
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                // Add our custom JWT filter before Spring Security's default UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

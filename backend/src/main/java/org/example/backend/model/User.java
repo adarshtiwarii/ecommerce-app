@@ -17,6 +17,8 @@ public class User {
     private Role role = Role.CUSTOMER;
     @Enumerated(EnumType.STRING)
     private Gender gender;
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean enabled = true;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum Role { CUSTOMER, SELLER, ADMIN }
@@ -54,6 +56,9 @@ public class User {
 
     public Gender getGender() { return gender; }
     public void setGender(Gender gender) { this.gender = gender; }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

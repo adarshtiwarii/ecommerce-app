@@ -34,7 +34,7 @@ public class OrderService {
         // Save each order item
         for (PlaceOrderRequest.OrderItemRequest item : request.getItems()) {
             OrderItem orderItem = new OrderItem();
-            orderItem.setOrderId(savedOrder.getOrderId());
+            orderItem.setOrder(savedOrder);
             orderItem.setProductId(item.getProductId());
             orderItem.setQuantity(item.getQuantity());
             orderItem.setPriceAtPurchase(item.getPrice());

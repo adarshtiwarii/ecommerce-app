@@ -89,8 +89,7 @@ public class ProductController {
     public ResponseEntity<?> toggleProduct(@PathVariable Long id) {
         Product p = productService.getProductById(id);
         if (p == null) return ResponseEntity.notFound().build();
-        p.setEnabled(!p.isEnabled());
-        productService.updateProduct(id, p);
+        productService.setProductEnabled(id, !p.isEnabled());
         return ResponseEntity.ok("Product status updated");
     }
 

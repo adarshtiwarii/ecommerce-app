@@ -1,162 +1,153 @@
-// src/pages/ProductDetailPage.js – cleaned version (no unused selectedImg)
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FiHeart, FiShoppingCart, FiTruck, FiShield, FiRefreshCw } from 'react-icons/fi';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { FiChevronRight, FiHeart, FiShoppingCart, FiStar, FiTruck, FiRotateCcw, FiShield, FiShare2 } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
 import api from '../utils/api';
-import StarRating from '../components/common/StarRating';
-import ProductCard from '../components/Product/ProductCard';
+import { IMG_FALLBACK } from '../utils/imgFallback';
+import { FREE_DELIVERY_MINIMUM } from '../utils/orderTotals';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addToCart, cart, toggleWishlist, isWishlisted } = useApp();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [similar, setSimilar] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState('');
-  const [deliveryMsg, setDeliveryMsg] = useState('');
-  const { addToCart, cart, toggleWishlist, isWishlisted } = useApp();
+  const [pincodeMsg, setPincodeMsg] = useState('');
+  const [activeTab, setActiveTab] = useState('description');
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const load = async () => {
+      setLoading(true);
       try {
         const res = await api.get(`/products/${id}`);
         setProduct(res.data);
-        if (res.data.category) {
-          const simRes = await api.get(`/products/category/${res.data.category}?page=0&size=4`);
-          setSimilar(simRes.data.content.filter(p => p.id !== parseInt(id)));
-        }
+        setSelectedImage(0);
       } catch (err) {
         console.error('Failed to fetch product', err);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
     };
-    fetchProduct();
+    load();
   }, [id]);
 
-  const inCart = cart.some(i => i.id === product?.id);
-  const wishlisted = isWishlisted(product?.id);
-  const discount = product ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+  const productId = product?.productId || product?.id || Number(id);
+  const inCart = cart.some(i => (i.productId || i.id) === productId);
+  const wishlisted = isWishlisted(productId);
+  const images = useMemo(() => product?.images?.length ? product.images : product?.imageUrl ? [product.imageUrl] : [IMG_FALLBACK], [product]);
+  const rating = Number(product?.rating || 4.2);
+  const reviews = product?.reviewsCount || product?.reviewCount || product?.reviews || 0;
+  const discount = product?.mrp && product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+  const deliveryCharge = product?.price >= FREE_DELIVERY_MINIMUM ? 0 : 40;
+  const total = (Number(product?.price || 0) * quantity) + deliveryCharge;
 
-  const checkDelivery = () => {
-    if (pincode.length === 6) setDeliveryMsg(`✅ Delivery available to ${pincode} by Tomorrow`);
-    else setDeliveryMsg('❌ Please enter a valid 6-digit pincode');
+  const handleAdd = async () => {
+    if (!product || product.stockQuantity === 0) return;
+    await addToCart(product, quantity);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1200);
   };
 
-  if (loading) return <div className="bg-fk-light min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!product) return <div className="bg-fk-light min-h-screen flex items-center justify-center">Product not found</div>;
+  const buyNow = async () => {
+    await handleAdd();
+    navigate('/cart');
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><div className="h-10 w-10 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" /></div>;
+  if (!product) return <div className="min-h-screen flex items-center justify-center bg-gray-100"><div className="bg-white border rounded-sm p-10 text-center"><h1 className="text-xl font-bold mb-2">Product not found</h1><button onClick={() => navigate('/')} className="text-orange-500 font-bold">Go home</button></div></div>;
+
+  const specs = Array.isArray(product.specifications) ? product.specifications.filter(s => s.key && s.value) : [];
 
   return (
-    <div className="bg-fk-light min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <nav className="text-xs text-gray-500 mb-3 flex gap-1">
-          <button onClick={() => navigate('/')} className="hover:text-fk-blue">Home</button>
-          <span>/</span>
-          <button onClick={() => navigate(`/category/${product.category.toLowerCase()}`)} className="hover:text-fk-blue">{product.category}</button>
-          <span>/</span>
-          <span className="text-gray-700">{product.name.substring(0, 30)}...</span>
-        </nav>
-
-        <div className="bg-white rounded shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
-            {/* Images */}
-            <div className="md:col-span-2 p-4 md:border-r">
-              <div className="flex items-center justify-center bg-gray-50 rounded h-80 mb-3 relative">
-                <img src={product.imageUrl || 'https://via.placeholder.com/400'} alt={product.name}
-                  className="h-full object-contain p-4"
-                  onError={e => { e.target.src = 'https://via.placeholder.com/400x400?text=Product'; }} />
-                <button onClick={() => toggleWishlist(product.id)}
-                  className="absolute top-3 right-3 bg-white rounded-full p-2 shadow">
-                  <FiHeart size={20} className={wishlisted ? 'text-red-500 fill-red-500' : 'text-gray-400'} />
-                </button>
-              </div>
-              {/* You can add thumbnails here if product.images exists */}
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => { addToCart(product); navigate('/cart'); }}
-                  className="flex-1 bg-fk-orange text-white py-3 rounded font-bold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 transition">
-                  ⚡ BUY NOW
-                </button>
-                <button onClick={() => addToCart(product)}
-                  className={`flex-1 py-3 rounded font-bold text-sm flex items-center justify-center gap-2 transition ${inCart ? 'bg-fk-orange text-white' : 'bg-fk-blue text-white hover:bg-blue-700'}`}>
-                  <FiShoppingCart size={16} />
-                  {inCart ? 'Go to Cart' : 'Add to Cart'}
-                </button>
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="md:col-span-3 p-4 md:p-6">
-              <h1 className="text-xl font-medium text-gray-800 mb-2">{product.name}</h1>
-              <div className="flex items-center gap-3 mb-4">
-                <StarRating rating={product.rating || 4.3} reviews={product.reviews || 1234} />
-                {product.fAssured && <span className="bg-fk-blue text-white text-xs font-bold px-2 py-0.5 rounded">F Assured ✓</span>}
-              </div>
-
-              <div className="bg-gray-50 rounded p-3 mb-4">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-3xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                  <span className="text-gray-400 text-lg line-through">₹{product.mrp?.toLocaleString()}</span>
-                  <span className="text-fk-green font-bold text-lg">{discount}% off</span>
-                </div>
-                <p className="text-fk-green text-sm mt-1">You save ₹{(product.mrp - product.price).toLocaleString()}</p>
-              </div>
-
-              <div className="mb-4">
-                <h3 className="font-medium text-gray-800 mb-2">Highlights</h3>
-                <ul className="space-y-1">
-                  {(product.highlights || (product.description?.split('.') || ['No highlights'])).slice(0,4).map((h, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-fk-green mt-0.5">•</span>{h}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="mb-4 p-3 border rounded">
-                <h3 className="font-medium text-gray-800 mb-2 flex items-center gap-2"><FiTruck size={16} /> Delivery</h3>
-                <div className="flex gap-2">
-                  <input type="text" placeholder="Enter 6-digit pincode" value={pincode}
-                    onChange={e => setPincode(e.target.value.replace(/\D/g, '').substring(0, 6))}
-                    className="border rounded px-3 py-1.5 text-sm flex-1 outline-none focus:border-fk-blue" />
-                  <button onClick={checkDelivery} className="text-fk-blue font-medium text-sm hover:underline">Check</button>
-                </div>
-                {deliveryMsg && <p className="text-sm mt-2">{deliveryMsg}</p>}
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {[
-                  { icon: <FiTruck size={20} />, title: 'Free Delivery', sub: 'On orders above ₹499' },
-                  { icon: <FiRefreshCw size={20} />, title: '10 Day Returns', sub: 'Change of mind is ok' },
-                  { icon: <FiShield size={20} />, title: '1 Year Warranty', sub: 'Manufacturer warranty' },
-                ].map((s, i) => (
-                  <div key={i} className="text-center p-2 border rounded">
-                    <div className="text-fk-blue flex justify-center mb-1">{s.icon}</div>
-                    <p className="text-xs font-medium text-gray-700">{s.title}</p>
-                    <p className="text-xs text-gray-400">{s.sub}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <h3 className="font-medium text-gray-800 mb-2">Description</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
-              </div>
-            </div>
-          </div>
+    <div className="bg-gray-100 min-h-screen py-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="text-xs text-gray-500 mb-3 flex items-center gap-1 overflow-hidden">
+          <Link to="/" className="hover:text-orange-500">Home</Link><FiChevronRight />
+          {product.category && <><Link to={`/category/${product.category}`} className="hover:text-orange-500">{product.category}</Link><FiChevronRight /></>}
+          <span className="truncate">{product.name}</span>
         </div>
 
-        {similar.length > 0 && (
-          <div className="bg-white rounded shadow-sm mt-4">
-            <div className="p-4 border-b"><h2 className="text-xl font-bold text-gray-800">Similar Products</h2></div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0.5 bg-gray-100 p-0.5">
-              {similar.map(p => <ProductCard key={p.id} product={p} />)}
+        <div className="bg-white border rounded-sm shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-0">
+          <div className="lg:col-span-5 p-4 border-b lg:border-b-0 lg:border-r">
+            <div className="flex gap-3">
+              {images.length > 1 && <div className="hidden sm:flex flex-col gap-2 w-16">{images.map((img, index) => <button key={img + index} onClick={() => setSelectedImage(index)} className={`w-16 h-16 border rounded-sm p-1 ${selectedImage === index ? 'border-orange-500' : 'border-gray-200'}`}><img src={img} alt="" className="w-full h-full object-contain" /></button>)}</div>}
+              <div className="relative flex-1 min-h-[360px] flex items-center justify-center bg-white">
+                {discount > 0 && <span className="absolute left-3 top-3 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-sm">{discount}% off</span>}
+                <button onClick={() => toggleWishlist(productId)} className="absolute right-3 top-3 bg-white shadow p-2 rounded-full text-gray-400 hover:text-red-500"><FiHeart className={wishlisted ? 'text-red-500 fill-red-500' : ''} /></button>
+                <img src={images[selectedImage]} alt={product.name} className="max-h-[390px] max-w-full object-contain p-3" onError={e => { e.target.onerror = null; e.target.src = IMG_FALLBACK; }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <button onClick={handleAdd} disabled={product.stockQuantity === 0} className="bg-yellow-400 disabled:bg-gray-200 text-gray-900 py-3 rounded-sm font-black flex justify-center items-center gap-2"><FiShoppingCart /> {added || inCart ? 'Added' : 'Add to Cart'}</button>
+              <button onClick={buyNow} disabled={product.stockQuantity === 0} className="bg-orange-500 disabled:bg-gray-300 text-white py-3 rounded-sm font-black">Buy Now</button>
             </div>
           </div>
-        )}
+
+          <div className="lg:col-span-7 p-5">
+            {product.brand && <p className="text-sm text-gray-500 uppercase font-semibold">{product.brand}</p>}
+            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1 leading-snug">{product.name}</h1>
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
+              <span className="inline-flex items-center gap-1 bg-green-600 text-white text-sm font-bold px-2 py-1 rounded-sm">{rating.toFixed(1)} <FiStar fill="white" /></span>
+              <span className="text-sm text-gray-500">{Number(reviews).toLocaleString()} ratings</span>
+              <span className="text-sm text-orange-500 font-bold">Assured by EcoMart</span>
+            </div>
+
+            <div className="mt-5">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className="text-3xl font-bold text-gray-900">Rs {Number(product.price || 0).toLocaleString()}</span>
+                {product.mrp > product.price && <span className="text-lg text-gray-500 line-through">Rs {Number(product.mrp).toLocaleString()}</span>}
+                {discount > 0 && <span className="text-green-600 font-bold">{discount}% off</span>}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="border rounded-sm p-3 flex gap-2"><FiTruck className="text-orange-500 shrink-0" /><div><p className="text-sm font-bold">Delivery</p><p className="text-xs text-gray-500">{deliveryCharge === 0 ? 'Free delivery' : `Rs ${deliveryCharge} delivery`}</p></div></div>
+              <div className="border rounded-sm p-3 flex gap-2"><FiRotateCcw className="text-orange-500 shrink-0" /><div><p className="text-sm font-bold">Returns</p><p className="text-xs text-gray-500">7-day replacement</p></div></div>
+              <div className="border rounded-sm p-3 flex gap-2"><FiShield className="text-orange-500 shrink-0" /><div><p className="text-sm font-bold">Warranty</p><p className="text-xs text-gray-500">Brand warranty</p></div></div>
+            </div>
+
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center">
+              <div className="flex items-center border rounded-sm w-fit">
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-3 py-2">-</button>
+                <span className="px-4 py-2 border-x font-bold">{quantity}</span>
+                <button onClick={() => setQuantity(q => Math.min(product.stockQuantity || 99, q + 1))} className="px-3 py-2">+</button>
+              </div>
+              <div className="flex gap-2 flex-1">
+                <input value={pincode} onChange={e => { setPincode(e.target.value.replace(/\D/g, '').slice(0, 6)); setPincodeMsg(''); }} placeholder="Enter delivery pincode" className="border rounded-sm px-3 py-2 flex-1" />
+                <button onClick={() => setPincodeMsg(pincode.length === 6 ? 'Delivery available' : 'Enter valid 6-digit pincode')} className="text-orange-500 font-bold px-3">Check</button>
+              </div>
+            </div>
+            {pincodeMsg && <p className={`text-sm mt-2 ${pincodeMsg.startsWith('Delivery') ? 'text-green-600' : 'text-red-600'}`}>{pincodeMsg}</p>}
+
+            {product.highlights?.length > 0 && <div className="mt-6"><h2 className="font-bold mb-2">Highlights</h2><ul className="list-disc list-inside text-sm text-gray-700 space-y-1">{product.highlights.map((h, i) => <li key={i}>{h}</li>)}</ul></div>}
+
+            <div className="mt-6 border rounded-sm overflow-hidden">
+              <div className="flex border-b bg-gray-50">
+                {['description', 'specifications'].map(tab => <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-3 text-sm font-bold capitalize ${activeTab === tab ? 'text-orange-500 border-b-2 border-orange-500 bg-white' : 'text-gray-600'}`}>{tab}</button>)}
+              </div>
+              <div className="p-4 text-sm text-gray-700">
+                {activeTab === 'description' && <p>{product.description || 'No description available.'}</p>}
+                {activeTab === 'specifications' && (
+                  specs.length ? <table className="w-full"><tbody>{specs.map((s, i) => <tr key={i} className="border-b"><td className="py-2 text-gray-500 w-1/3">{s.key}</td><td className="py-2 font-medium">{s.value}</td></tr>)}</tbody></table> : <p>No specifications available.</p>
+                )}
+              </div>
+            </div>
+
+            <button onClick={() => { navigator.clipboard?.writeText(window.location.href); alert('Link copied'); }} className="mt-4 text-sm text-orange-500 font-bold flex items-center gap-2"><FiShare2 /> Share product</button>
+            <div className="mt-4 text-sm text-gray-600">Total for {quantity} item{quantity > 1 ? 's' : ''}: <b>Rs {total.toLocaleString()}</b></div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default ProductDetailPage;
+
+

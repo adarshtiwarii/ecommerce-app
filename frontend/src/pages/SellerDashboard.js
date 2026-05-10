@@ -47,7 +47,7 @@ const SellerDashboard = () => {
               <h3 className="font-medium mt-2">{p.name}</h3>
               <p className="text-fk-blue font-bold">₹{p.price}</p>
               <div className="flex justify-between mt-2">
-                <button onClick={() => navigate(`/edit-product/${p.id}`)} className="text-blue-600"><FiEdit /></button>
+                <button onClick={() => navigate(`/edit-product/${p.id}`)} className="text-orange-500"><FiEdit /></button>
                 <button onClick={() => deleteProduct(p.id)} className="text-red-600"><FiTrash2 /></button>
               </div>
             </div>

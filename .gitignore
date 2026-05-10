@@ -1,5 +1,14 @@
-node_modules/ 
-backend/target/ 
-backend/.idea/ 
-frontend/build/ 
-frontend/.idea/ 
+# Backend .env file
+backend/.env
+
+# Frontend .env file
+frontend/.env
+
+# IDE files
+.idea/
+*.iml
+
+# Build folders
+backend/target/
+frontend/build/
+frontend/node_modules/

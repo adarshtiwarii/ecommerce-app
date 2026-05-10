@@ -1,62 +1,62 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiHeart } from 'react-icons/fi';
+import { FiHeart, FiShoppingCart, FiStar } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
-import StarRating from '../common/StarRating';
+import { IMG_FALLBACK } from '../../utils/imgFallback';
 
 const ProductCard = ({ product }) => {
   const { addToCart, cart, toggleWishlist, isWishlisted } = useApp();
-  const inCart = cart.some(i => i.id === product.id);
-  const wishlisted = isWishlisted(product.id);
-  const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+  const [imgSrc, setImgSrc] = useState(product.images?.[0] || product.imageUrl || IMG_FALLBACK);
+  const [adding, setAdding] = useState(false);
+  const productId = product.productId || product.id;
+  const inCart = cart.some(i => (i.productId || i.id) === productId);
+  const wishlisted = isWishlisted(productId);
+  const rating = Number(product.rating || 4.2);
+  const reviews = product.reviewsCount || product.reviewCount || product.reviews || 0;
+  const discount = product.mrp && product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (product.stockQuantity === 0) return;
+    setAdding(true);
+    await addToCart(product);
+    setAdding(false);
+  };
 
   return (
-    <div className="bg-cinematic-card border border-cinematic-border rounded-xl hover:shadow-xl transition-all duration-300 group relative flex flex-col overflow-hidden">
-      <button
-        onClick={(e) => { e.preventDefault(); toggleWishlist(product.id); }}
-        className="absolute top-3 right-3 z-10 bg-gray-800/80 backdrop-blur-sm rounded-full p-2 shadow hover:shadow-md transition"
-      >
-        <FiHeart size={18} className={wishlisted ? 'text-red-500 fill-red-500' : 'text-gray-300'} />
-      </button>
-
-      <Link to={`/product/${product.id}`} className="flex flex-col flex-1">
-        <div className="relative overflow-hidden bg-gray-900 p-6 flex items-center justify-center h-56">
-          <img
-            src={product.imageUrl || 'https://via.placeholder.com/200'}
-            alt={product.name}
-            className="h-full object-contain group-hover:scale-105 transition-transform duration-300"
-            onError={e => { e.target.src = 'https://via.placeholder.com/200x200?text=Product'; }}
-          />
-          {product.fAssured && (
-            <div className="absolute bottom-2 left-2 bg-cinematic-accent text-white text-xs px-2 py-0.5 rounded-full font-bold">
-              Eco Assured
-            </div>
-          )}
+    <Link to={`/product/${productId}`} className="group bg-white border border-gray-200 rounded-sm hover:shadow-xl hover:border-orange-100 transition flex flex-col min-h-full overflow-hidden">
+      <div className="relative h-52 bg-white flex items-center justify-center p-3 border-b border-gray-100">
+        {discount > 0 && <span className="absolute left-2 top-2 z-10 bg-green-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">{discount}% off</span>}
+        <button onClick={e => { e.preventDefault(); toggleWishlist(productId); }} className="absolute right-2 top-2 z-10 p-2 rounded-full bg-white shadow text-gray-400 hover:text-red-500">
+          <FiHeart className={wishlisted ? 'text-red-500 fill-red-500' : ''} />
+        </button>
+        <div className="h-full w-full flex items-center justify-center bg-white">
+          <img src={imgSrc} alt={product.name} loading="lazy" className="max-h-[185px] max-w-full object-contain transition duration-300 group-hover:scale-105" onError={() => setImgSrc(IMG_FALLBACK)} />
         </div>
-        <div className="p-4 flex flex-col flex-1">
-          <h3 className="text-base font-bold text-cinematic-text line-clamp-2 mb-1 hover:text-cinematic-accent transition">
-            {product.name}
-          </h3>
-          <div className="mb-2"><StarRating rating={product.rating || 4.3} reviews={product.reviews} /></div>
-          <div className="flex items-baseline gap-2 mt-auto">
-            <span className="text-lg font-bold text-cinematic-text">₹{product.price?.toLocaleString()}</span>
-            <span className="text-xs text-gray-400 line-through">₹{product.mrp?.toLocaleString()}</span>
-            <span className="text-xs text-green-400 font-medium">{discount}% off</span>
+      </div>
+      <div className="p-3 flex flex-col flex-1">
+        {product.brand && <p className="text-[11px] uppercase text-gray-500 font-bold truncate">{product.brand}</p>}
+        <h3 className="text-sm text-gray-800 font-semibold line-clamp-2 min-h-[40px] group-hover:text-orange-500">{product.name}</h3>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="inline-flex items-center gap-1 bg-green-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-sm">{rating.toFixed(1)} <FiStar size={10} fill="white" /></span>
+          <span className="text-xs text-gray-500">({Number(reviews).toLocaleString()})</span>
+        </div>
+        {product.highlights?.[0] && <p className="text-xs text-gray-500 line-clamp-1 mt-2">{product.highlights[0]}</p>}
+        <div className="mt-auto pt-3">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-lg font-bold text-gray-900">Rs {Number(product.price || 0).toLocaleString()}</span>
+            {product.mrp > product.price && <span className="text-xs text-gray-500 line-through">Rs {Number(product.mrp).toLocaleString()}</span>}
           </div>
+          <p className="text-xs text-green-600 font-semibold mt-0.5">Free delivery</p>
+          <button onClick={handleAdd} disabled={product.stockQuantity === 0 || adding} className={`mt-3 w-full py-2 rounded-sm text-sm font-black flex items-center justify-center gap-2 transition ${product.stockQuantity === 0 ? 'bg-gray-200 text-gray-500' : inCart ? 'bg-green-600 text-white' : 'bg-yellow-400 text-gray-900 hover:bg-yellow-300'}`}>
+            <FiShoppingCart size={15} /> {product.stockQuantity === 0 ? 'Out of stock' : adding ? 'Adding...' : inCart ? 'Added' : 'Add to Cart'}
+          </button>
         </div>
-      </Link>
-
-      <button
-        onClick={() => addToCart(product)}
-        className={`mx-4 mb-4 py-2.5 rounded-lg text-sm font-bold transition ${
-          inCart
-            ? 'bg-green-600 text-white hover:bg-green-700'
-            : 'bg-cinematic-accent text-white hover:opacity-90'
-        }`}
-      >
-        {inCart ? '✓ Added to Cart' : '🛒 Add to Cart'}
-      </button>
-    </div>
+      </div>
+    </Link>
   );
 };
 
 export default ProductCard;
+
+

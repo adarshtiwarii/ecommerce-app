@@ -19,6 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Intercepts every request to validate JWT token and set authentication context.
+ *
+ * <p>Public endpoints (e.g., /api/auth/**, public GET /api/products) are skipped.
+ * All other endpoints require a valid JWT token.</p>
+ */
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
@@ -30,18 +36,25 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    /**
+     * Determines whether the filter should be bypassed for the current request.
+     *
+     * @return true if the request should NOT be processed by this filter.
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        boolean isAuthRoute = path.startsWith("/api/auth/");
+        boolean isAuthRoute = path.equals("/api/auth/login") ||
+                path.equals("/api/auth/register") ||
+                path.equals("/api/auth/create-admin") ||
+                path.equals("/api/auth/create-seller");
 
-        // ✅ Public products GET — token nahi chahiye
-        // ⚠️ lekin /api/products/admin/** is line se skip ho raha tha — FIX kiya
+        // 2. Public product GET endpoints (but NOT /api/products/admin/*)
         boolean isPublicProduct = path.startsWith("/api/products") &&
-                method.equals("GET") &&
-                !path.contains("/admin/"); // ✅ admin routes skip NAHI honge
+                method.equalsIgnoreCase("GET") &&
+                !path.contains("/admin/");   // ✅ ensures admin routes are always processed
 
         return isAuthRoute || isPublicProduct;
     }
@@ -56,12 +69,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String email = null;
         String jwt = null;
 
-        // ✅ Step 1: Bearer token nikalo
+        // ✅ Step 1: Extract Bearer token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-
             try {
-                // ✅ Step 2: Token se email extract karo
+                // ✅ Step 2: Extract email (subject) from token
                 email = jwtUtil.extractEmail(jwt);
             } catch (Exception e) {
                 logger.warn("JWT extract failed: {}", e.getMessage());
@@ -70,42 +82,41 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
 
-        // ✅ Step 3: Email mila aur context empty hai
+        // ✅ Step 3: If we have an email and no authentication in context yet, proceed
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // ✅ Step 4: DB se user load karo
+            // ✅ Step 4: Load user details from database
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-            // ✅ Step 5: Token validate karo
+            // ✅ Step 5: Validate the token (signature + expiration)
             if (jwtUtil.validateToken(jwt, email)) {
 
-                // ✅ Step 6: Token se role nikalo — "ADMIN" aayega
+                // ✅ Step 6: Extract raw role from token (e.g., "ADMIN", "SELLER")
                 String role = jwtUtil.extractRole(jwt);
 
-                // ✅ Step 7: "ROLE_" prefix add karo — Spring Security ko "ROLE_ADMIN" chahiye
-                // Pehle sirf role tha — isliye hasRole('ADMIN') match nahi hota tha
+                // ✅ Step 7: Prepend "ROLE_" – Spring Security expects authorities like "ROLE_ADMIN"
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role)) // ✅ FIX
+                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
 
-                // ✅ Step 8: Request details attach karo
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request));
+                // ✅ Step 8: Attach request details (IP, session, etc.)
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // ✅ Step 9: SecurityContext me save karo
+                // ✅ Step 9: Set the authentication in the SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
+                logger.debug("Authenticated user: {} with role: {}", email, role);
             } else {
+                // Token expired or signature invalid
                 logger.warn("JWT validation failed for: {}", email);
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired or invalid");
                 return;
             }
         }
 
-        // ✅ Step 10: Agle filter ko pass karo
+        // ✅ Step 10: Continue the filter chain
         chain.doFilter(request, response);
     }
 }

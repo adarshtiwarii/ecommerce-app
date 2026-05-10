@@ -30,7 +30,7 @@ const Profile = () => {
         <div className="bg-white rounded shadow overflow-hidden">
           <div className="bg-fk-blue p-6 text-white">
             <h1 className="text-2xl font-bold">My Profile</h1>
-            <p className="text-blue-100 mt-1">Manage your account details</p>
+            <p className="text-orange-100 mt-1">Manage your account details</p>
           </div>
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-3 border-b pb-3">
