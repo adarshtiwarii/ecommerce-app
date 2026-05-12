@@ -9,6 +9,18 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { totalMRP, discount, gst, platformFee, deliveryCharge, finalPrice, freeDeliveryMinimum } = calculateOrderTotals(cart);
 
+  if (user?.role === 'ADMIN') {
+    return (
+      <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+        <div className="bg-white border rounded-sm shadow-sm p-8 text-center max-w-md w-full">
+          <h1 className="text-2xl font-bold text-gray-900">Admin mode</h1>
+          <p className="text-gray-500 mt-2 mb-6">Cart and checkout are available only for customer accounts.</p>
+          <button onClick={() => navigate('/admin')} className="bg-orange-500 text-white font-bold px-8 py-3 rounded-sm">Go to Dashboard</button>
+        </div>
+      </div>
+    );
+  }
+
   if (cart.length === 0) {
     return (
       <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4">

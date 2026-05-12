@@ -36,6 +36,7 @@ const AdminDashboard = () => {
   const [deletingId, setDeletingId] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
   const [togglingUserId, setTogglingUserId] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [usersError, setUsersError] = useState(null);
   const [ordersError, setOrdersError] = useState(null);
   const [stats, setStats] = useState({ users: null, orders: null, products: null });
@@ -115,6 +116,20 @@ const AdminDashboard = () => {
     }
   };
 
+  const deleteUser = async (user) => {
+    if (!window.confirm(`Delete user "${user.fullName || user.email}"? This cannot be undone.`)) return;
+    setDeletingUserId(user.userId);
+    try {
+      await api.delete(`/auth/users/${user.userId}`);
+      setUsers(prev => prev.filter(row => row.userId !== user.userId));
+      setStats(s => ({ ...s, users: Math.max((s.users || 1) - 1, 0) }));
+    } catch (e) {
+      alert(e.response?.data?.message || e.response?.data || 'Failed to delete user');
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
   const toggleProduct = async (id) => {
     setTogglingId(id);
     try {
@@ -176,7 +191,7 @@ const AdminDashboard = () => {
             <div className="px-4 py-3 border-b flex justify-between items-center"><h2 className="font-black text-gray-900 flex items-center gap-2"><FiUsers className="text-orange-500" /> Users</h2>{usersError && <span className="text-xs text-red-600">{usersError}</span>}</div>
             <table className="w-full text-sm">
               <thead className="bg-orange-50 text-gray-700"><tr>{['ID','Name','Email','Phone','Role','Status','Action'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap font-black">{h}</th>)}</tr></thead>
-              <tbody>{users.length === 0 ? <tr><td colSpan="7" className="py-10 text-center text-gray-500">No users found</td></tr> : users.map(user => <tr key={user.userId} className="border-t hover:bg-orange-50/40"><td className="px-4 py-3 font-mono text-gray-500">#{user.userId}</td><td className="px-4 py-3 font-bold text-gray-900">{user.fullName || 'Unnamed'}</td><td className="px-4 py-3 text-gray-600">{user.email || '-'}</td><td className="px-4 py-3 text-gray-600">{user.phoneNumber || '-'}</td><td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs font-bold">{user.role}</span></td><td className="px-4 py-3"><Badge active={user.enabled} /></td><td className="px-4 py-3"><button onClick={() => toggleUser(user.userId)} disabled={togglingUserId === user.userId} className="text-orange-600 hover:bg-orange-100 p-2 rounded-sm disabled:opacity-40">{togglingUserId === user.userId ? <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /> : user.enabled ? <FiToggleRight size={20} /> : <FiToggleLeft size={20} />}</button></td></tr>)}</tbody>
+              <tbody>{users.length === 0 ? <tr><td colSpan="7" className="py-10 text-center text-gray-500">No users found</td></tr> : users.map(user => <tr key={user.userId} className="border-t hover:bg-orange-50/40"><td className="px-4 py-3 font-mono text-gray-500">#{user.userId}</td><td className="px-4 py-3 font-bold text-gray-900">{user.fullName || 'Unnamed'}</td><td className="px-4 py-3 text-gray-600">{user.email || '-'}</td><td className="px-4 py-3 text-gray-600">{user.phoneNumber || '-'}</td><td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-gray-100 text-xs font-bold">{user.role}</span></td><td className="px-4 py-3"><Badge active={user.enabled} /></td><td className="px-4 py-3"><div className="flex gap-1"><button onClick={() => toggleUser(user.userId)} disabled={togglingUserId === user.userId} className="text-orange-600 hover:bg-orange-100 p-2 rounded-sm disabled:opacity-40">{togglingUserId === user.userId ? <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" /> : user.enabled ? <FiToggleRight size={20} /> : <FiToggleLeft size={20} />}</button><button onClick={() => deleteUser(user)} disabled={deletingUserId === user.userId} className="text-red-600 hover:bg-red-50 p-2 rounded-sm disabled:opacity-40">{deletingUserId === user.userId ? <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" /> : <FiTrash2 />}</button></div></td></tr>)}</tbody>
             </table>
           </div>
         )}

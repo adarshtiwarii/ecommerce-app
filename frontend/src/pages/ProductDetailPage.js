@@ -9,7 +9,7 @@ import { FREE_DELIVERY_MINIMUM } from '../utils/orderTotals';
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart, cart, toggleWishlist, isWishlisted } = useApp();
+  const { addToCart, cart, toggleWishlist, isWishlisted, user } = useApp();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -45,6 +45,14 @@ const ProductDetailPage = () => {
   const discount = product?.mrp && product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   const deliveryCharge = product?.price >= FREE_DELIVERY_MINIMUM ? 0 : 40;
   const total = (Number(product?.price || 0) * quantity) + deliveryCharge;
+  const isAdmin = user?.role === 'ADMIN';
+
+  useEffect(() => {
+    if (!product || isAdmin) return;
+    const recent = JSON.parse(localStorage.getItem('recentProducts') || '[]');
+    const next = [product, ...recent.filter(p => (p.id || p.productId) !== productId)].slice(0, 12);
+    localStorage.setItem('recentProducts', JSON.stringify(next));
+  }, [product, productId, isAdmin]);
 
   const handleAdd = async () => {
     if (!product || product.stockQuantity === 0) return;
@@ -78,14 +86,17 @@ const ProductDetailPage = () => {
               {images.length > 1 && <div className="hidden sm:flex flex-col gap-2 w-16">{images.map((img, index) => <button key={img + index} onClick={() => setSelectedImage(index)} className={`w-16 h-16 border rounded-sm p-1 ${selectedImage === index ? 'border-orange-500' : 'border-gray-200'}`}><img src={img} alt="" className="w-full h-full object-contain" /></button>)}</div>}
               <div className="relative flex-1 min-h-[360px] flex items-center justify-center bg-white">
                 {discount > 0 && <span className="absolute left-3 top-3 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-sm">{discount}% off</span>}
-                <button onClick={() => toggleWishlist(productId)} className="absolute right-3 top-3 bg-white shadow p-2 rounded-full text-gray-400 hover:text-red-500"><FiHeart className={wishlisted ? 'text-red-500 fill-red-500' : ''} /></button>
+                {!isAdmin && <button onClick={() => toggleWishlist(productId)} className="absolute right-3 top-3 bg-white shadow p-2 rounded-full text-gray-400 hover:text-red-500"><FiHeart className={wishlisted ? 'text-red-500 fill-red-500' : ''} /></button>}
                 <img src={images[selectedImage]} alt={product.name} className="max-h-[390px] max-w-full object-contain p-3" onError={e => { e.target.onerror = null; e.target.src = IMG_FALLBACK; }} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <button onClick={handleAdd} disabled={product.stockQuantity === 0} className="bg-yellow-400 disabled:bg-gray-200 text-gray-900 py-3 rounded-sm font-black flex justify-center items-center gap-2"><FiShoppingCart /> {added || inCart ? 'Added' : 'Add to Cart'}</button>
-              <button onClick={buyNow} disabled={product.stockQuantity === 0} className="bg-orange-500 disabled:bg-gray-300 text-white py-3 rounded-sm font-black">Buy Now</button>
-            </div>
+            {!isAdmin && (
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <button onClick={handleAdd} disabled={product.stockQuantity === 0} className="bg-yellow-400 disabled:bg-gray-200 text-gray-900 py-3 rounded-sm font-black flex justify-center items-center gap-2"><FiShoppingCart /> {added || inCart ? 'Added' : 'Add to Cart'}</button>
+                <button onClick={buyNow} disabled={product.stockQuantity === 0} className="bg-orange-500 disabled:bg-gray-300 text-white py-3 rounded-sm font-black">Buy Now</button>
+              </div>
+            )}
+            {isAdmin && <div className="mt-4 rounded-sm border border-orange-200 bg-orange-50 p-3 text-sm font-bold text-orange-700">Admin preview mode: checkout, wishlist and cart actions are hidden.</div>}
           </div>
 
           <div className="lg:col-span-7 p-5">
@@ -126,6 +137,7 @@ const ProductDetailPage = () => {
             {pincodeMsg && <p className={`text-sm mt-2 ${pincodeMsg.startsWith('Delivery') ? 'text-green-600' : 'text-red-600'}`}>{pincodeMsg}</p>}
 
             {product.highlights?.length > 0 && <div className="mt-6"><h2 className="font-bold mb-2">Highlights</h2><ul className="list-disc list-inside text-sm text-gray-700 space-y-1">{product.highlights.map((h, i) => <li key={i}>{h}</li>)}</ul></div>}
+            {(product.productLatitude || product.productLongitude) && <div className="mt-5 rounded-sm border bg-green-50 p-3 text-sm text-green-800"><b>Product dispatch location:</b> {product.productLatitude}, {product.productLongitude}</div>}
 
             <div className="mt-6 border rounded-sm overflow-hidden">
               <div className="flex border-b bg-gray-50">

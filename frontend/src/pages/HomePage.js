@@ -33,6 +33,7 @@ const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [recentProducts, setRecentProducts] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -47,6 +48,7 @@ const HomePage = () => {
       }
     };
     load();
+    setRecentProducts(JSON.parse(localStorage.getItem('recentProducts') || '[]'));
   }, []);
 
   const byCategory = useMemo(() => {
@@ -87,6 +89,7 @@ const HomePage = () => {
         </div>
 
         <Section title="Top Deals" subtitle="Highest discounts across all categories" products={topDeals.length ? topDeals : products} link="/search?q=" />
+        <Section title="Recently Viewed" subtitle="Products you checked recently" products={recentProducts} link="/search?q=" />
         <Section title="Electronics" subtitle="Mobiles, laptops and gadgets" products={byCategory.electronics || products.slice(0, 10)} link="/category/Electronics" />
         <Section title="Fashion" subtitle="Latest styles and essentials" products={byCategory.fashion} link="/category/Fashion" />
         <Section title="Home & Appliances" subtitle="Upgrade your home" products={[...(byCategory.home || []), ...(byCategory.appliances || [])]} link="/category/Appliances" />

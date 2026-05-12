@@ -28,6 +28,10 @@ public class OrderService {
         order.setTotalAmount(request.getTotalAmount());
         order.setShippingAddress(request.getShippingAddress());
         order.setPaymentMethod(request.getPaymentMethod());
+        order.setCustomerLatitude(request.getCustomerLatitude());
+        order.setCustomerLongitude(request.getCustomerLongitude());
+        order.setTrackingLatitude(request.getCustomerLatitude());
+        order.setTrackingLongitude(request.getCustomerLongitude());
         order.setStatus("PENDING");
         Order savedOrder = orderRepository.save(order);
 
@@ -45,5 +49,28 @@ public class OrderService {
 
     public List<Order> getOrdersByUser(Long userId) {
         return orderRepository.findByUserId(userId);
+    }
+
+    @Transactional
+    public Order cancelOrder(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase();
+        if ("DELIVERED".equals(status) || "CANCELLED".equals(status)) {
+            throw new RuntimeException("This order cannot be cancelled");
+        }
+        order.setStatus("CANCELLED");
+        order.setCancelReason(reason);
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order requestReturn(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        if (!"DELIVERED".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Return is available only after delivery");
+        }
+        order.setStatus("RETURN_REQUESTED");
+        order.setReturnReason(reason);
+        return orderRepository.save(order);
     }
 }

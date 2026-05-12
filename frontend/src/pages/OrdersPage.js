@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiCheckCircle, FiClock, FiPackage, FiRefreshCw, FiShoppingBag, FiTruck } from 'react-icons/fi';
+import { FiCheckCircle, FiClock, FiMapPin, FiPackage, FiRefreshCw, FiRotateCcw, FiShoppingBag, FiTruck, FiXCircle } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
 import api from '../utils/api';
 import { IMG_FALLBACK } from '../utils/imgFallback';
@@ -11,6 +11,9 @@ const OrdersPage = () => {
   const [productsById, setProductsById] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reasonText, setReasonText] = useState('');
+  const [reasonAction, setReasonAction] = useState(null);
+  const [submittingReason, setSubmittingReason] = useState(false);
 
   const loadOrders = async () => {
     const userId = user?.id || Number(localStorage.getItem('userId'));
@@ -64,6 +67,28 @@ const OrdersPage = () => {
     return `Estimated delivery: ${min.toLocaleDateString()} - ${max.toLocaleDateString()}`;
   };
 
+  const openReason = (order, type) => {
+    setReasonAction({ order, type });
+    setReasonText('');
+  };
+
+  const submitReason = async () => {
+    if (!reasonText.trim()) {
+      alert('Please enter a reason');
+      return;
+    }
+    setSubmittingReason(true);
+    try {
+      await api.patch(`/orders/${reasonAction.order.orderId}/${reasonAction.type}`, { reason: reasonText.trim() });
+      setReasonAction(null);
+      await loadOrders();
+    } catch (err) {
+      alert(err.response?.data || 'Request failed');
+    } finally {
+      setSubmittingReason(false);
+    }
+  };
+
   const TrackingTimeline = ({ order }) => {
     const activeIndex = getTrackingIndex(order.status);
     const cancelled = String(order.status || '').toUpperCase() === 'CANCELLED';
@@ -72,6 +97,7 @@ const OrdersPage = () => {
       return (
         <div className="border-t bg-red-50 px-4 py-4 text-sm font-bold text-red-700">
           This order has been cancelled.
+          {order.cancelReason && <p className="mt-1 text-xs font-semibold">Reason: {order.cancelReason}</p>}
         </div>
       );
     }
@@ -100,6 +126,11 @@ const OrdersPage = () => {
           })}
         </div>
         <p className="mt-3 text-xs text-gray-500 sm:hidden">{getEstimatedDelivery(order.orderDate)}</p>
+        {(order.customerLatitude || order.trackingLatitude) && (
+          <div className="mt-3 rounded-sm bg-green-50 p-3 text-xs text-green-800">
+            <FiMapPin className="mr-1 inline" /> Live tracking: {order.trackingLatitude || order.customerLatitude}, {order.trackingLongitude || order.customerLongitude}
+          </div>
+        )}
       </div>
     );
   };
@@ -173,11 +204,32 @@ const OrdersPage = () => {
                 </div>
                 <TrackingTimeline order={order} />
                 {order.shippingAddress && <div className="border-t px-4 py-3 text-sm text-gray-600"><b>Delivery:</b> {order.shippingAddress}</div>}
+                {String(order.status || '').toUpperCase() === 'RETURN_REQUESTED' && <div className="border-t bg-blue-50 px-4 py-3 text-sm text-blue-700"><b>Return requested:</b> {order.returnReason}</div>}
+                <div className="border-t px-4 py-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  {!['CANCELLED', 'DELIVERED', 'RETURN_REQUESTED', 'RETURNED'].includes(String(order.status || '').toUpperCase()) && (
+                    <button onClick={() => openReason(order, 'cancel')} className="rounded-sm border border-red-200 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center justify-center gap-2"><FiXCircle /> Cancel with reason</button>
+                  )}
+                  {String(order.status || '').toUpperCase() === 'DELIVERED' && (
+                    <button onClick={() => openReason(order, 'return')} className="rounded-sm border border-orange-200 px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 flex items-center justify-center gap-2"><FiRotateCcw /> Return with reason</button>
+                  )}
+                </div>
               </section>
             ))}
           </div>
         )}
       </div>
+      {reasonAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-sm bg-white p-5 shadow-xl">
+            <h3 className="text-lg font-black text-gray-900">{reasonAction.type === 'cancel' ? 'Cancel Order' : 'Return Order'} #{reasonAction.order.orderId}</h3>
+            <textarea value={reasonText} onChange={e => setReasonText(e.target.value)} rows={4} className="mt-4 w-full rounded-sm border px-3 py-2 text-sm" placeholder="Write your reason here" />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setReasonAction(null)} className="rounded-sm border px-4 py-2 text-sm font-bold">Close</button>
+              <button onClick={submitReason} disabled={submittingReason} className="rounded-sm bg-orange-500 px-4 py-2 text-sm font-black text-white disabled:bg-gray-300">{submittingReason ? 'Saving...' : 'Submit'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

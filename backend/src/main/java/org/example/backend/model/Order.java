@@ -36,6 +36,17 @@ public class Order {
 
     private String paymentMethod;        // COD, CARD, UPI, etc.
 
+    @Column(length = 1000)
+    private String cancelReason;
+
+    @Column(length = 1000)
+    private String returnReason;
+
+    private Double customerLatitude;
+    private Double customerLongitude;
+    private Double trackingLatitude;
+    private Double trackingLongitude;
+
     /**
      * T044: DB relationship - One-to-Many with OrderItem
      * cascade = CascadeType.ALL: Order save/delete hone par items bhi save/delete honge
@@ -111,6 +122,24 @@ public class Order {
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
+    public String getCancelReason() { return cancelReason; }
+    public void setCancelReason(String cancelReason) { this.cancelReason = cancelReason; }
+
+    public String getReturnReason() { return returnReason; }
+    public void setReturnReason(String returnReason) { this.returnReason = returnReason; }
+
+    public Double getCustomerLatitude() { return customerLatitude; }
+    public void setCustomerLatitude(Double customerLatitude) { this.customerLatitude = customerLatitude; }
+
+    public Double getCustomerLongitude() { return customerLongitude; }
+    public void setCustomerLongitude(Double customerLongitude) { this.customerLongitude = customerLongitude; }
+
+    public Double getTrackingLatitude() { return trackingLatitude; }
+    public void setTrackingLatitude(Double trackingLatitude) { this.trackingLatitude = trackingLatitude; }
+
+    public Double getTrackingLongitude() { return trackingLongitude; }
+    public void setTrackingLongitude(Double trackingLongitude) { this.trackingLongitude = trackingLongitude; }
 
     public List<OrderItem> getOrderItems() {
         return orderItems;

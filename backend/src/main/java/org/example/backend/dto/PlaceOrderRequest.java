@@ -9,6 +9,8 @@ public class PlaceOrderRequest {
     private BigDecimal totalAmount;
     private String shippingAddress;
     private String paymentMethod;
+    private Double customerLatitude;
+    private Double customerLongitude;
     private List<OrderItemRequest> items;
 
     // Getters and Setters
@@ -43,6 +45,12 @@ public class PlaceOrderRequest {
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
+    public Double getCustomerLatitude() { return customerLatitude; }
+    public void setCustomerLatitude(Double customerLatitude) { this.customerLatitude = customerLatitude; }
+
+    public Double getCustomerLongitude() { return customerLongitude; }
+    public void setCustomerLongitude(Double customerLongitude) { this.customerLongitude = customerLongitude; }
 
     public List<OrderItemRequest> getItems() {
         return items;

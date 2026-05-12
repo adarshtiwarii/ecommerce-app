@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCheckCircle, FiMapPin, FiCreditCard } from 'react-icons/fi';
+import { FiCheckCircle, FiMapPin, FiCreditCard, FiNavigation } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
 import api from '../utils/api';
 import { IMG_FALLBACK } from '../utils/imgFallback';
@@ -21,11 +21,33 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState({ name: user?.name || '', phone: '', pincode: '', address: '', city: '', state: '' });
+  const [location, setLocation] = useState(null);
+  const [locationMsg, setLocationMsg] = useState('');
 
   const { subtotal, totalMRP, discount, gst, platformFee, deliveryCharge, finalPrice, freeDeliveryMinimum } = calculateOrderTotals(cart);
   const update = (field, value) => setAddress(prev => ({ ...prev, [field]: value }));
 
   const canContinue = address.name && address.phone.length === 10 && address.pincode.length === 6 && address.address && address.city;
+
+  const captureLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationMsg('Location is not supported in this browser.');
+      return;
+    }
+    setLocationMsg('Finding your live location...');
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const coords = {
+          latitude: Number(pos.coords.latitude.toFixed(6)),
+          longitude: Number(pos.coords.longitude.toFixed(6)),
+        };
+        setLocation(coords);
+        setLocationMsg(`Location linked: ${coords.latitude}, ${coords.longitude}`);
+      },
+      () => setLocationMsg('Location permission denied. You can still place the order.'),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const placeOrder = async () => {
     setLoading(true);
@@ -35,6 +57,8 @@ const CheckoutPage = () => {
         totalAmount: finalPrice,
         shippingAddress: `${address.address}, ${address.city}, ${address.state} - ${address.pincode}`,
         paymentMethod,
+        customerLatitude: location?.latitude,
+        customerLongitude: location?.longitude,
         items: cart.map(item => ({ productId: item.productId || item.id, quantity: item.quantity, price: item.price })),
       });
       await clearCart();
@@ -77,6 +101,10 @@ const CheckoutPage = () => {
                 <input value={address.city} onChange={e => update('city', e.target.value)} placeholder="City" className="border rounded-sm px-3 py-2" />
                 <select value={address.state} onChange={e => update('state', e.target.value)} className="border rounded-sm px-3 py-2"><option value="">Select state</option>{states.map(s => <option key={s}>{s}</option>)}</select>
                 <textarea value={address.address} onChange={e => update('address', e.target.value)} placeholder="House no., street, area" className="border rounded-sm px-3 py-2 sm:col-span-2" rows={3} />
+                <div className="sm:col-span-2 rounded-sm border bg-green-50 p-3">
+                  <button type="button" onClick={captureLocation} className="flex items-center gap-2 text-sm font-black text-green-700"><FiNavigation /> Use realtime location for delivery tracking</button>
+                  {locationMsg && <p className="mt-2 text-xs text-green-700">{locationMsg}</p>}
+                </div>
                 <button disabled={!canContinue} onClick={() => setStep(2)} className="sm:col-span-2 bg-orange-500 disabled:bg-gray-300 text-white font-black py-3 rounded-sm">Deliver Here</button>
               </div>
             ) : (
@@ -86,7 +114,7 @@ const CheckoutPage = () => {
 
           <section className="bg-white border rounded-sm shadow-sm">
             <div className={`px-4 py-3 font-bold flex items-center gap-2 ${step >= 2 ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}><FiCreditCard /> Payment Method</div>
-            {step === 2 && <div className="p-4 space-y-3">{payments.map(p => <label key={p.id} className={`flex gap-3 p-3 border rounded-sm cursor-pointer ${paymentMethod === p.id ? 'border-orange-500 bg-orange-50' : ''}`}><input type="radio" checked={paymentMethod === p.id} onChange={() => setPaymentMethod(p.id)} /><span><b>{p.label}</b><p className="text-xs text-gray-500">{p.desc}</p></span></label>)}<button onClick={placeOrder} disabled={loading} className="w-full bg-orange-500 text-white font-black py-3 rounded-sm">{loading ? 'Placing Order...' : `Pay Rs ${finalPrice.toLocaleString()}`}</button></div>}
+            {step === 2 && <div className="p-4 space-y-3">{payments.map(p => <label key={p.id} className={`flex gap-3 p-3 border rounded-sm cursor-pointer ${paymentMethod === p.id ? 'border-orange-500 bg-orange-50' : ''}`}><input type="radio" checked={paymentMethod === p.id} onChange={() => setPaymentMethod(p.id)} /><span><b>{p.label}</b><p className="text-xs text-gray-500">{p.desc}</p></span></label>)}<button onClick={placeOrder} disabled={loading} className="w-full bg-orange-500 text-white font-black py-3 rounded-sm">{loading ? 'Placing Order...' : `Buy Now - Rs ${finalPrice.toLocaleString()}`}</button></div>}
           </section>
         </main>
 

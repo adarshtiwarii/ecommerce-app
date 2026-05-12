@@ -72,6 +72,8 @@ public class ProductService {
         if (updated.getRating() != null) existing.setRating(updated.getRating());
         if (updated.getReviewsCount() != null) existing.setReviewsCount(updated.getReviewsCount());
         if (updated.getInTheBox() != null) existing.setInTheBox(updated.getInTheBox());
+        if (updated.getProductLatitude() != null) existing.setProductLatitude(updated.getProductLatitude());
+        if (updated.getProductLongitude() != null) existing.setProductLongitude(updated.getProductLongitude());
 
         // Rich JSON fields
         if (updated.getImages() != null) {

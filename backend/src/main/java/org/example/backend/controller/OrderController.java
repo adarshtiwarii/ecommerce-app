@@ -50,6 +50,30 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            String reason = body.getOrDefault("reason", "").trim();
+            if (reason.isEmpty()) return ResponseEntity.badRequest().body("Cancel reason is required");
+            return ResponseEntity.ok(orderService.cancelOrder(id, reason));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/{id}/return")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> returnOrder(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            String reason = body.getOrDefault("reason", "").trim();
+            if (reason.isEmpty()) return ResponseEntity.badRequest().body("Return reason is required");
+            return ResponseEntity.ok(orderService.requestReturn(id, reason));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // ============================================================
     // 📊 ADMIN – GET TOTAL ORDER COUNT (for dashboard)
     // ============================================================

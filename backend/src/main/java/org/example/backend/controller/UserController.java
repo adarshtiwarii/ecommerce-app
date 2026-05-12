@@ -6,6 +6,7 @@ import org.example.backend.dto.LoginRequest;
 import org.example.backend.dto.LoginResponse;
 import org.example.backend.dto.RegisterRequest;
 import org.example.backend.model.User;
+import org.example.backend.repository.CartRepository;
 import org.example.backend.repository.UserRepository;
 import org.example.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CartRepository cartRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -129,6 +133,19 @@ public class UserController {
                 "message", user.isEnabled() ? "User activated" : "User deactivated",
                 "enabled", user.isEnabled()
         ));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (authentication != null && authentication.getName().equalsIgnoreCase(user.getEmail())) {
+            return ResponseEntity.badRequest().body("You cannot delete your own account");
+        }
+        cartRepository.findByUserId(id).ifPresent(cartRepository::delete);
+        userRepository.delete(user);
+        return ResponseEntity.ok(Map.of("message", "User deleted"));
     }
 
     @PostMapping("/create-admin")

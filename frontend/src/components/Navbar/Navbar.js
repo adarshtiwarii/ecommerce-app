@@ -22,6 +22,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems, user, logout } = useApp();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'ADMIN';
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -73,8 +74,8 @@ const Navbar = () => {
                         <div className="text-xs text-orange-500 mt-1">{user.role}</div>
                       </div>
                       {user.role === 'ADMIN' && <Link to="/admin" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Admin Dashboard</Link>}
-                      <Link to="/orders" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">My Orders</Link>
-                      <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Wishlist</Link>
+                      {!isAdmin && <Link to="/orders" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">My Orders</Link>}
+                      {!isAdmin && <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Wishlist</Link>}
                       <button onClick={logout} className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50 flex items-center gap-2"><FiLogOut /> Logout</button>
                     </div>
                   )}
@@ -82,12 +83,14 @@ const Navbar = () => {
               )}
             </div>
 
-            <Link to="/wishlist" className="hidden md:flex items-center gap-1 hover:text-orange-100"><FiHeart /> Wishlist</Link>
-            {user && <Link to="/orders" className="hidden md:flex items-center gap-1 hover:text-orange-100"><FiPackage /> Orders</Link>}
-            <Link to="/cart" className="relative flex items-center gap-1 hover:text-orange-100">
-              <FiShoppingCart size={20} /> <span className="hidden sm:inline">Cart</span>
-              {totalItems > 0 && <span className="absolute -top-2 -right-3 bg-yellow-400 text-orange-900 text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-black">{totalItems}</span>}
-            </Link>
+            {!isAdmin && <Link to="/wishlist" className="hidden md:flex items-center gap-1 hover:text-orange-100"><FiHeart /> Wishlist</Link>}
+            {user && !isAdmin && <Link to="/orders" className="hidden md:flex items-center gap-1 hover:text-orange-100"><FiPackage /> Orders</Link>}
+            {!isAdmin && (
+              <Link to="/cart" className="relative flex items-center gap-1 hover:text-orange-100">
+                <FiShoppingCart size={20} /> <span className="hidden sm:inline">Cart</span>
+                {totalItems > 0 && <span className="absolute -top-2 -right-3 bg-yellow-400 text-orange-900 text-[10px] rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-black">{totalItems}</span>}
+              </Link>
+            )}
             <button className="sm:hidden" onClick={() => setMobileMenuOpen(v => !v)}>{mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}</button>
           </nav>
         </div>
@@ -110,7 +113,7 @@ const Navbar = () => {
 
       {mobileMenuOpen && (
         <div className="sm:hidden bg-white border-b shadow">
-          {user && <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700 font-semibold"><FiPackage /> My Orders</Link>}
+          {user && !isAdmin && <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700 font-semibold"><FiPackage /> My Orders</Link>}
           {categories.map(cat => {
             const Icon = cat.icon;
             return <Link key={cat.name} to={cat.link} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700"><Icon /> {cat.name}</Link>;

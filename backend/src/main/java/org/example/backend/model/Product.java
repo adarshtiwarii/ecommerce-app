@@ -59,6 +59,8 @@ public class Product {
 
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
+    private Double productLatitude;
+    private Double productLongitude;
 
     // ----- Constructors -----
     public Product() {}
@@ -138,4 +140,10 @@ public class Product {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Double getProductLatitude() { return productLatitude; }
+    public void setProductLatitude(Double productLatitude) { this.productLatitude = productLatitude; }
+
+    public Double getProductLongitude() { return productLongitude; }
+    public void setProductLongitude(Double productLongitude) { this.productLongitude = productLongitude; }
 }
