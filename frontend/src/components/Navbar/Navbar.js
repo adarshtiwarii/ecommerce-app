@@ -74,6 +74,7 @@ const Navbar = () => {
                         <div className="text-xs text-orange-500 mt-1">{user.role}</div>
                       </div>
                       {user.role === 'ADMIN' && <Link to="/admin" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Admin Dashboard</Link>}
+                      <Link to="/profile" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">My Profile</Link>
                       {!isAdmin && <Link to="/orders" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">My Orders</Link>}
                       {!isAdmin && <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2 hover:bg-gray-50">Wishlist</Link>}
                       <button onClick={logout} className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-50 flex items-center gap-2"><FiLogOut /> Logout</button>
@@ -113,6 +114,7 @@ const Navbar = () => {
 
       {mobileMenuOpen && (
         <div className="sm:hidden bg-white border-b shadow">
+          {user && <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700 font-semibold"><FiUser /> My Profile</Link>}
           {user && !isAdmin && <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 border-b text-gray-700 font-semibold"><FiPackage /> My Orders</Link>}
           {categories.map(cat => {
             const Icon = cat.icon;

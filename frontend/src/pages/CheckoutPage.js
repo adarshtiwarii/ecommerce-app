@@ -5,29 +5,68 @@ import { useApp } from '../context/AppContext';
 import api from '../utils/api';
 import { IMG_FALLBACK } from '../utils/imgFallback';
 import { calculateOrderTotals } from '../utils/orderTotals';
+import { INDIA_STATES_AND_UTS } from '../utils/indiaStates';
+import { reverseGeocode } from '../utils/location';
 
-const states = ['Delhi', 'Uttar Pradesh', 'Maharashtra', 'Karnataka', 'Tamil Nadu', 'Telangana', 'Gujarat', 'Rajasthan', 'West Bengal', 'Bihar', 'Madhya Pradesh'];
 const payments = [
-  { id: 'upi', label: 'UPI', desc: 'Google Pay, PhonePe, Paytm' },
-  { id: 'card', label: 'Credit / Debit Card', desc: 'Visa, Mastercard, RuPay' },
-  { id: 'netbanking', label: 'Net Banking', desc: 'All major banks' },
-  { id: 'cod', label: 'Cash on Delivery', desc: 'Pay at your doorstep' },
+  { id: 'razorpay', label: 'Razorpay', desc: 'UPI, cards, EMI, net banking and QR' },
+  { id: 'cod', label: 'Cash on Delivery', desc: 'Subject to order value and pincode checks' },
 ];
+
+const loadRazorpay = () =>
+  new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 
 const CheckoutPage = () => {
   const { cart, clearCart, user } = useApp();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState({ name: user?.name || '', phone: '', pincode: '', address: '', city: '', state: '' });
   const [location, setLocation] = useState(null);
   const [locationMsg, setLocationMsg] = useState('');
+  const [readableLocation, setReadableLocation] = useState('');
+  const [deliveryEstimate, setDeliveryEstimate] = useState(null);
 
   const { subtotal, totalMRP, discount, gst, platformFee, deliveryCharge, finalPrice, freeDeliveryMinimum } = calculateOrderTotals(cart);
   const update = (field, value) => setAddress(prev => ({ ...prev, [field]: value }));
 
   const canContinue = address.name && address.phone.length === 10 && address.pincode.length === 6 && address.address && address.city;
+
+  const applyReverseGeocode = async (latitude, longitude) => {
+    try {
+      const geo = await reverseGeocode(latitude, longitude);
+      setAddress(prev => ({
+        ...prev,
+        pincode: prev.pincode || geo.pincode || '',
+        city: prev.city || geo.city || '',
+        state: prev.state || geo.state || '',
+        address: prev.address || geo.street || geo.displayName || '',
+      }));
+      setReadableLocation(geo.displayName);
+    } catch (err) {
+      console.warn('Reverse geocoding failed', err);
+    }
+  };
+
+  const loadDeliveryEstimate = async (latitude, longitude) => {
+    try {
+      const res = await api.get(`/delivery/estimate?latitude=${latitude}&longitude=${longitude}`);
+      setDeliveryEstimate(res.data);
+    } catch (err) {
+      console.warn('Delivery estimate failed', err);
+    }
+  };
 
   const captureLocation = () => {
     if (!navigator.geolocation) {
@@ -36,36 +75,106 @@ const CheckoutPage = () => {
     }
     setLocationMsg('Finding your live location...');
     navigator.geolocation.getCurrentPosition(
-      pos => {
+      async pos => {
         const coords = {
           latitude: Number(pos.coords.latitude.toFixed(6)),
           longitude: Number(pos.coords.longitude.toFixed(6)),
         };
         setLocation(coords);
-        setLocationMsg(`Location linked: ${coords.latitude}, ${coords.longitude}`);
+        setLocationMsg('Location linked. Converting it into a delivery address...');
+        await Promise.all([
+          applyReverseGeocode(coords.latitude, coords.longitude),
+          loadDeliveryEstimate(coords.latitude, coords.longitude),
+        ]);
       },
       () => setLocationMsg('Location permission denied. You can still place the order.'),
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
+  const submitOrder = async (paymentPayload = {}) => {
+    await api.post('/orders', {
+      userId: user?.id || Number(localStorage.getItem('userId')),
+      totalAmount: finalPrice,
+      shippingAddress: `${address.address}, ${address.city}, ${address.state} - ${address.pincode}`,
+      paymentMethod: paymentPayload.paymentMethod || paymentMethod,
+      customerLatitude: location?.latitude,
+      customerLongitude: location?.longitude,
+      razorpayOrderId: paymentPayload.razorpayOrderId,
+      razorpayPaymentId: paymentPayload.razorpayPaymentId,
+      razorpaySignature: paymentPayload.razorpaySignature,
+      items: cart.map(item => ({ productId: item.productId || item.id, quantity: item.quantity, price: item.price })),
+    });
+    await clearCart();
+    setStep(3);
+  };
+
+  const payWithRazorpay = async () => {
+    const scriptReady = await loadRazorpay();
+    if (!scriptReady) {
+      throw new Error('Razorpay checkout could not be loaded');
+    }
+    const orderRes = await api.post('/payments/razorpay/order', {
+      userId: user?.id || Number(localStorage.getItem('userId')),
+      items: cart.map(item => ({ productId: item.productId || item.id, quantity: item.quantity })),
+    });
+    const paymentOrder = orderRes.data;
+
+    await new Promise((resolve, reject) => {
+      const checkout = new window.Razorpay({
+        key: paymentOrder.keyId,
+        amount: paymentOrder.amountInPaise,
+        currency: paymentOrder.currency,
+        name: 'Orange Market',
+        description: 'Secure marketplace payment',
+        order_id: paymentOrder.orderId,
+        prefill: {
+          name: address.name,
+          contact: address.phone,
+          email: user?.email || localStorage.getItem('userEmail') || '',
+        },
+        theme: { color: '#FF7A00' },
+        handler: async (response) => {
+          try {
+            const verifyRes = await api.post('/payments/razorpay/verify', {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            if (!verifyRes.data?.verified) {
+              reject(new Error('Payment verification failed'));
+              return;
+            }
+            await submitOrder({
+              paymentMethod: 'RAZORPAY',
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        },
+        modal: {
+          ondismiss: () => reject(new Error('Payment cancelled')),
+        },
+      });
+      checkout.open();
+    });
+  };
+
   const placeOrder = async () => {
     setLoading(true);
     try {
-      await api.post('/orders', {
-        userId: user?.id || Number(localStorage.getItem('userId')),
-        totalAmount: finalPrice,
-        shippingAddress: `${address.address}, ${address.city}, ${address.state} - ${address.pincode}`,
-        paymentMethod,
-        customerLatitude: location?.latitude,
-        customerLongitude: location?.longitude,
-        items: cart.map(item => ({ productId: item.productId || item.id, quantity: item.quantity, price: item.price })),
-      });
-      await clearCart();
-      setStep(3);
+      if (paymentMethod === 'razorpay') {
+        await payWithRazorpay();
+      } else {
+        await submitOrder({ paymentMethod: 'COD' });
+      }
     } catch (err) {
       console.error('Order failed', err);
-      alert(err.response?.data || 'Failed to place order');
+      alert(err.response?.data?.message || err.response?.data || err.message || 'Failed to place order');
     } finally {
       setLoading(false);
     }
@@ -99,11 +208,17 @@ const CheckoutPage = () => {
                 <input value={address.phone} onChange={e => update('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit mobile number" className="border rounded-sm px-3 py-2" />
                 <input value={address.pincode} onChange={e => update('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="Pincode" className="border rounded-sm px-3 py-2" />
                 <input value={address.city} onChange={e => update('city', e.target.value)} placeholder="City" className="border rounded-sm px-3 py-2" />
-                <select value={address.state} onChange={e => update('state', e.target.value)} className="border rounded-sm px-3 py-2"><option value="">Select state</option>{states.map(s => <option key={s}>{s}</option>)}</select>
+                <select value={address.state} onChange={e => update('state', e.target.value)} className="border rounded-sm px-3 py-2"><option value="">Select state / UT</option>{INDIA_STATES_AND_UTS.map(s => <option key={s}>{s}</option>)}</select>
                 <textarea value={address.address} onChange={e => update('address', e.target.value)} placeholder="House no., street, area" className="border rounded-sm px-3 py-2 sm:col-span-2" rows={3} />
                 <div className="sm:col-span-2 rounded-sm border bg-green-50 p-3">
                   <button type="button" onClick={captureLocation} className="flex items-center gap-2 text-sm font-black text-green-700"><FiNavigation /> Use realtime location for delivery tracking</button>
                   {locationMsg && <p className="mt-2 text-xs text-green-700">{locationMsg}</p>}
+                  {readableLocation && <p className="mt-2 text-xs text-gray-700"><b>Detected address:</b> {readableLocation}</p>}
+                  {deliveryEstimate && (
+                    <p className="mt-2 text-xs text-gray-700">
+                      Nearest warehouse: <b>{deliveryEstimate.warehouseName}</b> ({deliveryEstimate.distanceKm} km), ETA about <b>{deliveryEstimate.estimatedHours} hours</b>.
+                    </p>
+                  )}
                 </div>
                 <button disabled={!canContinue} onClick={() => setStep(2)} className="sm:col-span-2 bg-orange-500 disabled:bg-gray-300 text-white font-black py-3 rounded-sm">Deliver Here</button>
               </div>
@@ -114,7 +229,7 @@ const CheckoutPage = () => {
 
           <section className="bg-white border rounded-sm shadow-sm">
             <div className={`px-4 py-3 font-bold flex items-center gap-2 ${step >= 2 ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'}`}><FiCreditCard /> Payment Method</div>
-            {step === 2 && <div className="p-4 space-y-3">{payments.map(p => <label key={p.id} className={`flex gap-3 p-3 border rounded-sm cursor-pointer ${paymentMethod === p.id ? 'border-orange-500 bg-orange-50' : ''}`}><input type="radio" checked={paymentMethod === p.id} onChange={() => setPaymentMethod(p.id)} /><span><b>{p.label}</b><p className="text-xs text-gray-500">{p.desc}</p></span></label>)}<button onClick={placeOrder} disabled={loading} className="w-full bg-orange-500 text-white font-black py-3 rounded-sm">{loading ? 'Placing Order...' : `Buy Now - Rs ${finalPrice.toLocaleString()}`}</button></div>}
+            {step === 2 && <div className="p-4 space-y-3">{payments.map(p => <label key={p.id} className={`flex gap-3 p-3 border rounded-sm cursor-pointer ${paymentMethod === p.id ? 'border-orange-500 bg-orange-50' : ''}`}><input type="radio" checked={paymentMethod === p.id} onChange={() => setPaymentMethod(p.id)} /><span><b>{p.label}</b><p className="text-xs text-gray-500">{p.desc}</p></span></label>)}<button onClick={placeOrder} disabled={loading} className="w-full bg-orange-500 text-white font-black py-3 rounded-sm">{loading ? 'Processing...' : paymentMethod === 'razorpay' ? `Pay Securely - Rs ${finalPrice.toLocaleString()}` : `Place COD Order - Rs ${finalPrice.toLocaleString()}`}</button></div>}
           </section>
         </main>
 

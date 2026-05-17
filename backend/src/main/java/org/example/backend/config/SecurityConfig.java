@@ -50,7 +50,9 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/register",
                                 "/api/auth/create-admin",
-                                "/api/auth/create-seller"
+                                "/api/auth/create-seller",
+                                "/api/profile/forgot-password",
+                                "/api/profile/reset-password"
                         ).permitAll()
 
                         // 2. Public GET requests for products (listing, detail, search, category)

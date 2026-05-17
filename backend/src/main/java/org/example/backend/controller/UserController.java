@@ -6,23 +6,22 @@ import org.example.backend.dto.LoginRequest;
 import org.example.backend.dto.LoginResponse;
 import org.example.backend.dto.RegisterRequest;
 import org.example.backend.model.User;
-import org.example.backend.repository.CartRepository;
 import org.example.backend.repository.UserRepository;
 import org.example.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,9 +36,6 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private CartRepository cartRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -81,7 +77,7 @@ public class UserController {
                     loginRequest.getPassword()
             );
             // 2. Generate JWT token (includes email and role)
-            String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+            String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getTokenVersion());
             // 3. Build response with user details and token
             LoginResponse response = new LoginResponse(
                     "Login successful",
@@ -91,61 +87,19 @@ public class UserController {
                     token
             );
             response.setUserId(user.getUserId());  // ✅ Frontend needs userId for cart, etc.
-            return ResponseEntity.ok(response);
+            ResponseCookie cookie = ResponseCookie.from("ECOM_AUTH", token)
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(Duration.ofDays(7))
+                    .build();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
-    }
-
-    // ============================================================
-    // 📊 ADMIN – Get total number of registered users (for dashboard)
-    // ============================================================
-    @GetMapping("/count")
-    @PreAuthorize("hasRole('ADMIN')")  // ✅ Only users with ADMIN role can access
-    public ResponseEntity<Long> getUserCount() {
-        long count = userRepository.count();  // JPA method – counts all users
-        return ResponseEntity.ok(count);
-        // Note: Returns plain number (e.g., 12). Frontend can read as res.data
-    }
-
-    // ============================================================
-    // ⚠️ TEMPORARY — Create admin account (use once, then disable in production)
-    // ============================================================
-    @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        users.forEach(user -> user.setPasswordHash(null));
-        return ResponseEntity.ok(users);
-    }
-
-    @PatchMapping("/users/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id, Authentication authentication) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        if (authentication != null && authentication.getName().equalsIgnoreCase(user.getEmail())) {
-            return ResponseEntity.badRequest().body("You cannot deactivate your own account");
-        }
-        user.setEnabled(!user.isEnabled());
-        userRepository.save(user);
-        return ResponseEntity.ok(Map.of(
-                "message", user.isEnabled() ? "User activated" : "User deactivated",
-                "enabled", user.isEnabled()
-        ));
-    }
-
-    @DeleteMapping("/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        if (authentication != null && authentication.getName().equalsIgnoreCase(user.getEmail())) {
-            return ResponseEntity.badRequest().body("You cannot delete your own account");
-        }
-        cartRepository.findByUserId(id).ifPresent(cartRepository::delete);
-        userRepository.delete(user);
-        return ResponseEntity.ok(Map.of("message", "User deleted"));
     }
 
     @PostMapping("/create-admin")

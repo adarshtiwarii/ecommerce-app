@@ -9,6 +9,9 @@ public class PlaceOrderRequest {
     private BigDecimal totalAmount;
     private String shippingAddress;
     private String paymentMethod;
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String razorpaySignature;
     private Double customerLatitude;
     private Double customerLongitude;
     private List<OrderItemRequest> items;
@@ -45,6 +48,15 @@ public class PlaceOrderRequest {
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
+    public String getRazorpayOrderId() { return razorpayOrderId; }
+    public void setRazorpayOrderId(String razorpayOrderId) { this.razorpayOrderId = razorpayOrderId; }
+
+    public String getRazorpayPaymentId() { return razorpayPaymentId; }
+    public void setRazorpayPaymentId(String razorpayPaymentId) { this.razorpayPaymentId = razorpayPaymentId; }
+
+    public String getRazorpaySignature() { return razorpaySignature; }
+    public void setRazorpaySignature(String razorpaySignature) { this.razorpaySignature = razorpaySignature; }
 
     public Double getCustomerLatitude() { return customerLatitude; }
     public void setCustomerLatitude(Double customerLatitude) { this.customerLatitude = customerLatitude; }

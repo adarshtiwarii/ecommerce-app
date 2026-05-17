@@ -97,7 +97,10 @@ public class OrderController {
                     row.put("status", order.getStatus());
                     row.put("orderDate", order.getOrderDate());
                     row.put("paymentMethod", order.getPaymentMethod());
+                    row.put("paymentStatus", order.getPaymentStatus());
                     row.put("shippingAddress", order.getShippingAddress());
+                    row.put("nearestWarehouse", order.getNearestWarehouse());
+                    row.put("estimatedDeliveryHours", order.getEstimatedDeliveryHours());
                     row.put("itemsCount", order.getOrderItems() == null ? 0 : order.getOrderItems().size());
                     return row;
                 })

@@ -26,6 +26,12 @@ JWT_SECRET=your_jwt_secret
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=your_razorpay_test_secret
+RAZORPAY_CURRENCY=INR
+WAREHOUSE_NAME=Primary Warehouse
+WAREHOUSE_LATITUDE=28.6139
+WAREHOUSE_LONGITUDE=77.2090
 ```
 
 Run the backend:
@@ -74,6 +80,12 @@ Orders:
 - `GET /api/orders/my?userId={id}`
 - `GET /api/orders/count` - Admin only
 - `GET /api/orders/admin/all` - Admin only
+
+Payments and delivery:
+
+- `POST /api/payments/razorpay/order` - Create a Razorpay test/live order from server-priced cart items
+- `POST /api/payments/razorpay/verify` - Verify Razorpay payment signature
+- `GET /api/delivery/estimate?latitude={lat}&longitude={lng}` - Estimate delivery ETA from warehouse distance
 
 ## Notes
 

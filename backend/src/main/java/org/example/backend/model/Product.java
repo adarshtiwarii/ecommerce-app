@@ -9,7 +9,15 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "products")
+@Table(
+        name = "products",
+        indexes = {
+                @Index(name = "idx_products_enabled", columnList = "enabled"),
+                @Index(name = "idx_products_category_enabled", columnList = "category, enabled"),
+                @Index(name = "idx_products_seller", columnList = "sellerId"),
+                @Index(name = "idx_products_price", columnList = "price")
+        }
+)
 public class Product {
 
     @Id
@@ -18,10 +26,13 @@ public class Product {
     private Long id;
 
     // Basic fields (existing)
+    @Column(nullable = false)
     private String name;
     @Column(length = 2000)
     private String description;
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
+    @Column(nullable = false)
     private Integer stockQuantity;
     private String imageUrl;          // kept for backward compatibility (single image)
     private String category;

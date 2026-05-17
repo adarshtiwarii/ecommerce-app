@@ -12,6 +12,8 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
     List<Order> findByUserId(Long userId);
 
+    long countByUserIdAndStatusIgnoreCase(Long userId, String status);
+
     // For daily sales summary (native query)
     @Query(value = "SELECT DATE(o.order_date) as date, COUNT(o.order_id) as orders, SUM(o.total_amount) as sales " +
             "FROM orders o WHERE o.order_date BETWEEN :start AND :end " +

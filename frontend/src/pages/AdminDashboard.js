@@ -152,6 +152,14 @@ const AdminDashboard = () => {
   };
 
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const revenue = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+  const statusCounts = orders.reduce((acc, order) => {
+    const key = order.status || 'PENDING';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const revenueBars = orders.slice(0, 8).map(order => Number(order.totalAmount || 0));
+  const maxRevenueBar = Math.max(...revenueBars, 1);
   const filtered = products.filter(p => {
     const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase()) || p.brand?.toLowerCase().includes(search.toLowerCase());
     const matchCategory = !categoryFilter || p.category === categoryFilter;
@@ -184,6 +192,37 @@ const AdminDashboard = () => {
           <StatCard label="Total Users" value={stats.users} icon={<FiUsers />} error={statErrors.users || usersError} accent="bg-orange-500" active={activePanel === 'users'} onClick={() => setActivePanel('users')} />
           <StatCard label="Total Orders" value={stats.orders} icon={<FiShoppingBag />} error={statErrors.orders || ordersError} accent="bg-amber-500" active={activePanel === 'orders'} onClick={() => setActivePanel('orders')} />
           <StatCard label="Total Products" value={stats.products} icon={<FiPackage />} accent="bg-red-500" active={activePanel === 'products'} onClick={() => setActivePanel('products')} />
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="rounded-sm border bg-white p-5 shadow-sm lg:col-span-2">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="font-black text-gray-900">Revenue Analytics</h2>
+                <p className="text-sm text-gray-500">Recent order value trend</p>
+              </div>
+              <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-black text-orange-600">Rs {revenue.toLocaleString()}</span>
+            </div>
+            <div className="flex h-44 items-end gap-3 border-b border-l px-3 pt-4">
+              {(revenueBars.length ? revenueBars : [0, 0, 0, 0]).map((amount, index) => (
+                <div key={index} className="flex flex-1 flex-col items-center gap-2">
+                  <div className="w-full rounded-t-sm bg-orange-500 transition-all" style={{ height: `${Math.max((amount / maxRevenueBar) * 130, 8)}px` }} />
+                  <span className="text-[10px] font-bold text-gray-400">#{index + 1}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-sm border bg-white p-5 shadow-sm">
+            <h2 className="font-black text-gray-900">Order Status</h2>
+            <div className="mt-4 space-y-3">
+              {Object.entries(statusCounts).length === 0 ? <p className="text-sm text-gray-500">No order data yet</p> : Object.entries(statusCounts).map(([status, count]) => (
+                <div key={status}>
+                  <div className="mb-1 flex justify-between text-sm"><span className="font-bold">{status}</span><span>{count}</span></div>
+                  <div className="h-2 rounded-full bg-gray-100"><div className="h-2 rounded-full bg-orange-500" style={{ width: `${Math.min((count / Math.max(orders.length, 1)) * 100, 100)}%` }} /></div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {activePanel === 'users' && (

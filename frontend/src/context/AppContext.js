@@ -204,6 +204,17 @@ const logout = () => {
 
   const isWishlisted = (productId) => wishlist.includes(productId);
 
+  const updateUser = (patch) => {
+    setUser(prev => {
+      const next = { ...(prev || {}), ...patch };
+      if (next.email) localStorage.setItem('userEmail', next.email);
+      if (next.name) localStorage.setItem('userName', next.name);
+      if (next.role) localStorage.setItem('userRole', next.role);
+      if (next.id) localStorage.setItem('userId', String(next.id));
+      return next;
+    });
+  };
+
   // ── Cart totals ──────────────────────────────────────────
   const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -211,6 +222,7 @@ const logout = () => {
   return (
     <AppContext.Provider value={{
       user, login, register, logout,
+      updateUser,
       wishlist, toggleWishlist, isWishlisted,
       cart: state.cart, addToCart, removeFromCart,
       updateQuantity, clearCart, totalItems, totalPrice,

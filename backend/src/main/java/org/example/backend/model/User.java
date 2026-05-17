@@ -4,13 +4,26 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        indexes = {
+                @Index(name = "idx_users_email", columnList = "email"),
+                @Index(name = "idx_users_phone", columnList = "phoneNumber")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_users_email", columnNames = "email"),
+                @UniqueConstraint(name = "uk_users_phone", columnNames = "phoneNumber")
+        }
+)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
+    @Column(nullable = false)
     private String fullName;
+    @Column(nullable = false)
     private String email;
+    @Column(nullable = false)
     private String phoneNumber;
     private String passwordHash;
     @Enumerated(EnumType.STRING)
@@ -20,6 +33,20 @@ public class User {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean enabled = true;
     private LocalDateTime createdAt = LocalDateTime.now();
+    private String profileImageUrl;
+    private boolean emailVerified = false;
+    private boolean phoneVerified = false;
+    private boolean darkMode = false;
+    private boolean marketingNotifications = true;
+    private boolean orderNotifications = true;
+    private boolean profilePrivate = false;
+    private Integer tokenVersion = 0;
+    private String passwordResetTokenHash;
+    private LocalDateTime passwordResetExpiresAt;
+    private String emailOtpHash;
+    private LocalDateTime emailOtpExpiresAt;
+    private String phoneOtpHash;
+    private LocalDateTime phoneOtpExpiresAt;
 
     public enum Role { CUSTOMER, SELLER, ADMIN }
     public enum Gender { MALE, FEMALE, OTHER }
@@ -62,4 +89,46 @@ public class User {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+
+    public boolean isPhoneVerified() { return phoneVerified; }
+    public void setPhoneVerified(boolean phoneVerified) { this.phoneVerified = phoneVerified; }
+
+    public boolean isDarkMode() { return darkMode; }
+    public void setDarkMode(boolean darkMode) { this.darkMode = darkMode; }
+
+    public boolean isMarketingNotifications() { return marketingNotifications; }
+    public void setMarketingNotifications(boolean marketingNotifications) { this.marketingNotifications = marketingNotifications; }
+
+    public boolean isOrderNotifications() { return orderNotifications; }
+    public void setOrderNotifications(boolean orderNotifications) { this.orderNotifications = orderNotifications; }
+
+    public boolean isProfilePrivate() { return profilePrivate; }
+    public void setProfilePrivate(boolean profilePrivate) { this.profilePrivate = profilePrivate; }
+
+    public Integer getTokenVersion() { return tokenVersion; }
+    public void setTokenVersion(Integer tokenVersion) { this.tokenVersion = tokenVersion; }
+
+    public String getPasswordResetTokenHash() { return passwordResetTokenHash; }
+    public void setPasswordResetTokenHash(String passwordResetTokenHash) { this.passwordResetTokenHash = passwordResetTokenHash; }
+
+    public LocalDateTime getPasswordResetExpiresAt() { return passwordResetExpiresAt; }
+    public void setPasswordResetExpiresAt(LocalDateTime passwordResetExpiresAt) { this.passwordResetExpiresAt = passwordResetExpiresAt; }
+
+    public String getEmailOtpHash() { return emailOtpHash; }
+    public void setEmailOtpHash(String emailOtpHash) { this.emailOtpHash = emailOtpHash; }
+
+    public LocalDateTime getEmailOtpExpiresAt() { return emailOtpExpiresAt; }
+    public void setEmailOtpExpiresAt(LocalDateTime emailOtpExpiresAt) { this.emailOtpExpiresAt = emailOtpExpiresAt; }
+
+    public String getPhoneOtpHash() { return phoneOtpHash; }
+    public void setPhoneOtpHash(String phoneOtpHash) { this.phoneOtpHash = phoneOtpHash; }
+
+    public LocalDateTime getPhoneOtpExpiresAt() { return phoneOtpExpiresAt; }
+    public void setPhoneOtpExpiresAt(LocalDateTime phoneOtpExpiresAt) { this.phoneOtpExpiresAt = phoneOtpExpiresAt; }
 }

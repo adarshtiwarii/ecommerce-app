@@ -15,7 +15,14 @@ import java.util.List;
  * Order ke multiple OrderItem hote hain (One-to-Many relationship).
  */
 @Entity
-@Table(name = "orders")
+@Table(
+        name = "orders",
+        indexes = {
+                @Index(name = "idx_orders_user_date", columnList = "userId, orderDate"),
+                @Index(name = "idx_orders_status", columnList = "status"),
+                @Index(name = "idx_orders_payment_status", columnList = "paymentStatus")
+        }
+)
 public class Order {
 
     @Id
@@ -35,6 +42,13 @@ public class Order {
     private String shippingAddress;      // Delivery address (Checkout se aayega)
 
     private String paymentMethod;        // COD, CARD, UPI, etc.
+
+    private String paymentStatus = "PENDING";
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+    private String nearestWarehouse;
+    private Double warehouseDistanceKm;
+    private Integer estimatedDeliveryHours;
 
     @Column(length = 1000)
     private String cancelReason;
@@ -122,6 +136,24 @@ public class Order {
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
+    public String getRazorpayOrderId() { return razorpayOrderId; }
+    public void setRazorpayOrderId(String razorpayOrderId) { this.razorpayOrderId = razorpayOrderId; }
+
+    public String getRazorpayPaymentId() { return razorpayPaymentId; }
+    public void setRazorpayPaymentId(String razorpayPaymentId) { this.razorpayPaymentId = razorpayPaymentId; }
+
+    public String getNearestWarehouse() { return nearestWarehouse; }
+    public void setNearestWarehouse(String nearestWarehouse) { this.nearestWarehouse = nearestWarehouse; }
+
+    public Double getWarehouseDistanceKm() { return warehouseDistanceKm; }
+    public void setWarehouseDistanceKm(Double warehouseDistanceKm) { this.warehouseDistanceKm = warehouseDistanceKm; }
+
+    public Integer getEstimatedDeliveryHours() { return estimatedDeliveryHours; }
+    public void setEstimatedDeliveryHours(Integer estimatedDeliveryHours) { this.estimatedDeliveryHours = estimatedDeliveryHours; }
 
     public String getCancelReason() { return cancelReason; }
     public void setCancelReason(String cancelReason) { this.cancelReason = cancelReason; }

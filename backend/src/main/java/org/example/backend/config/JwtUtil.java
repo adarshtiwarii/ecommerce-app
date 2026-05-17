@@ -61,8 +61,13 @@ public class JwtUtil {
      * @return compact JWT string
      */
     public String generateToken(String email, String role) {
+        return generateToken(email, role, 0);
+    }
+
+    public String generateToken(String email, String role, Integer tokenVersion) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);   // store raw role (no "ROLE_" prefix)
+        claims.put("tokenVersion", tokenVersion == null ? 0 : tokenVersion);
         return createToken(claims, email);
     }
 
@@ -105,6 +110,10 @@ public class JwtUtil {
      */
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+    public Integer extractTokenVersion(String token) {
+        return extractClaim(token, claims -> claims.get("tokenVersion", Integer.class));
     }
 
     /**

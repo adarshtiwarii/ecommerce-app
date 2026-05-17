@@ -2,8 +2,10 @@ package org.example.backend.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.example.backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     /**
      * Determines whether the filter should be bypassed for the current request.
      *
@@ -49,7 +54,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         boolean isAuthRoute = path.equals("/api/auth/login") ||
                 path.equals("/api/auth/register") ||
                 path.equals("/api/auth/create-admin") ||
-                path.equals("/api/auth/create-seller");
+                path.equals("/api/auth/create-seller") ||
+                path.equals("/api/profile/forgot-password") ||
+                path.equals("/api/profile/reset-password");
 
         // 2. Public product GET endpoints (but NOT /api/products/admin/*)
         boolean isPublicProduct = path.startsWith("/api/products") &&
@@ -72,6 +79,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         // ✅ Step 1: Extract Bearer token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
+        } else if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("ECOM_AUTH".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (jwt != null) {
             try {
                 // ✅ Step 2: Extract email (subject) from token
                 email = jwtUtil.extractEmail(jwt);
@@ -91,6 +108,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             if (jwtUtil.validateToken(jwt, email)) {
 
                 // ✅ Step 6: Extract raw role from token (e.g., "ADMIN", "SELLER")
+                Integer tokenVersion = jwtUtil.extractTokenVersion(jwt);
+                Integer currentTokenVersion = userRepository.findByEmail(email)
+                        .map(user -> user.getTokenVersion() == null ? 0 : user.getTokenVersion())
+                        .orElse(0);
+                if (!currentTokenVersion.equals(tokenVersion == null ? 0 : tokenVersion)) {
+                    logger.warn("JWT token version mismatch for: {}", email);
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session expired");
+                    return;
+                }
+
                 String role = jwtUtil.extractRole(jwt);
 
                 // ✅ Step 7: Prepend "ROLE_" – Spring Security expects authorities like "ROLE_ADMIN"
