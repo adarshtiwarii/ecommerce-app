@@ -41,7 +41,7 @@ public class OrderController {
     }
 
     // ============================================================
-    // 📋 GET MY ORDERS (Customer/User)
+    // 📋 GET MY ORDERS (Customer)
     // ============================================================
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
@@ -75,7 +75,7 @@ public class OrderController {
     }
 
     // ============================================================
-    // 📊 ADMIN – GET TOTAL ORDER COUNT (for dashboard)
+    // 📊 ADMIN — TOTAL ORDER COUNT
     // ============================================================
     @GetMapping("/count")
     @PreAuthorize("hasRole('ADMIN')")
@@ -84,23 +84,29 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 
+    // ============================================================
+    // 📋 ADMIN — ALL ORDERS
+    // ============================================================
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Map<String, Object>>> getAllOrdersForAdmin() {
-        List<Map<String, Object>> orders = orderRepository.findAll().stream()
-                .sorted(Comparator.comparing(Order::getOrderDate, Comparator.nullsLast(Comparator.reverseOrder())))
+        // ✅ orderService.getAllOrders() use karo — @Transactional wahan hai
+        List<Map<String, Object>> orders = orderService.getAllOrders().stream()
+                .sorted(Comparator.comparing(Order::getOrderDate,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(order -> {
                     Map<String, Object> row = new LinkedHashMap<>();
-                    row.put("orderId", order.getOrderId());
-                    row.put("userId", order.getUserId());
-                    row.put("totalAmount", order.getTotalAmount());
-                    row.put("status", order.getStatus());
-                    row.put("orderDate", order.getOrderDate());
-                    row.put("paymentMethod", order.getPaymentMethod());
-                    row.put("paymentStatus", order.getPaymentStatus());
-                    row.put("shippingAddress", order.getShippingAddress());
-                    row.put("nearestWarehouse", order.getNearestWarehouse());
+                    row.put("orderId",                order.getOrderId());
+                    row.put("userId",                 order.getUserId());
+                    row.put("totalAmount",            order.getTotalAmount());
+                    row.put("status",                 order.getStatus());
+                    row.put("orderDate",              order.getOrderDate());
+                    row.put("paymentMethod",          order.getPaymentMethod());
+                    row.put("paymentStatus",          order.getPaymentStatus());
+                    row.put("shippingAddress",        order.getShippingAddress());
+                    row.put("nearestWarehouse",       order.getNearestWarehouse());
                     row.put("estimatedDeliveryHours", order.getEstimatedDeliveryHours());
+                    // ✅ Ab getOrderItems() safe hai — transaction ke andar initialize ho chuka hai
                     row.put("itemsCount", order.getOrderItems() == null ? 0 : order.getOrderItems().size());
                     return row;
                 })

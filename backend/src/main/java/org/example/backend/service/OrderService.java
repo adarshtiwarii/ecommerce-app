@@ -99,12 +99,25 @@ public class OrderService {
         return savedOrder;
     }
 
-    @Transactional(readOnly = true)  // ← YAHI FIX HAI
+    // ✅ Customer ke orders
+    @Transactional(readOnly = true)
     public List<Order> getOrdersByUser(Long userId) {
         List<Order> orders = orderRepository.findByUserId(userId);
-        // Lazy collections ko transaction ke andar initialize karo
         orders.forEach(order -> order.getOrderItems().size());
         return orders;
+    }
+
+    // ✅ Admin — sabke orders + count
+    @Transactional(readOnly = true)
+    public List<Order> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        orders.forEach(order -> order.getOrderItems().size());
+        return orders;
+    }
+
+    // ✅ Admin — total orders count
+    public long getTotalOrdersCount() {
+        return orderRepository.count();
     }
 
     @Transactional
