@@ -21,6 +21,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const message = error.response?.data || error.response?.statusText || '';
+
+    // ✅ Account deactivated — 403
     if (error.response?.status === 403 && String(message).toLowerCase().includes('deactivated')) {
       localStorage.clear();
       window.dispatchEvent(new Event('app-logout'));
@@ -28,6 +30,13 @@ api.interceptors.response.use(
         detail: 'Your account is deactivated. Please contact the admin.',
       }));
     }
+
+    // ✅ Token expired / version mismatch — 401
+    if (error.response?.status === 401) {
+      localStorage.clear();
+      window.dispatchEvent(new Event('app-logout'));
+    }
+
     return Promise.reject(error);
   }
 );

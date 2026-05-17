@@ -20,8 +20,6 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // ✅ Spring ka Bean inject karo — naya object mat banao
-    // SecurityConfig me @Bean hai wahi yahan aayega
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -30,37 +28,28 @@ public class UserService {
     // ============================================================
     public User registerUser(RegisterRequest request) {
 
-        // ✅ Email already exist karta hai?
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered!");
         }
 
-        // ✅ Phone already exist karta hai?
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new RuntimeException("Phone number already registered!");
         }
 
-        // ✅ Password aur confirmPassword match karte hain?
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Passwords do not match!");
         }
 
-        // ✅ User object banao aur save karo
         User user = new User();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword())); // ✅ BCrypt hash
-        user.setRole(User.Role.CUSTOMER);  // ✅ Default role CUSTOMER
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole(User.Role.CUSTOMER);
         user.setGender(request.getGender());
 
-        // ✅ DB me save karo aur return karo
-        User savedUser = userRepository.save(user);
-
-        // ✅ Response me password hash nahi aana chahiye
-        savedUser.setPasswordHash(null);
-
-        return savedUser;
+        // ✅ @JsonIgnore handle karega — setPasswordHash(null) hataya
+        return userRepository.save(user);
     }
 
     // ============================================================
@@ -68,23 +57,20 @@ public class UserService {
     // ============================================================
     public User authenticateUser(String emailOrPhone, String rawPassword) {
 
-        // ✅ Email ya Phone — dono se user dhundo
         User user;
         if (emailOrPhone.contains("@")) {
-            // Email se login
             user = userRepository.findByEmail(emailOrPhone)
                     .orElseThrow(() -> new RuntimeException("Email not registered"));
         } else {
-            // Phone number se login
             user = userRepository.findByPhoneNumber(emailOrPhone)
                     .orElseThrow(() -> new RuntimeException("Phone number not registered"));
         }
 
-        // ✅ Password match karo — BCrypt compare karega
         if (!user.isEnabled()) {
             throw new RuntimeException("Your account is deactivated. Please contact the admin.");
         }
 
+        // ✅ passwordHash yahan internally use ho raha hai — entity modify nahi kar rahe
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
             throw new RuntimeException("Invalid password");
         }
@@ -92,16 +78,18 @@ public class UserService {
         return user;
     }
 
+    // ============================================================
+    // 👤 GET BY EMAIL
+    // ============================================================
     public User getByEmail(String email) {
-        User user = userRepository.findByEmail(email)
+        // ✅ Sirf return karo — @JsonIgnore sensitive fields serialize nahi karega
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setPasswordHash(null);
-        user.setPasswordResetTokenHash(null);
-        user.setEmailOtpHash(null);
-        user.setPhoneOtpHash(null);
-        return user;
     }
 
+    // ============================================================
+    // ✏️ UPDATE PROFILE
+    // ============================================================
     public User updateProfile(String currentEmail, ProfileUpdateRequest request) {
         User user = userRepository.findByEmail(currentEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -109,12 +97,14 @@ public class UserService {
         if (request.getFullName() != null) user.setFullName(clean(request.getFullName()));
         if (request.getProfileImageUrl() != null) user.setProfileImageUrl(clean(request.getProfileImageUrl()));
         if (request.getEmail() != null && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) throw new RuntimeException("Email already registered");
+            if (userRepository.existsByEmail(request.getEmail()))
+                throw new RuntimeException("Email already registered");
             user.setEmail(clean(request.getEmail()).toLowerCase());
             user.setEmailVerified(false);
         }
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().equals(user.getPhoneNumber())) {
-            if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) throw new RuntimeException("Phone number already registered");
+            if (userRepository.existsByPhoneNumber(request.getPhoneNumber()))
+                throw new RuntimeException("Phone number already registered");
             user.setPhoneNumber(request.getPhoneNumber());
             user.setPhoneVerified(false);
         }
@@ -123,10 +113,13 @@ public class UserService {
         if (request.getOrderNotifications() != null) user.setOrderNotifications(request.getOrderNotifications());
         if (request.getProfilePrivate() != null) user.setProfilePrivate(request.getProfilePrivate());
 
-        User saved = userRepository.save(user);
-        return sanitize(saved);
+        // ✅ sanitize() hata diya — @JsonIgnore handle karega
+        return userRepository.save(user);
     }
 
+    // ============================================================
+    // 🔑 CHANGE PASSWORD
+    // ============================================================
     public void changePassword(String email, String currentPassword, String newPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -138,12 +131,17 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // ============================================================
+    // 🔄 PASSWORD RESET
+    // ============================================================
     public String startPasswordReset(String emailOrPhone) {
         User user = emailOrPhone.contains("@")
                 ? userRepository.findByEmail(emailOrPhone).orElse(null)
                 : userRepository.findByPhoneNumber(emailOrPhone).orElse(null);
         if (user == null) return null;
-        String token = UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
+
+        String token = UUID.randomUUID().toString().replace("-", "")
+                + UUID.randomUUID().toString().replace("-", "");
         user.setPasswordResetTokenHash(sha256(token));
         user.setPasswordResetExpiresAt(LocalDateTime.now().plusMinutes(20));
         userRepository.save(user);
@@ -153,7 +151,8 @@ public class UserService {
     public void resetPassword(String token, String newPassword) {
         User user = userRepository.findByPasswordResetTokenHash(sha256(token))
                 .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
-        if (user.getPasswordResetExpiresAt() == null || user.getPasswordResetExpiresAt().isBefore(LocalDateTime.now())) {
+        if (user.getPasswordResetExpiresAt() == null
+                || user.getPasswordResetExpiresAt().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Invalid or expired reset token");
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
@@ -163,6 +162,9 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // ============================================================
+    // 📲 OTP
+    // ============================================================
     public String issueOtp(String email, String channel) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -183,14 +185,18 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         String hash = sha256(otp);
         if ("phone".equalsIgnoreCase(channel)) {
-            if (!hash.equals(user.getPhoneOtpHash()) || user.getPhoneOtpExpiresAt() == null || user.getPhoneOtpExpiresAt().isBefore(LocalDateTime.now())) {
+            if (!hash.equals(user.getPhoneOtpHash())
+                    || user.getPhoneOtpExpiresAt() == null
+                    || user.getPhoneOtpExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new RuntimeException("Invalid or expired OTP");
             }
             user.setPhoneVerified(true);
             user.setPhoneOtpHash(null);
             user.setPhoneOtpExpiresAt(null);
         } else {
-            if (!hash.equals(user.getEmailOtpHash()) || user.getEmailOtpExpiresAt() == null || user.getEmailOtpExpiresAt().isBefore(LocalDateTime.now())) {
+            if (!hash.equals(user.getEmailOtpHash())
+                    || user.getEmailOtpExpiresAt() == null
+                    || user.getEmailOtpExpiresAt().isBefore(LocalDateTime.now())) {
                 throw new RuntimeException("Invalid or expired OTP");
             }
             user.setEmailVerified(true);
@@ -200,6 +206,9 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // ============================================================
+    // 🚪 LOGOUT ALL DEVICES
+    // ============================================================
     public void logoutAllDevices(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -207,17 +216,14 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // ============================================================
+    // 🛠️ PRIVATE HELPERS
+    // ============================================================
     private String clean(String value) {
         return value == null ? null : value.replaceAll("[<>]", "").trim();
     }
 
-    private User sanitize(User user) {
-        user.setPasswordHash(null);
-        user.setPasswordResetTokenHash(null);
-        user.setEmailOtpHash(null);
-        user.setPhoneOtpHash(null);
-        return user;
-    }
+    // ✅ sanitize() delete kar diya — @JsonIgnore sab handle karta hai
 
     private String sha256(String value) {
         try {

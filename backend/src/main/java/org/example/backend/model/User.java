@@ -1,5 +1,6 @@
 package org.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -19,19 +20,28 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
+
     @Column(nullable = false)
     private String fullName;
+
     @Column(nullable = false)
     private String email;
+
     @Column(nullable = false)
     private String phoneNumber;
+
+    @JsonIgnore
     private String passwordHash;
+
     @Enumerated(EnumType.STRING)
     private Role role = Role.CUSTOMER;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean enabled = true;
+
     private LocalDateTime createdAt = LocalDateTime.now();
     private String profileImageUrl;
     private boolean emailVerified = false;
@@ -41,11 +51,23 @@ public class User {
     private boolean orderNotifications = true;
     private boolean profilePrivate = false;
     private Integer tokenVersion = 0;
+
+    @JsonIgnore
     private String passwordResetTokenHash;
+
+    @JsonIgnore
     private LocalDateTime passwordResetExpiresAt;
+
+    @JsonIgnore
     private String emailOtpHash;
+
+    @JsonIgnore
     private LocalDateTime emailOtpExpiresAt;
+
+    @JsonIgnore
     private String phoneOtpHash;
+
+    @JsonIgnore
     private LocalDateTime phoneOtpExpiresAt;
 
     public enum Role { CUSTOMER, SELLER, ADMIN }

@@ -9,9 +9,10 @@ const StarRating = ({ rating, reviews }) => {
       <span className={`inline-flex items-center gap-1 text-white text-xs font-bold px-2 py-0.5 rounded ${getRatingColor(rating)}`}>
         {rating} ★
       </span>
-      {reviews && <span className="text-gray-500 text-xs">{reviews.toLocaleString()} Ratings</span>}
+      {reviews && <span className="text-white/50 text-xs">{reviews.toLocaleString()} Ratings</span>}
     </div>
   );
 };
 
 export default StarRating;
+

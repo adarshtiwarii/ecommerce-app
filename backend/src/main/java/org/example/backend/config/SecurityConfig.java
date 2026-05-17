@@ -1,8 +1,10 @@
 package org.example.backend.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,25 +15,24 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Spring Security configuration for the e‑commerce application.
+ * Central Spring Security rules for the API.
  *
- * <p>Uses JWT for stateless authentication. Public endpoints (login, register,
- * public product GET) are open; all other requests require a valid JWT token.
- * Role‑based access is controlled via @PreAuthorize annotations on controllers.</p>
+ * The application uses stateless JWT authentication. Login, registration,
+ * password reset, public product browsing, and browser CORS preflight requests
+ * are public. All other API routes require a valid JWT.
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)   // enables @PreAuthorize on methods
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtRequestFilter;
 
-    // Constructor injection of the JWT filter bean
     public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
         this.jwtRequestFilter = jwtRequestFilter;
     }
 
-    // Password encoder for hashing user passwords (BCrypt is industry standard)
+    // BCrypt keeps user passwords hashed instead of storing plain text.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -40,12 +41,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF because we use stateless JWT (no sessions)
+                // Apply CORS before authorization so React requests can pass preflight.
+                .cors(Customizer.withDefaults())
+
+                // JWT authentication is stateless, so CSRF session protection is not used.
                 .csrf(csrf -> csrf.disable())
 
-                // Define which endpoints are public and which require authentication
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Authentication endpoints (login, register, etc.) – no token needed
+                        // Browser preflight requests do not include Authorization headers.
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Auth and password reset endpoints must remain reachable before login.
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register",
@@ -55,21 +61,27 @@ public class SecurityConfig {
                                 "/api/profile/reset-password"
                         ).permitAll()
 
-                        // 2. Public GET requests for products (listing, detail, search, category)
-                        //    This allows users to browse products without logging in.
-                        //    POST, PUT, DELETE, PATCH on /api/products require authentication.
+                        // Product browsing is public; product mutations still require auth.
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
 
-                        // 3. All other requests (including cart, orders, admin endpoints) must be authenticated
+                        // Cart, orders, profile, admin, and seller APIs require authentication.
                         .anyRequest().authenticated()
                 )
 
-                // Stateless session – do not create or use JSESSIONID
+                // API clients should receive status codes, not default browser-login behavior.
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required"))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied"))
+                )
+
+                // Do not create server sessions; every protected request carries its JWT.
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // Add our custom JWT filter before Spring Security's default UsernamePasswordAuthenticationFilter
+                // Authenticate JWTs before Spring Security evaluates endpoint rules.
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -42,7 +42,7 @@ const SellerDashboard = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {products.map(p => (
-            <div key={p.id} className="bg-white rounded shadow p-4">
+            <div key={p.id} className="bg-[#161616] rounded shadow p-4">
               <img src={p.imageUrl || 'https://via.placeholder.com/150'} alt={p.name} className="w-full h-32 object-contain" />
               <h3 className="font-medium mt-2">{p.name}</h3>
               <p className="text-fk-blue font-bold">₹{p.price}</p>
@@ -59,3 +59,4 @@ const SellerDashboard = () => {
 };
 
 export default SellerDashboard;
+

@@ -23,3 +23,4 @@ export const calculateOrderTotals = (cart = []) => {
     freeDeliveryMinimum: FREE_DELIVERY_MINIMUM,
   };
 };
+

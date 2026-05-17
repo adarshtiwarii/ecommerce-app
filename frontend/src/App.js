@@ -1,5 +1,6 @@
 // src/App.js
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 
@@ -7,6 +8,7 @@ import { AppProvider, useApp } from './context/AppContext';
 import Navbar       from './components/Navbar/Navbar';
 import Footer       from './components/common/Footer';
 import SplashScreen from './components/common/SplashScreen';
+import BottomNav    from './components/BottomNav/BottomNav';
 
 // Pages
 import HomePage          from './pages/HomePage';
@@ -63,7 +65,7 @@ const AppRoutes = () => (
   <>
     <LogoutHandler />
     <ScrollToTop />
-    <div className="flex flex-col min-h-screen bg-cinematic-dark">
+    <div className="flex min-h-screen flex-col bg-[#0D0D0D] pb-20 text-white md:pb-0">
       <Navbar />
       <main className="flex-1">
         <Routes>
@@ -114,6 +116,7 @@ const AppRoutes = () => (
         </Routes>
       </main>
       <Footer />
+      <BottomNav />
     </div>
   </>
 );
@@ -123,23 +126,29 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2500);
+    const timer = setTimeout(() => setShowSplash(false), 3000);
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) return <SplashScreen onFinish={() => setShowSplash(false)} />;
-
   return (
-    // ✅ BrowserRouter AppProvider ke BAHAR — warna LogoutHandler kaam nahi karta
-    <BrowserRouter basename={process.env.NODE_ENV === 'production' ? '/ecommerce-app' : ''}>
-      <AppProvider>
-        <AppRoutes />
-      </AppProvider>
-    </BrowserRouter>
+    <AnimatePresence mode="wait">
+      {showSplash ? (
+        <SplashScreen key="splash" />
+      ) : (
+        <motion.div key="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}>
+          <BrowserRouter basename={process.env.NODE_ENV === 'production' ? '/ecommerce-app' : ''}>
+            <AppProvider>
+              <AppRoutes />
+            </AppProvider>
+          </BrowserRouter>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
-
 export default App;
+
+
 
 
 

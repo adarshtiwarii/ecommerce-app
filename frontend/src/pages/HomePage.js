@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FiChevronRight,
-  FiMapPin,
   FiNavigation,
   FiRefreshCw,
   FiRotateCcw,
@@ -11,27 +10,30 @@ import {
   FiTruck,
 } from 'react-icons/fi';
 import ProductCard from '../components/Product/ProductCard';
+import CategoryStrip from '../components/CategoryStrip/CategoryStrip';
+import HeroSlider from '../components/HeroSlider/HeroSlider';
+import ProductGridSkeleton from '../components/Skeleton/ProductGridSkeleton';
 import api from '../utils/api';
 import { reverseGeocode } from '../utils/location';
 
 const categoryTiles = [
-  { name: 'Electronics', tone: 'bg-blue-50 text-blue-700', image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80' },
-  { name: 'Fashion', tone: 'bg-rose-50 text-rose-700', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=600&q=80' },
-  { name: 'Home', tone: 'bg-emerald-50 text-emerald-700', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80' },
-  { name: 'Beauty', tone: 'bg-pink-50 text-pink-700', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80' },
-  { name: 'Appliances', tone: 'bg-amber-50 text-amber-700', image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80' },
+  { name: 'Electronics', tone: 'from-cyan-500 to-blue-600', image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80' },
+  { name: 'Fashion', tone: 'from-fuchsia-500 to-rose-600', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=600&q=80' },
+  { name: 'Home', tone: 'from-orange-500 to-teal-600', image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80' },
+  { name: 'Beauty', tone: 'from-pink-500 to-orange-500', image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80' },
+  { name: 'Appliances', tone: 'from-amber-500 to-lime-600', image: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=600&q=80' },
 ];
 
 const Section = ({ title, subtitle, products, link }) => {
   if (!products?.length) return null;
   return (
-    <section className="rounded-lg border border-orange-100/70 bg-white p-4 shadow-sm sm:p-5">
+    <section className="rounded-md border border-white/[0.08] bg-[#161616] p-4 shadow-sm sm:p-5">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-black text-gray-950">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+          <h2 className="text-xl font-black text-white">{title}</h2>
+          {subtitle && <p className="mt-1 text-sm text-white/50">{subtitle}</p>}
         </div>
-        <Link to={link || '/search?q='} className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-4 py-2 text-sm font-black text-orange-600 hover:bg-orange-100">
+        <Link to={link || '/search?q='} className="inline-flex items-center gap-1 rounded-full bg-[#0D0D0D] px-4 py-2 text-sm font-black text-white transition hover:bg-orange-600">
           View all <FiChevronRight />
         </Link>
       </div>
@@ -113,11 +115,18 @@ const HomePage = () => {
   };
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-white"><div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" /></div>;
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] px-3 py-5 sm:px-4">
+        <div className="mx-auto max-w-7xl space-y-5">
+          <div className="skeleton-shimmer h-[420px] rounded-2xl" />
+          <ProductGridSkeleton count={10} />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0D0D0D]">
       <div className="mx-auto max-w-7xl space-y-6 px-3 py-5 sm:px-4">
         {error && (
           <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
@@ -126,44 +135,31 @@ const HomePage = () => {
           </div>
         )}
 
-        <section className="grid gap-4 overflow-hidden rounded-lg border border-orange-100 bg-orange-50/70 p-4 shadow-sm lg:grid-cols-[1.25fr_0.75fr] lg:p-6">
-          <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col justify-center py-4">
-            <p className="text-sm font-black uppercase tracking-wide text-orange-600">Fresh picks, fair prices</p>
-            <h1 className="mt-3 max-w-2xl text-4xl font-black leading-tight text-gray-950 md:text-6xl">
-              Shop calm, fast, and made for India.
-            </h1>
-            <p className="mt-4 max-w-xl text-base text-gray-600">
-              Minimal browsing, smart delivery estimates, secure payments, and a warm orange shopping experience.
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link to="/search?q=" className="rounded-full bg-orange-500 px-6 py-3 text-center font-black text-white shadow-lg shadow-orange-200 transition hover:bg-orange-600">Start shopping</Link>
-              <button onClick={detectLocation} className="inline-flex items-center justify-center gap-2 rounded-full border border-orange-200 bg-white px-6 py-3 font-black text-orange-600 hover:bg-orange-50">
-                {detectingLocation ? <FiRefreshCw className="animate-spin" /> : <FiNavigation />} Detect location
-              </button>
-            </div>
-            {locationLabel && <p className="mt-4 inline-flex max-w-2xl items-start gap-2 rounded-lg bg-white px-3 py-2 text-sm text-gray-600"><FiMapPin className="mt-0.5 shrink-0 text-orange-500" /> {locationLabel}</p>}
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} className="relative min-h-[280px] overflow-hidden rounded-lg bg-white">
-            <img src="https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&w=1000&q=80" alt="Modern shopping bags" className="h-full min-h-[280px] w-full object-cover" />
-            <div className="absolute bottom-4 left-4 rounded-lg bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
-              <p className="text-sm font-black text-gray-950">Weekend saver</p>
-              <p className="text-xs text-gray-500">Up to 45% off selected essentials</p>
-            </div>
-          </motion.div>
-        </section>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm"><FiTruck className="text-orange-500" size={24} /><div><p className="font-black">Fast Delivery</p><p className="text-xs text-gray-500">Nearest warehouse ETA</p></div></div>
-          <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm"><FiRotateCcw className="text-orange-500" size={24} /><div><p className="font-black">Easy Returns</p><p className="text-xs text-gray-500">Simple return requests</p></div></div>
-          <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white p-4 shadow-sm"><FiShield className="text-orange-500" size={24} /><div><p className="font-black">Secure Checkout</p><p className="text-xs text-gray-500">JWT and verified payments</p></div></div>
+        <HeroSlider />
+        <CategoryStrip />
+        <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#161616] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display text-xl font-bold">Delivery location</p>
+            <p className="mt-1 text-sm text-white/50">{locationLabel || 'Detect your area for delivery estimates.'}</p>
+          </div>
+          <button onClick={detectLocation} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#FF6B00]/30 bg-[rgba(255,107,0,0.12)] px-5 py-3 font-black text-[#FF6B00] transition hover:bg-[#FF6B00] hover:text-white">
+            {detectingLocation ? <FiRefreshCw className="animate-spin" /> : <FiNavigation />} Detect location
+          </button>
         </div>
 
-        <section className="rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="flex items-center gap-3 rounded-md border border-white/[0.08] bg-[#161616] p-4 shadow-sm"><FiTruck className="text-orange-600" size={24} /><div><p className="font-black">Fast Delivery</p><p className="text-xs text-white/50">Nearest warehouse ETA</p></div></div>
+          <div className="flex items-center gap-3 rounded-md border border-white/[0.08] bg-[#161616] p-4 shadow-sm"><FiRotateCcw className="text-fuchsia-600" size={24} /><div><p className="font-black">Easy Returns</p><p className="text-xs text-white/50">Refund-aware order flow</p></div></div>
+          <div className="flex items-center gap-3 rounded-md border border-white/[0.08] bg-[#161616] p-4 shadow-sm"><FiShield className="text-blue-600" size={24} /><div><p className="font-black">Secure Checkout</p><p className="text-xs text-white/50">JWT and verified payments</p></div></div>
+        </div>
+
+        <section className="rounded-md border border-white/[0.08] bg-[#161616] p-4 shadow-sm">
           <div className="flex gap-3 overflow-x-auto pb-1">
             {categoryTiles.map(cat => (
-              <Link key={cat.name} to={`/category/${cat.name}`} className={`group min-w-[170px] overflow-hidden rounded-lg border border-gray-100 ${cat.tone}`}>
+              <Link key={cat.name} to={`/category/${cat.name}`} className="group relative min-w-[190px] overflow-hidden rounded-md border border-white/[0.08] bg-[#0D0D0D] text-white">
                 <img src={cat.image} alt={cat.name} className="h-28 w-full object-cover transition duration-300 group-hover:scale-105" />
-                <div className="flex items-center justify-between p-3 font-black">{cat.name}<FiChevronRight /></div>
+                <div className={`absolute inset-0 bg-gradient-to-t ${cat.tone} opacity-70`} />
+                <div className="relative flex items-center justify-between p-3 font-black">{cat.name}<FiChevronRight /></div>
               </Link>
             ))}
           </div>
@@ -180,3 +176,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

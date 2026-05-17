@@ -31,3 +31,4 @@ const useSearchSuggestions = (query) => {
 };
 
 export default useSearchSuggestions;
+

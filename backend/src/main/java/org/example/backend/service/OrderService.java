@@ -99,13 +99,18 @@ public class OrderService {
         return savedOrder;
     }
 
+    @Transactional(readOnly = true)  // ← YAHI FIX HAI
     public List<Order> getOrdersByUser(Long userId) {
-        return orderRepository.findByUserId(userId);
+        List<Order> orders = orderRepository.findByUserId(userId);
+        // Lazy collections ko transaction ke andar initialize karo
+        orders.forEach(order -> order.getOrderItems().size());
+        return orders;
     }
 
     @Transactional
     public Order cancelOrder(Long orderId, String reason) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
         String status = order.getStatus() == null ? "" : order.getStatus().toUpperCase();
         if ("DELIVERED".equals(status) || "CANCELLED".equals(status)) {
             throw new RuntimeException("This order cannot be cancelled");
@@ -117,7 +122,8 @@ public class OrderService {
 
     @Transactional
     public Order requestReturn(Long orderId, String reason) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
         if (!"DELIVERED".equalsIgnoreCase(order.getStatus())) {
             throw new RuntimeException("Return is available only after delivery");
         }

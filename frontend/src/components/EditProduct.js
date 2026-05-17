@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../utils/api';
+import { getErrorMessage } from '../utils/errorMessage';
 import CloudinaryUploadWidget from './CloudinaryUploadWidget';
 
 const CATEGORY_FIELDS = {
@@ -235,16 +236,16 @@ const EditProduct = () => {
       alert('Product updated successfully!');
       navigate('/admin');
     } catch (err) {
-      setError(err.response?.data?.message || 'Update failed. Please try again.');
+      setError(getErrorMessage(err, 'Update failed. Please try again.'));
     } finally {
       setSubmitLoading(false);
     }
   };
 
   // ── styles ───────────────────────────────────────────────
-  const inputClass = 'w-full rounded-xl border border-orange-100 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100';
-  const labelClass = 'block text-gray-700 text-xs font-black uppercase tracking-wide mb-1.5';
-  const sectionCard = 'bg-white rounded-2xl shadow-xl shadow-orange-100/70 border border-orange-100 p-5 sm:p-6 space-y-5';
+  const inputClass = 'w-full rounded-xl border border-orange-100 bg-[#161616] px-4 py-3 text-sm text-white shadow-sm outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100';
+  const labelClass = 'block text-white/80 text-xs font-black uppercase tracking-wide mb-1.5';
+  const sectionCard = 'bg-[#161616] rounded-2xl shadow-xl shadow-orange-100/70 border border-orange-100 p-5 sm:p-6 space-y-5';
 
   const catConfig = CATEGORY_FIELDS[form.category];
 
@@ -266,18 +267,18 @@ const EditProduct = () => {
     <div className="flex justify-between gap-3 pt-2">
       {prevSection ? (
         <button type="button" onClick={() => setActiveSection(prevSection)}
-          className="rounded-xl border border-orange-100 bg-white px-5 py-2.5 text-sm font-bold text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-600">
+          className="rounded-xl border border-orange-100 bg-[#161616] px-5 py-2.5 text-sm font-bold text-white/70 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-300 hover:text-orange-600">
           ← Back
         </button>
       ) : <div />}
       {!isLast && nextSection ? (
         <button type="button" onClick={() => setActiveSection(nextSection)}
-          className="rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600">
+          className="rounded-xl bg-[rgba(255,107,0,0.12)]0 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600">
           Next →
         </button>
       ) : isLast ? (
         <button type="submit" disabled={submitLoading}
-          className="rounded-xl bg-orange-500 px-8 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
+          className="rounded-xl bg-[rgba(255,107,0,0.12)]0 px-8 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
           {submitLoading ? 'Saving...' : '✓ Save Changes'}
         </button>
       ) : null}
@@ -286,19 +287,19 @@ const EditProduct = () => {
 
   // ── loading / error states ───────────────────────────────
   if (fetchLoading) return (
-    <div className="min-h-screen bg-orange-50/60 flex items-center justify-center">
+    <div className="min-h-screen bg-[rgba(255,107,0,0.12)]/60 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-500">Loading product...</p>
+        <p className="text-white/50">Loading product...</p>
       </div>
     </div>
   );
 
   if (error && fetchLoading === false && !form.name) return (
-    <div className="min-h-screen bg-orange-50/60 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[rgba(255,107,0,0.12)]/60 flex items-center justify-center px-4">
       <div className="text-center">
         <p className="text-red-400 text-lg mb-4">{error}</p>
-        <button onClick={() => navigate('/admin')} className="rounded-xl bg-orange-500 px-6 py-2.5 font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-orange-600">
+        <button onClick={() => navigate('/admin')} className="rounded-xl bg-[rgba(255,107,0,0.12)]0 px-6 py-2.5 font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-orange-600">
           ← Back to Dashboard
         </button>
       </div>
@@ -306,7 +307,7 @@ const EditProduct = () => {
   );
 
   return (
-    <div className="min-h-screen bg-orange-50/60 py-8">
+    <div className="min-h-screen bg-[rgba(255,107,0,0.12)]/60 py-8">
       <div className="mb-8 bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 text-white">
         <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-7 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -314,7 +315,7 @@ const EditProduct = () => {
             <h1 className="mt-2 text-3xl font-black">Edit Product</h1>
             <p className="mt-1 text-sm text-orange-50">ID #{id}</p>
           </div>
-          <button onClick={() => navigate('/admin')} className="self-start rounded-xl border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold transition hover:bg-white/25">
+          <button onClick={() => navigate('/admin')} className="self-start rounded-xl border border-white/30 bg-[#161616]/15 px-4 py-2 text-sm font-bold transition hover:bg-[#161616]/25">
             ← Dashboard
           </button>
         </div>
@@ -332,10 +333,10 @@ const EditProduct = () => {
             <button key={s.id} type="button" onClick={() => setActiveSection(s.id)}
               className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black shadow-sm transition hover:-translate-y-0.5 ${
                 activeSection === s.id
-                  ? 'bg-orange-500 text-white shadow-orange-200'
+                  ? 'bg-[rgba(255,107,0,0.12)]0 text-white shadow-orange-200'
                   : idx < currentIdx
                     ? 'border border-green-200 bg-green-50 text-green-700'
-                    : 'border border-orange-100 bg-white text-gray-500 hover:border-orange-300 hover:text-orange-600'
+                    : 'border border-orange-100 bg-[#161616] text-white/50 hover:border-orange-300 hover:text-orange-600'
               }`}>
               {idx < currentIdx && <span>✓</span>}
               {s.label}
@@ -348,7 +349,7 @@ const EditProduct = () => {
           {/* ── BASIC ───────────────────────────────── */}
           {activeSection === 'basic' && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">Basic Information</h2>
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">Basic Information</h2>
 
               <div>
                 <label className={labelClass}>Category</label>
@@ -400,14 +401,14 @@ const EditProduct = () => {
           {/* ── IMAGES ──────────────────────────────── */}
           {activeSection === 'images' && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">
-                Product Images <span className="text-sm font-semibold text-gray-500">({form.images.length}/6)</span>
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">
+                Product Images <span className="text-sm font-semibold text-white/50">({form.images.length}/6)</span>
               </h2>
-              <p className="-mt-2 text-xs text-gray-500">Remove old images and upload new ones via Cloudinary</p>
+              <p className="-mt-2 text-xs text-white/50">Remove old images and upload new ones via Cloudinary</p>
 
               <div className="flex flex-wrap gap-3">
                 {form.images.map((img, idx) => (
-                  <div key={idx} className="relative w-28 h-28 rounded-xl overflow-hidden border border-orange-100 bg-white shadow-sm group">
+                  <div key={idx} className="relative w-28 h-28 rounded-xl overflow-hidden border border-orange-100 bg-[#161616] shadow-sm group">
                     <img src={img} alt="" className="w-full h-full object-cover"
                       onError={e => { e.target.src = 'https://placehold.co/112x112?text=Error'; }} />
                     <button type="button"
@@ -416,12 +417,12 @@ const EditProduct = () => {
                       ✕
                     </button>
                     {idx === 0 && (
-                      <span className="absolute bottom-1 left-1 bg-orange-500 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
+                      <span className="absolute bottom-1 left-1 bg-[rgba(255,107,0,0.12)]0 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
                     )}
                   </div>
                 ))}
                 {form.images.length < 6 && (
-                  <div className="w-28 h-28 border-2 border-dashed border-orange-200 bg-orange-50/70 rounded-xl flex items-center justify-center">
+                  <div className="w-28 h-28 border-2 border-dashed border-orange-200 bg-[rgba(255,107,0,0.12)]/70 rounded-xl flex items-center justify-center">
                     <CloudinaryUploadWidget
                       onUpload={url => setForm(prev => ({ ...prev, images: [...prev.images, url] }))}
                       buttonText="+ Add"
@@ -429,7 +430,7 @@ const EditProduct = () => {
                   </div>
                 )}
               </div>
-              <p className="text-xs text-gray-500">Max 6 images • Max 5MB each</p>
+              <p className="text-xs text-white/50">Max 6 images • Max 5MB each</p>
               <NavButtons />
             </div>
           )}
@@ -437,7 +438,7 @@ const EditProduct = () => {
           {/* ── HIGHLIGHTS ──────────────────────────── */}
           {activeSection === 'highlights' && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">Product Highlights</h2>
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">Product Highlights</h2>
               <div className="space-y-2.5">
                 {form.highlights.map((h, idx) => (
                   <div key={idx} className="flex gap-2 items-center">
@@ -458,7 +459,7 @@ const EditProduct = () => {
           {/* ── CATEGORY-SPECIFIC DETAILS ───────────── */}
           {activeSection === 'catspecs' && catConfig && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">
                 {catConfig.label} — Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -479,7 +480,7 @@ const EditProduct = () => {
           {/* ── CUSTOM SPECS ────────────────────────── */}
           {activeSection === 'specs' && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">Additional Specifications</h2>
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">Additional Specifications</h2>
               <div className="space-y-2.5">
                 {form.specifications.map((spec, idx) => (
                   <div key={idx} className="flex gap-2">
@@ -501,7 +502,7 @@ const EditProduct = () => {
           {/* ── WARRANTY ────────────────────────────── */}
           {activeSection === 'warranty' && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">Warranty Information</h2>
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">Warranty Information</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className={labelClass}>Warranty Type</label>
@@ -531,7 +532,7 @@ const EditProduct = () => {
           {/* ── MANUFACTURER ────────────────────────── */}
           {activeSection === 'manufacturer' && (
             <div className={sectionCard}>
-              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-gray-900">Manufacturer Info</h2>
+              <h2 className="border-b border-orange-100 pb-3 text-lg font-black text-white">Manufacturer Info</h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className={labelClass}>Manufacturer Name</label>
@@ -566,4 +567,6 @@ const EditProduct = () => {
 };
 
 export default EditProduct;
+
+
 

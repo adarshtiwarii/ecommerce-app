@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../utils/api';
 import ProductCard from '../components/Product/ProductCard';
+import ProductGridSkeleton from '../components/Skeleton/ProductGridSkeleton';
+
+const priceOptions = [
+  ['all', 'All prices'],
+  ['0-1000', 'Under Rs 1,000'],
+  ['1000-5000', 'Rs 1,000 - Rs 5,000'],
+  ['5000-15000', 'Rs 5,000 - Rs 15,000'],
+  ['15000-50000', 'Rs 15,000 - Rs 50,000'],
+  ['50000-200000', 'Above Rs 50,000'],
+];
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();
@@ -33,9 +44,9 @@ const SearchPage = () => {
     let filtered = [...products];
     if (priceRange !== 'all') {
       const [min, max] = priceRange.split('-').map(Number);
-      filtered = filtered.filter(p => Number(p.price || 0) >= min && Number(p.price || 0) <= max);
+      filtered = filtered.filter(product => Number(product.price || 0) >= min && Number(product.price || 0) <= max);
     }
-    if (selectedRating > 0) filtered = filtered.filter(p => Number(p.rating || 4.2) >= selectedRating);
+    if (selectedRating > 0) filtered = filtered.filter(product => Number(product.rating || 4.2) >= selectedRating);
     switch (sortBy) {
       case 'price-low': return filtered.sort((a, b) => a.price - b.price);
       case 'price-high': return filtered.sort((a, b) => b.price - a.price);
@@ -45,34 +56,33 @@ const SearchPage = () => {
     }
   }, [products, sortBy, priceRange, selectedRating]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" /></div>;
-
   return (
-    <div className="bg-gray-100 min-h-screen py-4">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 flex gap-4">
-        <aside className="hidden lg:block w-64 shrink-0">
-          <div className="bg-white border rounded-sm shadow-sm p-4 sticky top-28">
-            <h3 className="font-bold text-gray-900 uppercase text-sm border-b pb-3 mb-4">Filters</h3>
+    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-[#0D0D0D] py-5">
+      <div className="mx-auto flex max-w-7xl gap-4 px-3 sm:px-4">
+        <aside className="hidden w-64 shrink-0 lg:block">
+          <div className="sticky top-32 rounded-2xl border border-white/[0.08] bg-[#161616] p-4">
+            <h3 className="mb-4 border-b border-white/[0.08] pb-3 text-sm font-extrabold uppercase tracking-[0.2em] text-white">Filters</h3>
             <div className="mb-5">
-              <p className="font-semibold text-sm mb-2">Price</p>
-              {[['all', 'All prices'], ['0-1000', 'Under Rs 1,000'], ['1000-5000', 'Rs 1,000 - Rs 5,000'], ['5000-15000', 'Rs 5,000 - Rs 15,000'], ['15000-50000', 'Rs 15,000 - Rs 50,000'], ['50000-200000', 'Above Rs 50,000']].map(([value, label]) => (
-                <label key={value} className="flex items-center gap-2 py-1.5 text-sm text-gray-700 cursor-pointer"><input type="radio" name="price" checked={priceRange === value} onChange={() => setPriceRange(value)} /> {label}</label>
+              <p className="mb-2 text-sm font-bold text-white">Price</p>
+              {priceOptions.map(([value, label]) => (
+                <label key={value} className="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-white/70"><input type="radio" name="price" checked={priceRange === value} onChange={() => setPriceRange(value)} /> {label}</label>
               ))}
             </div>
             <div>
-              <p className="font-semibold text-sm mb-2">Customer Ratings</p>
-              {[4, 3, 2, 0].map(r => <label key={r} className="flex items-center gap-2 py-1.5 text-sm text-gray-700 cursor-pointer"><input type="radio" name="rating" checked={selectedRating === r} onChange={() => setSelectedRating(r)} /> {r ? `${r} star & above` : 'All ratings'}</label>)}
+              <p className="mb-2 text-sm font-bold text-white">Customer Ratings</p>
+              {[4, 3, 2, 0].map(rating => <label key={rating} className="flex cursor-pointer items-center gap-2 py-1.5 text-sm text-white/70"><input type="radio" name="rating" checked={selectedRating === rating} onChange={() => setSelectedRating(rating)} /> {rating ? `${rating} star & above` : 'All ratings'}</label>)}
             </div>
           </div>
         </aside>
 
         <main className="flex-1">
-          <div className="bg-white border rounded-sm shadow-sm p-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#161616] p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{query ? `Search results for "${query}"` : 'All Products'}</h1>
-              <p className="text-sm text-gray-500">{results.length} products found</p>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#FF6B00]">Search</p>
+              <h1 className="font-display text-2xl font-extrabold text-white">{query ? `Results for "${query}"` : 'All Products'}</h1>
+              <p className="mt-1 text-sm text-white/50">{results.length} products found</p>
             </div>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded-sm px-3 py-2 text-sm bg-white">
+            <select value={sortBy} onChange={event => setSortBy(event.target.value)} className="rounded-full border border-white/[0.08] bg-[#1E1E1E] px-4 py-3 text-sm text-white outline-none focus:border-[#FF6B00]">
               <option value="relevance">Sort by Relevance</option>
               <option value="price-low">Price: Low to High</option>
               <option value="price-high">Price: High to Low</option>
@@ -80,13 +90,15 @@ const SearchPage = () => {
               <option value="discount">Discount</option>
             </select>
           </div>
-          {results.length === 0 ? <div className="bg-white border rounded-sm p-12 text-center text-gray-500">No products found.</div> : <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">{results.map(p => <ProductCard key={p.id} product={p} />)}</div>}
+          {loading ? <ProductGridSkeleton count={8} /> : results.length === 0 ? (
+            <div className="rounded-2xl border border-white/[0.08] bg-[#161616] p-12 text-center text-white/50">No products found. Try a different keyword or remove filters.</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{results.map(product => <ProductCard key={product.id || product.productId} product={product} />)}</div>
+          )}
         </main>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 export default SearchPage;
-
-

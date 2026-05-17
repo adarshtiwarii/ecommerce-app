@@ -36,3 +36,4 @@ export const INDIA_STATES_AND_UTS = [
   'Uttarakhand',
   'West Bengal',
 ];
+

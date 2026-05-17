@@ -24,7 +24,6 @@ public class CartService {
 
     @Transactional
     public void addToCart(Long userId, Long productId, Integer quantity) {
-        // check if product exists and is enabled
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         if (!product.isEnabled()) {
@@ -77,6 +76,7 @@ public class CartService {
         }
     }
 
+    @Transactional(readOnly = true)  // ← YAHI FIX HAI
     public List<CartItemDTO> getCartItems(Long userId) {
         Cart cart = cartRepository.findByUserId(userId).orElse(null);
         if (cart == null) {

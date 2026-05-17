@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Syne:wght@700;800&display=swap');
+
+:root {
+  --primary: #FF6B00;
+  --primary-hover: #E55A00;
+  --primary-light: rgba(255, 107, 0, 0.12);
+  --bg-main: #0D0D0D;
+  --bg-surface: #161616;
+  --bg-elevated: #1E1E1E;
+  --border: rgba(255,255,255,0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: #888888;
+  --text-muted: #444444;
+  --success: #22C55E;
+  --danger: #EF4444;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -9,13 +26,36 @@
 }
 
 body {
-  font-family: Inter, Arial, system-ui, sans-serif;
-  background: #f1f3f6;
-  color: #111827;
+  font-family: 'DM Sans', Inter, Arial, system-ui, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-tap-highlight-color: transparent;
 }
 
 button, input, select, textarea {
   font: inherit;
+}
+
+input,
+textarea,
+select {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+option {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Syne', 'DM Sans', system-ui, sans-serif;
 }
 
 ::-webkit-scrollbar {
@@ -23,14 +63,41 @@ button, input, select, textarea {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #e5e7eb;
+  background: #111111;
 }
 ::-webkit-scrollbar-thumb {
-  background: #9ca3af;
-  border-radius: 4px;
+  background: #333333;
+  border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--primary);
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: shimmer 1.35s infinite;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
 }
 
 .line-clamp-1,

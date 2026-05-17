@@ -46,7 +46,7 @@ const Banner = ({ products = [] }) => {
   }, []);
 
   return (
-    <section className="relative overflow-hidden rounded-sm shadow-sm border border-orange-100 bg-white">
+    <section className="relative overflow-hidden rounded-sm shadow-sm border border-orange-100 bg-[#161616]">
       <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${current * 100}%)` }}>
         {defaultSlides.map((slide, slideIndex) => (
           <div key={slide.id} className={`relative w-full min-w-full bg-gradient-to-r ${slide.gradient} min-h-[230px] sm:min-h-[280px] flex items-center`}>
@@ -60,7 +60,7 @@ const Banner = ({ products = [] }) => {
             </div>
             <div className="absolute right-4 bottom-3 hidden md:grid grid-cols-3 gap-3">
               {(featuredImages.length ? featuredImages : [IMG_FALLBACK, IMG_FALLBACK, IMG_FALLBACK]).slice(slideIndex, slideIndex + 3).map((img, idx) => (
-                <div key={`${slide.id}-${idx}`} className="h-28 w-28 rounded-sm bg-white p-2 shadow-lg">
+                <div key={`${slide.id}-${idx}`} className="h-28 w-28 rounded-sm bg-[#161616] p-2 shadow-lg">
                   <img src={img} alt="" className="h-full w-full object-contain" onError={e => { e.target.onerror = null; e.target.src = IMG_FALLBACK; }} />
                 </div>
               ))}
@@ -73,7 +73,7 @@ const Banner = ({ products = [] }) => {
         type="button"
         aria-label="Previous banner"
         onClick={() => setCurrent(p => (p - 1 + defaultSlides.length) % defaultSlides.length)}
-        className="absolute left-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow hover:bg-white sm:flex"
+        className="absolute left-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#161616]/90 text-white/90 shadow hover:bg-[#161616] sm:flex"
       >
         <FiChevronLeft />
       </button>
@@ -81,7 +81,7 @@ const Banner = ({ products = [] }) => {
         type="button"
         aria-label="Next banner"
         onClick={() => setCurrent(p => (p + 1) % defaultSlides.length)}
-        className="absolute right-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-800 shadow hover:bg-white sm:flex"
+        className="absolute right-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-[#161616]/90 text-white/90 shadow hover:bg-[#161616] sm:flex"
       >
         <FiChevronRight />
       </button>
@@ -93,7 +93,7 @@ const Banner = ({ products = [] }) => {
             type="button"
             aria-label={`Show banner ${i + 1}`}
             onClick={() => setCurrent(i)}
-            className={`h-2 rounded-full transition-all ${i === current ? 'w-6 bg-white' : 'w-2 bg-white/60 hover:bg-white/80'}`}
+            className={`h-2 rounded-full transition-all ${i === current ? 'w-6 bg-[#161616]' : 'w-2 bg-[#161616]/60 hover:bg-[#161616]/80'}`}
           />
         ))}
       </div>
@@ -102,3 +102,4 @@ const Banner = ({ products = [] }) => {
 };
 
 export default Banner;
+

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../utils/api';
 import ProductCard from '../components/Product/ProductCard';
+import ProductGridSkeleton from '../components/Skeleton/ProductGridSkeleton';
 
 const CategoryPage = () => {
   const { category } = useParams();
@@ -36,17 +38,16 @@ const CategoryPage = () => {
     }
   }, [products, sortBy]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="h-10 w-10 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" /></div>;
-
   return (
-    <div className="bg-gray-100 min-h-screen py-4">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4">
-        <div className="bg-white border rounded-sm shadow-sm p-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="min-h-screen bg-[#0D0D0D] py-5">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4">
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#161616] p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 capitalize">{category}</h1>
-            <p className="text-sm text-gray-500">{sorted.length} products available</p>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#FF6B00]">Category</p>
+            <h1 className="font-display text-3xl font-extrabold capitalize text-white">{category}</h1>
+            <p className="mt-1 text-sm text-white/50">{sorted.length} products available</p>
           </div>
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="border rounded-sm px-3 py-2 text-sm bg-white">
+          <select value={sortBy} onChange={event => setSortBy(event.target.value)} className="rounded-full border border-white/[0.08] bg-[#1E1E1E] px-4 py-3 text-sm text-white outline-none focus:border-[#FF6B00]">
             <option value="relevance">Sort by Relevance</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
@@ -54,12 +55,14 @@ const CategoryPage = () => {
             <option value="discount">Discount</option>
           </select>
         </div>
-        {sorted.length === 0 ? <div className="bg-white border rounded-sm p-12 text-center text-gray-500">No products found in this category.</div> : <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{sorted.map(p => <ProductCard key={p.id} product={p} />)}</div>}
+        {loading ? <ProductGridSkeleton count={10} /> : sorted.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.08] bg-[#161616] p-12 text-center text-white/50">No products found in this category.</div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{sorted.map(product => <ProductCard key={product.id || product.productId} product={product} />)}</div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 export default CategoryPage;
-
-

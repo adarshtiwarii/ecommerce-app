@@ -1,6 +1,7 @@
 // src/context/AppContext.js
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import api from '../utils/api';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const AppContext = createContext();
 
@@ -89,10 +90,7 @@ export const AppProvider = ({ children }) => {
       console.error('Login failed:', err.response?.data);
 
       // ✅ Exact backend error message return karo
-      const message =
-        err.response?.data?.message ||
-        err.response?.data ||
-        'Invalid email/phone or password';
+      const message = getErrorMessage(err, 'Invalid email/phone or password');
 
       return { success: false, message };
     }
@@ -107,13 +105,7 @@ export const AppProvider = ({ children }) => {
       console.error('Registration failed:', err.response?.data);
 
       // ✅ Backend ka exact error message capture karo
-      const message =
-        err.response?.data?.message ||          // { message: "Email already exists" }
-        err.response?.data?.error ||            // { error: "Bad Request" }
-        (typeof err.response?.data === 'string' // plain string response
-          ? err.response.data
-          : null) ||
-        'Registration failed. Please try again.';
+      const message = getErrorMessage(err, 'Registration failed. Please try again.');
 
       return { success: false, message };
     }
@@ -152,7 +144,7 @@ const logout = () => {
       dispatch({ type: 'SET_CART', payload: updatedCart.data });
     } catch (err) {
       console.error('Failed to add to cart', err);
-      alert(err.response?.data || 'Failed to add item');
+      alert(getErrorMessage(err, 'Failed to add item'));
     }
   };
 
@@ -233,3 +225,4 @@ const logout = () => {
 };
 
 export const useApp = () => useContext(AppContext);
+

@@ -36,22 +36,22 @@ const RegisterPage = () => {
     }
   };
 
-  const inputClass = 'w-full rounded-xl border border-orange-100 bg-white px-4 py-3 pl-11 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-100';
-  const iconClass = 'absolute left-4 top-1/2 -translate-y-1/2 text-orange-400';
+  const inputClass = 'w-full rounded-2xl border border-white/[0.08] bg-[#161616] px-4 py-3 pl-11 text-sm text-white shadow-sm outline-none transition placeholder:text-white/40 focus:border-[#FF6B00] focus:ring-4 focus:ring-[rgba(255,107,0,0.18)]';
+  const iconClass = 'absolute left-4 top-1/2 -translate-y-1/2 text-[#FF6B00]';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500 via-orange-400 to-amber-300 px-4 py-8 flex items-center justify-center">
+    <div className="min-h-screen bg-[#0D0D0D] px-4 py-8 flex items-center justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.32),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.28),transparent_34%)]" />
-      <div className="relative w-full max-w-md rounded-2xl border border-white/70 bg-white/95 p-6 shadow-2xl backdrop-blur sm:p-8">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-200">
+      <div className="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#161616]/95 p-6 shadow-2xl backdrop-blur sm:p-8">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FF6B00] text-white shadow-lg shadow-orange-950/30">
           <FiShoppingBag size={26} />
         </div>
         <div className="mb-7 text-center">
-          <h2 className="text-3xl font-black text-gray-900">Create Account</h2>
-          <p className="mt-2 text-sm text-gray-500">Start shopping EcoMart deals with a secure account.</p>
+          <h2 className="text-3xl font-black text-white">Create Account</h2>
+          <p className="mt-2 text-sm text-white/50">Start shopping EcoMart deals with a secure account.</p>
         </div>
 
-        {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+        {error && <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
@@ -66,7 +66,7 @@ const RegisterPage = () => {
             <FiPhone size={16} className={iconClass} />
             <input type="tel" placeholder="Phone Number (10 digits)" value={formData.phoneNumber} onChange={e => setFormData({ ...formData, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })} className={inputClass} required />
           </div>
-          <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} className="w-full rounded-xl border border-orange-100 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-orange-400 focus:ring-4 focus:ring-orange-100" required>
+          <select value={formData.gender} onChange={e => setFormData({ ...formData, gender: e.target.value })} className="w-full rounded-2xl border border-white/[0.08] bg-[#161616] px-4 py-3 text-sm text-white shadow-sm outline-none transition focus:border-[#FF6B00] focus:ring-4 focus:ring-[rgba(255,107,0,0.18)]" required>
             <option value="">Select Gender</option>
             <option value="MALE">Male</option>
             <option value="FEMALE">Female</option>
@@ -75,24 +75,24 @@ const RegisterPage = () => {
           <div className="relative">
             <FiLock size={16} className={iconClass} />
             <input type={showPassword ? 'text' : 'password'} placeholder="Password (min 6 characters)" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className={`${inputClass} pr-11`} required />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-orange-500">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-[#FF6B00]">
               {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
             </button>
           </div>
           <div className="relative">
             <FiLock size={16} className={iconClass} />
             <input type={showConfirm ? 'text' : 'password'} placeholder="Confirm Password" value={formData.confirmPassword} onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })} className={`${inputClass} pr-11`} required />
-            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-orange-500">
+            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-[#FF6B00]">
               {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
             </button>
           </div>
-          <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
+          <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B00] px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-orange-950/30 transition hover:-translate-y-0.5 hover:bg-[#E55A00] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
             {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
             {loading ? 'Creating account...' : 'Register'}
           </button>
         </form>
-        <p className="mt-5 text-center text-sm text-gray-500">
-          Already have an account? <Link to="/login" className="font-black text-orange-600 transition hover:text-orange-700 hover:underline">Login</Link>
+        <p className="mt-5 text-center text-sm text-white/50">
+          Already have an account? <Link to="/login" className="font-black text-[#FF6B00] transition hover:text-orange-700 hover:underline">Login</Link>
         </p>
       </div>
     </div>
@@ -100,3 +100,6 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
+
+
