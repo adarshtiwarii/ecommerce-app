@@ -10,6 +10,7 @@ import org.example.backend.model.User;
 import org.example.backend.model.UserAddress;
 import org.example.backend.service.UserAddressService;
 import org.example.backend.service.UserService;
+import org.example.backend.service.EmailService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +28,13 @@ public class ProfileController {
     private final UserService userService;
     private final UserAddressService userAddressService;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
-    public ProfileController(UserService userService, UserAddressService userAddressService, JwtUtil jwtUtil) {
+    public ProfileController(UserService userService, UserAddressService userAddressService, JwtUtil jwtUtil, EmailService emailService) {
         this.userService = userService;
         this.userAddressService = userAddressService;
         this.jwtUtil = jwtUtil;
+        this.emailService = emailService;
     }
 
     @GetMapping("/me")
@@ -74,9 +77,14 @@ public class ProfileController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
-        String resetToken = userService.startPasswordReset(body.getOrDefault("emailOrPhone", ""));
+        String emailOrPhone = body.getOrDefault("emailOrPhone", "").trim();
+        String resetToken = userService.startPasswordReset(emailOrPhone);
+        boolean emailSent = emailService.sendPasswordReset(emailOrPhone, resetToken);
         return ResponseEntity.ok(Map.of(
-                "message", "If the account exists, reset instructions have been generated.",
+                "message", emailSent
+                        ? "Reset instructions have been sent to your email."
+                        : "If the account exists, reset instructions have been generated.",
+                "emailSent", emailSent,
                 "devResetToken", resetToken == null ? "" : resetToken
         ));
     }

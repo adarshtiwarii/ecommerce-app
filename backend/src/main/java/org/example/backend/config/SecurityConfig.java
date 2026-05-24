@@ -64,6 +64,35 @@ public class SecurityConfig {
                         // Product browsing is public; product mutations still require auth.
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
 
+                        // Static frontend assets from the bundled React build must be public.
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/404.html",
+                                "/asset-manifest.json",
+                                "/favicon.ico",
+                                "/favicon.png",
+                                "/manifest.json",
+                                "/robots.txt",
+                                "/logo.png",
+                                "/logo192.png",
+                                "/logo512.png",
+                                "/static/**",
+                                "/product/**",
+                                "/category/**",
+                                "/search",
+                                "/login",
+                                "/register",
+                                "/cart",
+                                "/wishlist",
+                                "/checkout",
+                                "/orders",
+                                "/profile",
+                                "/admin",
+                                "/add-product",
+                                "/edit-product/**"
+                        ).permitAll()
+
                         // Cart, orders, profile, admin, and seller APIs require authentication.
                         .anyRequest().authenticated()
                 )

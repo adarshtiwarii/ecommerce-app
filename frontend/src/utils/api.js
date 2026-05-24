@@ -5,10 +5,9 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor to add token to every request
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -22,18 +21,18 @@ api.interceptors.response.use(
   (error) => {
     const message = error.response?.data || error.response?.statusText || '';
 
-    // ✅ Account deactivated — 403
     if (error.response?.status === 403 && String(message).toLowerCase().includes('deactivated')) {
       localStorage.clear();
+      sessionStorage.clear();
       window.dispatchEvent(new Event('app-logout'));
       window.dispatchEvent(new CustomEvent('app-auth-error', {
         detail: 'Your account is deactivated. Please contact the admin.',
       }));
     }
 
-    // ✅ Token expired / version mismatch — 401
     if (error.response?.status === 401) {
       localStorage.clear();
+      sessionStorage.clear();
       window.dispatchEvent(new Event('app-logout'));
     }
 

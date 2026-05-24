@@ -1,5 +1,4 @@
-// src/context/AppContext.js
-import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
 import api from '../utils/api';
 import { getErrorMessage } from '../utils/errorMessage';
 
@@ -9,32 +8,16 @@ const cartReducer = (state, action) => {
   switch (action.type) {
     case 'SET_CART':
       return { ...state, cart: action.payload };
-    case 'ADD_ITEM': {
-      const existing = state.cart.find(i => i.productId === action.payload.productId);
-      let newCart;
-      if (existing) {
-        newCart = state.cart.map(i =>
-          i.productId === action.payload.productId
-            ? { ...i, quantity: i.quantity + action.payload.quantity }
-            : i
-        );
-      } else {
-        newCart = [...state.cart, action.payload];
-      }
-      return { ...state, cart: newCart };
-    }
     case 'REMOVE_ITEM':
-      return { ...state, cart: state.cart.filter(i => i.productId !== action.payload) };
+      return { ...state, cart: state.cart.filter(item => item.productId !== action.payload) };
     case 'UPDATE_QUANTITY':
       if (action.payload.quantity === 0) {
-        return { ...state, cart: state.cart.filter(i => i.productId !== action.payload.productId) };
+        return { ...state, cart: state.cart.filter(item => item.productId !== action.payload.productId) };
       }
       return {
         ...state,
-        cart: state.cart.map(i =>
-          i.productId === action.payload.productId
-            ? { ...i, quantity: action.payload.quantity }
-            : i
+        cart: state.cart.map(item =>
+          item.productId === action.payload.productId ? { ...item, quantity: action.payload.quantity } : item
         ),
       };
     case 'CLEAR_CART':
@@ -44,84 +27,101 @@ const cartReducer = (state, action) => {
   }
 };
 
+const authStorage = () => (localStorage.getItem('token') ? localStorage : sessionStorage);
+
+const clearAuthStorage = () => {
+  ['token', 'userEmail', 'userName', 'userRole', 'userId'].forEach(key => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+};
+
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, { cart: [] });
-  const [user,     setUser]     = useState(null);
+  const [user, setUser] = useState(null);
   const [wishlist, setWishlist] = useState([]);
 
-  // ── Page reload pe user + cart restore ──────────────────
   useEffect(() => {
-    const token  = localStorage.getItem('token');
-    const email  = localStorage.getItem('userEmail');
-    const role   = localStorage.getItem('userRole');
-    const name   = localStorage.getItem('userName');
-    const userId = localStorage.getItem('userId');
+    const storage = authStorage();
+    const token = storage.getItem('token');
+    const email = storage.getItem('userEmail');
+    const role = storage.getItem('userRole');
+    const name = storage.getItem('userName');
+    const userId = storage.getItem('userId');
 
     if (token && email && userId) {
       const numericUserId = Number(userId);
       setUser({ email, role, name, id: numericUserId });
-
       api.get(`/cart?userId=${numericUserId}`)
         .then(res => dispatch({ type: 'SET_CART', payload: res.data }))
         .catch(err => console.error('Failed to load cart', err));
     }
   }, []);
 
-  // ── Login ────────────────────────────────────────────────
-  const login = async (emailOrPhone, password) => {
+  const login = async (emailOrPhone, password, rememberMe = true) => {
     try {
-      const res = await api.post('/auth/login', { emailOrPhone, password });
+      const res = await api.post('/auth/login', { emailOrPhone, password, rememberMe });
       const { token, email, fullName, role, userId } = res.data;
+      const storage = rememberMe ? localStorage : sessionStorage;
 
-      localStorage.setItem('token',     token);
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('userName',  fullName);
-      localStorage.setItem('userRole',  role);
-      localStorage.setItem('userId',    String(userId));
+      clearAuthStorage();
+      storage.setItem('token', token);
+      storage.setItem('userEmail', email);
+      storage.setItem('userName', fullName);
+      storage.setItem('userRole', role);
+      storage.setItem('userId', String(userId));
 
       const numericUserId = Number(userId);
       setUser({ email, role, name: fullName, id: numericUserId });
-
       const cartRes = await api.get(`/cart?userId=${numericUserId}`);
       dispatch({ type: 'SET_CART', payload: cartRes.data });
-
       return { success: true };
     } catch (err) {
       console.error('Login failed:', err.response?.data);
-
-      // ✅ Exact backend error message return karo
-      const message = getErrorMessage(err, 'Invalid email/phone or password');
-
-      return { success: false, message };
+      return { success: false, message: getErrorMessage(err, 'Invalid email/phone or password') };
     }
   };
 
-  // ── Register ─────────────────────────────────────────────
   const register = async (userData) => {
     try {
       await api.post('/auth/register', userData);
       return { success: true };
     } catch (err) {
       console.error('Registration failed:', err.response?.data);
-
-      // ✅ Backend ka exact error message capture karo
-      const message = getErrorMessage(err, 'Registration failed. Please try again.');
-
-      return { success: false, message };
+      return { success: false, message: getErrorMessage(err, 'Registration failed. Please try again.') };
     }
   };
 
-  // ── Logout ───────────────────────────────────────────────
-  // AppContext.js mein sirf logout function badlo
-const logout = () => {
-  localStorage.clear();
-  setUser(null);
-  dispatch({ type: 'CLEAR_CART' });
-  // ✅ Custom event fire karo — LogoutHandler sun ke /login pe navigate karega
-  window.dispatchEvent(new Event('app-logout'));
-};
+  const requestPasswordReset = async (emailOrPhone) => {
+    try {
+      const res = await api.post('/profile/forgot-password', { emailOrPhone });
+      return {
+        success: true,
+        message: res.data?.message || 'Reset instructions generated.',
+        emailSent: !!res.data?.emailSent,
+        devResetToken: res.data?.devResetToken || '',
+      };
+    } catch (err) {
+      return { success: false, message: getErrorMessage(err, 'Unable to start password reset') };
+    }
+  };
 
-  // ── Add to Cart ──────────────────────────────────────────
+  const resetPassword = async (token, newPassword) => {
+    try {
+      const res = await api.post('/profile/reset-password', { token, newPassword });
+      return { success: true, message: res.data?.message || 'Password reset successfully' };
+    } catch (err) {
+      return { success: false, message: getErrorMessage(err, 'Unable to reset password') };
+    }
+  };
+
+  const logout = () => {
+    clearAuthStorage();
+    setUser(null);
+    dispatch({ type: 'CLEAR_CART' });
+    window.dispatchEvent(new Event('app-logout'));
+  };
+
   const addToCart = async (product, quantity = 1) => {
     if (!user) {
       alert('Please login to add items to cart');
@@ -131,13 +131,11 @@ const logout = () => {
       alert('Admin accounts cannot add products to cart');
       return;
     }
-
     const productId = product.productId || product.id;
     if (!productId) {
       console.error('Product ID missing:', product);
       return;
     }
-
     try {
       await api.post(`/cart/add?userId=${user.id}&productId=${productId}&quantity=${quantity}`);
       const updatedCart = await api.get(`/cart?userId=${user.id}`);
@@ -148,7 +146,6 @@ const logout = () => {
     }
   };
 
-  // ── Remove from Cart ─────────────────────────────────────
   const removeFromCart = async (productId) => {
     if (!user) return;
     try {
@@ -159,7 +156,6 @@ const logout = () => {
     }
   };
 
-  // ── Update Quantity ──────────────────────────────────────
   const updateQuantity = async (productId, quantity) => {
     if (!user) return;
     if (!productId) {
@@ -174,7 +170,6 @@ const logout = () => {
     }
   };
 
-  // ── Clear Cart ───────────────────────────────────────────
   const clearCart = async () => {
     if (!user) return;
     try {
@@ -185,12 +180,9 @@ const logout = () => {
     }
   };
 
-  // ── Wishlist ─────────────────────────────────────────────
   const toggleWishlist = (productId) => {
     setWishlist(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
+      prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]
     );
   };
 
@@ -199,21 +191,21 @@ const logout = () => {
   const updateUser = (patch) => {
     setUser(prev => {
       const next = { ...(prev || {}), ...patch };
-      if (next.email) localStorage.setItem('userEmail', next.email);
-      if (next.name) localStorage.setItem('userName', next.name);
-      if (next.role) localStorage.setItem('userRole', next.role);
-      if (next.id) localStorage.setItem('userId', String(next.id));
+      const storage = authStorage();
+      if (next.email) storage.setItem('userEmail', next.email);
+      if (next.name) storage.setItem('userName', next.name);
+      if (next.role) storage.setItem('userRole', next.role);
+      if (next.id) storage.setItem('userId', String(next.id));
       return next;
     });
   };
 
-  // ── Cart totals ──────────────────────────────────────────
   const totalItems = state.cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   return (
     <AppContext.Provider value={{
-      user, login, register, logout,
+      user, login, register, logout, requestPasswordReset, resetPassword,
       updateUser,
       wishlist, toggleWishlist, isWishlisted,
       cart: state.cart, addToCart, removeFromCart,
@@ -225,4 +217,3 @@ const logout = () => {
 };
 
 export const useApp = () => useContext(AppContext);
-

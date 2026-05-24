@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit, FiTrash2, FiToggleLeft, FiToggleRight, FiPlus, FiUsers, FiPackage, FiShoppingBag, FiAlertCircle, FiSearch, FiRefreshCw, FiEye, FiFilter, FiActivity } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiToggleLeft, FiToggleRight, FiPlus, FiUsers, FiPackage, FiShoppingBag, FiAlertCircle, FiSearch, FiRefreshCw, FiEye, FiFilter, FiActivity, FiCreditCard } from 'react-icons/fi';
 import api from '../utils/api';
 import { getErrorMessage } from '../utils/errorMessage';
 
 const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect width='50' height='50' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='8' font-family='sans-serif'%3ENo Img%3C/text%3E%3C/svg%3E";
+const ORDER_STEPS = ['PENDING', 'CONFIRMED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+const ORDER_STATUS_OPTIONS = [...ORDER_STEPS, 'CANCELLED', 'RETURN_REQUESTED', 'RETURNED'];
 
 const StatCard = ({ label, value, icon, error, active, onClick, accent }) => (
   <button type="button" onClick={onClick} className={`relative overflow-hidden bg-[#161616] rounded-xl border p-5 text-left shadow-sm transition hover:shadow-md ${active ? 'border-orange-500 ring-2 ring-orange-100' : 'border-white/[0.08]'}`}>
@@ -40,7 +42,8 @@ const AdminDashboard = () => {
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [usersError, setUsersError] = useState(null);
   const [ordersError, setOrdersError] = useState(null);
-  const [stats, setStats] = useState({ users: null, orders: null, products: null });
+  const [stats, setStats] = useState({ users: null, orders: null, products: null, revenue: null });
+  const [summaryStatusCounts, setSummaryStatusCounts] = useState({});
   const [statErrors, setStatErrors] = useState({});
 
   const fetchStats = useCallback(async () => {
@@ -53,12 +56,25 @@ const AdminDashboard = () => {
       setStatErrors(s => ({ ...s, users: e.response?.status === 403 ? 'No permission' : 'Unavailable' }));
     }
     try {
-      const res = await api.get('/orders/count');
-      setStats(s => ({ ...s, orders: typeof res.data === 'number' ? res.data : res.data?.count ?? '-' }));
+      const res = await api.get('/orders/admin/summary');
+      setStats(s => ({
+        ...s,
+        orders: res.data?.totalOrders ?? '-',
+        revenue: Number(res.data?.totalRevenue || 0),
+      }));
+      setSummaryStatusCounts(res.data?.statusCounts || {});
       setStatErrors(s => ({ ...s, orders: null }));
     } catch (e) {
-      setStats(s => ({ ...s, orders: '-' }));
+      setStats(s => ({ ...s, orders: '-', revenue: '-' }));
       setStatErrors(s => ({ ...s, orders: e.response?.status === 403 ? 'No permission' : 'Unavailable' }));
+    }
+    try {
+      const res = await api.get('/products/admin/count');
+      setStats(s => ({ ...s, products: res.data?.count ?? '-' }));
+      setStatErrors(s => ({ ...s, products: null }));
+    } catch (e) {
+      setStats(s => ({ ...s, products: '-' }));
+      setStatErrors(s => ({ ...s, products: e.response?.status === 403 ? 'No permission' : 'Unavailable' }));
     }
   }, []);
 
@@ -80,7 +96,6 @@ const AdminDashboard = () => {
       const res = await api.get('/orders/admin/all');
       const list = Array.isArray(res.data) ? res.data : [];
       setOrders(list);
-      setStats(s => ({ ...s, orders: list.length }));
       setOrdersError(null);
     } catch (e) {
       setOrders([]);
@@ -94,7 +109,6 @@ const AdminDashboard = () => {
       const res = await api.get('/products/admin/all?page=0&size=200');
       const list = Array.isArray(res.data) ? res.data : res.data?.content || res.data?.products || [];
       setProducts(list);
-      setStats(s => ({ ...s, products: list.length }));
     } catch (e) {
       setProducts([]);
     } finally {
@@ -152,9 +166,36 @@ const AdminDashboard = () => {
     } finally { setDeletingId(null); }
   };
 
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      await api.patch(`/orders/admin/${orderId}/status`, { status });
+      setOrders(prev => prev.map(order => order.orderId === orderId ? { ...order, status } : order));
+      fetchStats();
+    } catch (e) {
+      alert(getErrorMessage(e, 'Failed to update order status'));
+    }
+  };
+
+  const OrderProgress = ({ status }) => {
+    const activeIndex = ORDER_STEPS.indexOf(String(status || 'PENDING').toUpperCase());
+    return (
+      <div className="mt-2 flex min-w-[260px] items-center gap-1">
+        {ORDER_STEPS.map((step, index) => {
+          const done = activeIndex >= index;
+          return (
+            <div key={step} className="flex flex-1 items-center gap-1">
+              <span className={`h-2.5 w-2.5 rounded-full ${done ? 'bg-green-500' : 'bg-white/20'}`} title={step} />
+              {index < ORDER_STEPS.length - 1 && <span className={`h-0.5 flex-1 ${activeIndex > index ? 'bg-green-500' : 'bg-white/20'}`} />}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
   const revenue = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
-  const statusCounts = orders.reduce((acc, order) => {
+  const statusCounts = Object.keys(summaryStatusCounts).length ? summaryStatusCounts : orders.reduce((acc, order) => {
     const key = order.status || 'PENDING';
     acc[key] = (acc[key] || 0) + 1;
     return acc;
@@ -189,10 +230,11 @@ const AdminDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 -mt-12 mb-6">
-          <StatCard label="Total Users" value={stats.users} icon={<FiUsers />} error={statErrors.users || usersError} accent="bg-[rgba(255,107,0,0.12)]0" active={activePanel === 'users'} onClick={() => setActivePanel('users')} />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 -mt-12 mb-6">
+          <StatCard label="Total Users" value={stats.users} icon={<FiUsers />} error={statErrors.users || usersError} accent="bg-orange-500" active={activePanel === 'users'} onClick={() => setActivePanel('users')} />
           <StatCard label="Total Orders" value={stats.orders} icon={<FiShoppingBag />} error={statErrors.orders || ordersError} accent="bg-amber-500" active={activePanel === 'orders'} onClick={() => setActivePanel('orders')} />
-          <StatCard label="Total Products" value={stats.products} icon={<FiPackage />} accent="bg-red-500" active={activePanel === 'products'} onClick={() => setActivePanel('products')} />
+          <StatCard label="Total Products" value={stats.products} icon={<FiPackage />} error={statErrors.products} accent="bg-red-500" active={activePanel === 'products'} onClick={() => setActivePanel('products')} />
+          <StatCard label="Total Revenue" value={stats.revenue === null ? null : `Rs ${Number(stats.revenue || 0).toLocaleString()}`} icon={<FiCreditCard />} error={statErrors.orders || ordersError} accent="bg-green-500" active={false} onClick={() => setActivePanel('orders')} />
         </div>
 
         <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -239,7 +281,7 @@ const AdminDashboard = () => {
         {activePanel === 'orders' && (
           <div className="bg-[#161616] border rounded-xl shadow-sm overflow-x-auto">
             <div className="px-4 py-3 border-b flex justify-between items-center"><h2 className="font-black text-white flex items-center gap-2"><FiShoppingBag className="text-orange-500" /> Orders</h2>{ordersError && <span className="text-xs text-red-600">{ordersError}</span>}</div>
-            <table className="w-full text-sm"><thead className="bg-[rgba(255,107,0,0.12)] text-white/80"><tr>{['Order ID','User ID','Amount','Items','Payment','Status','Date'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap font-black">{h}</th>)}</tr></thead><tbody>{orders.length === 0 ? <tr><td colSpan="7" className="py-10 text-center text-white/50">No orders found</td></tr> : orders.map(order => <tr key={order.orderId} className="border-t hover:bg-[rgba(255,107,0,0.12)]/40"><td className="px-4 py-3 font-mono text-white/50">#{order.orderId}</td><td className="px-4 py-3">#{order.userId}</td><td className="px-4 py-3 font-black">Rs {Number(order.totalAmount || 0).toLocaleString()}</td><td className="px-4 py-3">{order.itemsCount}</td><td className="px-4 py-3">{order.paymentMethod || '-'}</td><td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">{order.status || 'PENDING'}</span></td><td className="px-4 py-3 whitespace-nowrap text-white/70">{order.orderDate ? new Date(order.orderDate).toLocaleString() : '-'}</td></tr>)}</tbody></table>
+            <table className="w-full text-sm"><thead className="bg-[rgba(255,107,0,0.12)] text-white/80"><tr>{['Order ID','User ID','Amount','Items','Payment','Progress','Status Action','Date'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap font-black">{h}</th>)}</tr></thead><tbody>{orders.length === 0 ? <tr><td colSpan="8" className="py-10 text-center text-white/50">No orders found</td></tr> : orders.map(order => <tr key={order.orderId} className="border-t hover:bg-[rgba(255,107,0,0.12)]/40"><td className="px-4 py-3 font-mono text-white/50">#{order.orderId}</td><td className="px-4 py-3">#{order.userId}</td><td className="px-4 py-3 font-black">Rs {Number(order.totalAmount || 0).toLocaleString()}</td><td className="px-4 py-3">{order.itemsCount}</td><td className="px-4 py-3">{order.paymentMethod || '-'}</td><td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">{order.status || 'PENDING'}</span><OrderProgress status={order.status} />{order.nearestWarehouse && <p className="mt-1 text-xs text-white/50">{order.nearestWarehouse} · ETA {order.estimatedDeliveryHours || '-'}h</p>}</td><td className="px-4 py-3"><select value={order.status || 'PENDING'} onChange={event => updateOrderStatus(order.orderId, event.target.value)} className="min-w-[160px] rounded-md border border-white/10 bg-[#0D0D0D] px-3 py-2 text-xs font-bold text-white">{ORDER_STATUS_OPTIONS.map(status => <option key={status} value={status}>{status.replaceAll('_', ' ')}</option>)}</select></td><td className="px-4 py-3 whitespace-nowrap text-white/70">{order.orderDate ? new Date(order.orderDate).toLocaleString() : '-'}</td></tr>)}</tbody></table>
           </div>
         )}
 

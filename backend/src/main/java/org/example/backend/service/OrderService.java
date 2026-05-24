@@ -144,4 +144,29 @@ public class OrderService {
         order.setReturnReason(reason);
         return orderRepository.save(order);
     }
+
+    @Transactional
+    public Order updateOrderStatus(Long orderId, String nextStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        String status = nextStatus == null ? "" : nextStatus.trim().toUpperCase();
+        List<String> allowedStatuses = List.of(
+                "PENDING",
+                "CONFIRMED",
+                "SHIPPED",
+                "OUT_FOR_DELIVERY",
+                "DELIVERED",
+                "CANCELLED",
+                "RETURN_REQUESTED",
+                "RETURNED"
+        );
+        if (!allowedStatuses.contains(status)) {
+            throw new RuntimeException("Unsupported order status");
+        }
+        order.setStatus(status);
+        if ("DELIVERED".equals(status)) {
+            order.setPaymentStatus("PAID".equalsIgnoreCase(order.getPaymentStatus()) ? order.getPaymentStatus() : "PAY_ON_DELIVERY_COMPLETE");
+        }
+        return orderRepository.save(order);
+    }
 }

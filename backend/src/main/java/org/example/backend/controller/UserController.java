@@ -87,12 +87,13 @@ public class UserController {
                     token
             );
             response.setUserId(user.getUserId());  // ✅ Frontend needs userId for cart, etc.
+            Duration cookieLifetime = loginRequest.isRememberMe() ? Duration.ofDays(30) : Duration.ofHours(12);
             ResponseCookie cookie = ResponseCookie.from("ECOM_AUTH", token)
                     .httpOnly(true)
                     .secure(false)
                     .sameSite("Lax")
                     .path("/")
-                    .maxAge(Duration.ofDays(7))
+                    .maxAge(cookieLifetime)
                     .build();
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())

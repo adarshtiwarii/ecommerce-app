@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -84,6 +85,26 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 
+    @GetMapping("/admin/summary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getAdminOrderSummary() {
+        List<Order> orders = orderService.getAllOrders();
+        BigDecimal revenue = orders.stream()
+                .map(order -> order.getTotalAmount() == null ? BigDecimal.ZERO : order.getTotalAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Map<String, Long> statusCounts = orders.stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getStatus() == null ? "PENDING" : order.getStatus(),
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                ));
+        return ResponseEntity.ok(Map.of(
+                "totalOrders", orders.size(),
+                "totalRevenue", revenue,
+                "statusCounts", statusCounts
+        ));
+    }
+
     // ============================================================
     // 📋 ADMIN — ALL ORDERS
     // ============================================================
@@ -112,5 +133,20 @@ public class OrderController {
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(orders);
+    }
+
+    @PatchMapping("/admin/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            Order order = orderService.updateOrderStatus(id, body.get("status"));
+            return ResponseEntity.ok(Map.of(
+                    "orderId", order.getOrderId(),
+                    "status", order.getStatus(),
+                    "paymentStatus", order.getPaymentStatus() == null ? "" : order.getPaymentStatus()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

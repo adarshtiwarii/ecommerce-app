@@ -102,6 +102,12 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductsForAdmin(page, size));
     }
 
+    @GetMapping("/admin/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> adminProductCount() {
+        return ResponseEntity.ok(java.util.Map.of("count", productService.getTotalProductsCount()));
+    }
+
     // Seller: get own products
     @GetMapping("/my")
     @PreAuthorize("hasRole('SELLER')")

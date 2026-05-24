@@ -1,131 +1,257 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/components/Navbar/Navbar.js
+import { useState, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  FiGrid, FiHeart, FiHome, FiLogOut, FiMenu, FiMonitor, FiPackage,
-  FiSearch, FiShoppingCart, FiSmartphone, FiSmile, FiTool, FiUser, FiX,
+  FiShoppingCart, FiUser, FiSearch, FiMenu, FiX,
+  FiHeart, FiLogOut, FiSettings, FiPackage, FiChevronDown,
 } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 
-const categories = [
-  { name: 'All', link: '/', icon: FiGrid },
-  { name: 'Electronics', link: '/category/Electronics', icon: FiMonitor },
-  { name: 'Mobiles', link: '/category/Electronics', icon: FiSmartphone },
-  { name: 'Fashion', link: '/category/Fashion', icon: FiUser },
-  { name: 'Home', link: '/category/Home', icon: FiHome },
-  { name: 'Appliances', link: '/category/Appliances', icon: FiTool },
-  { name: 'Beauty', link: '/category/Beauty', icon: FiSmile },
+// ── All nav categories — dynamic, never hardcoded in JSX ──
+const NAV_CATS = [
+  { label: 'For You',        path: '/' },
+  { label: 'Electronics',    path: '/category/Electronics' },
+  { label: 'Mobiles',        path: '/category/Electronics' },
+  { label: 'Fashion',        path: '/category/Fashion' },
+  { label: 'Appliances',     path: '/category/Appliances' },
+  { label: 'Home & Kitchen', path: '/category/Home' },
+  { label: 'Beauty',         path: '/category/Beauty' },
+  { label: 'Sports',         path: '/category/Sports' },
+  { label: 'Books',          path: '/category/Books' },
+  { label: 'Grocery',        path: '/category/Grocery' },
 ];
 
 const Navbar = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { totalItems, user, logout } = useApp();
+  const [q, setQ]                     = useState('');
+  const [userMenu, setUserMenu]       = useState(false);
+  const [mobileOpen, setMobileOpen]   = useState(false);
+  const [scrolled, setScrolled]       = useState(false);
+  const { totalItems, cart, user, logout, wishlist } = useApp();
   const navigate = useNavigate();
-  const isAdmin = user?.role === 'ADMIN';
 
-  const handleSearch = (event) => {
-    event.preventDefault();
-    const q = searchQuery.trim();
-    if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  const handleSearch = e => {
+    e.preventDefault();
+    if (q.trim()) { navigate(`/search?q=${encodeURIComponent(q.trim())}`); setQ(''); }
   };
 
+  const wishCount = wishlist?.length || 0;
+  const cartCount = totalItems || cart?.length || 0;
+
   return (
-    <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#0D0D0D]/92 text-white shadow-lg backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-4">
-        <Link to="/" className="shrink-0 leading-tight">
-          <div className="text-xl font-black tracking-tight">EcoMart</div>
-          <div className="-mt-0.5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#FF6B00]">PLUS</div>
-        </Link>
+    <nav className={`sticky top-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-card' : ''}`}
+         style={{ background: 'rgba(6,6,6,0.92)', backdropFilter: 'blur(20px) saturate(160%)',
+                  borderBottom: '1px solid #1F2937' }}>
 
-        <form onSubmit={handleSearch} className="hidden flex-1 sm:flex">
-          <div className="mx-auto flex w-full max-w-2xl overflow-hidden rounded-full border border-white/[0.08] bg-[#161616] shadow-sm transition focus-within:border-[#FF6B00] focus-within:shadow-[0_0_0_4px_rgba(255,107,0,0.12)]">
-            <input
-              value={searchQuery}
-              onChange={event => setSearchQuery(event.target.value)}
-              placeholder="Search products, brands, deals"
-              className="flex-1 bg-transparent px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/40"
-            />
-            <button type="submit" className="px-4 text-[#FF6B00] transition hover:bg-[rgba(255,107,0,0.12)]"><FiSearch size={20} /></button>
-          </div>
-        </form>
+      {/* ── Main bar ── */}
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center h-16 gap-4">
 
-        <nav className="ml-auto flex items-center gap-2 text-sm font-bold sm:gap-3">
-          <div className="relative">
-            <button onClick={() => setShowUserMenu(value => !value)} className="flex items-center gap-2 rounded-full px-3 py-2 transition hover:bg-white/10">
-              <FiUser size={19} /> <span className="hidden sm:inline">{user ? user.name || 'Account' : 'Login'}</span>
-            </button>
-            {showUserMenu && (
-              <div className="absolute right-0 top-11 z-50 w-64 overflow-hidden rounded-md border border-white/[0.08] bg-[#161616] text-white shadow-2xl">
-                {!user ? (
-                  <div className="p-4">
-                    <p className="text-sm font-bold">New to EcoMart?</p>
-                    <p className="mt-1 text-xs text-white/50">Login to manage orders, refunds, wishlist, and delivery addresses.</p>
-                    <Link to="/login" onClick={() => setShowUserMenu(false)} className="mt-3 block rounded-full bg-[#FF6B00] py-2.5 text-center font-black text-white">Login / Sign up</Link>
-                  </div>
-                ) : (
-                  <div className="py-1">
-                    <div className="border-b px-4 py-3">
-                      <div className="font-black">{user.name}</div>
-                      <div className="truncate text-xs text-white/50">{user.email}</div>
-                      <div className="mt-1 text-xs font-black text-[#FF6B00]">{user.role}</div>
+          {/* Logo */}
+          <Link to="/" className="flex-shrink-0 flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center"
+                 style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)',
+                          boxShadow: '0 0 12px rgba(34,197,94,0.30)' }}>
+              <img src="/logo.png" alt="" className="w-full h-full object-contain p-0.5"
+                   onError={e => { e.target.style.display='none'; e.target.parentNode.innerHTML='<span style="font-size:16px">🛒</span>'; }} />
+            </div>
+            <div>
+              <span className="font-bold text-xl" style={{ fontFamily: 'Syne,system-ui', letterSpacing:'-0.01em' }}>
+                <span className="text-eco-green">eco</span>
+                <span className="text-eco-text">mart</span>
+              </span>
+              <p className="text-xs text-eco-muted leading-none" style={{ marginTop: 1 }}>Shop Responsibly 🌿</p>
+            </div>
+          </Link>
+
+          {/* Search bar — desktop */}
+          <form onSubmit={handleSearch} className="flex-1 max-w-xl hidden sm:flex">
+            <div className="flex w-full rounded-full overflow-hidden border border-eco-border
+                            focus-within:border-eco-green transition-colors duration-200"
+                 style={{ background: '#1F2937' }}>
+              <input
+                type="text"
+                placeholder="Search products, brands, categories…"
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                className="flex-1 px-5 py-2.5 text-sm text-eco-text placeholder-eco-muted outline-none"
+                style={{ background: 'transparent' }}
+              />
+              <button type="submit" className="px-4 text-eco-green hover:text-white transition-colors">
+                <FiSearch size={18} />
+              </button>
+            </div>
+          </form>
+
+          {/* Right icons */}
+          <div className="flex items-center gap-1 ml-auto">
+
+            {/* Account dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setUserMenu(v => !v)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-eco-sub hover:text-eco-text
+                           hover:bg-eco-elevated transition-all duration-200 text-sm font-medium"
+              >
+                {user
+                  ? <div className="w-7 h-7 rounded-full bg-eco-green flex items-center justify-center
+                                    text-xs font-bold text-white flex-shrink-0">
+                      {(user.name || user.email || 'U')[0].toUpperCase()}
                     </div>
-                    {user.role === 'ADMIN' && <Link to="/admin" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 hover:bg-[#161616]">Admin Dashboard</Link>}
-                    <Link to="/profile" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 hover:bg-[#161616]">My Profile</Link>
-                    {!isAdmin && <Link to="/orders" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 hover:bg-[#161616]">Orders & Refunds</Link>}
-                    {!isAdmin && <Link to="/wishlist" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 hover:bg-[#161616]">Wishlist</Link>}
-                    <button onClick={logout} className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-red-600 hover:bg-red-50"><FiLogOut /> Logout</button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  : <FiUser size={18} />}
+                <span className="hidden sm:inline">{user ? (user.name?.split(' ')[0] || 'Account') : 'Login'}</span>
+                <FiChevronDown size={12} className={`hidden sm:inline transition-transform ${userMenu ? 'rotate-180' : ''}`} />
+              </button>
 
-          {!isAdmin && <Link to="/wishlist" className="hidden items-center gap-1 rounded-full px-3 py-2 transition hover:bg-white/10 md:flex"><FiHeart /> Wishlist</Link>}
-          {user && !isAdmin && <Link to="/orders" className="hidden items-center gap-1 rounded-full px-3 py-2 transition hover:bg-white/10 md:flex"><FiPackage /> Orders</Link>}
-          {!isAdmin && (
-            <Link to="/cart" className="relative flex items-center gap-1 rounded-full bg-[#FF6B00] px-4 py-2 text-white transition hover:bg-[#E55A00]">
-              <FiShoppingCart size={20} /> <span className="hidden sm:inline">Cart</span>
-              {totalItems > 0 && <span key={totalItems} className="absolute -right-2 -top-1 flex h-5 min-w-5 animate-bounce items-center justify-center rounded-full bg-white px-1 text-[10px] font-black text-[#FF6B00]">{totalItems}</span>}
+              {userMenu && (
+                <div className="absolute right-0 top-12 rounded-xl shadow-card border border-eco-border w-56 z-50 overflow-hidden"
+                     style={{ background: '#111827' }}>
+                  {!user ? (
+                    <div className="p-4">
+                      <p className="text-xs text-eco-muted mb-3">New to EcoMart?</p>
+                      <Link to="/register" onClick={() => setUserMenu(false)}
+                            className="block w-full text-center bg-eco-green hover:bg-eco-green-b text-white
+                                       py-2.5 rounded-lg text-sm font-semibold mb-2 transition-colors">
+                        Create Account
+                      </Link>
+                      <Link to="/login" onClick={() => setUserMenu(false)}
+                            className="block w-full text-center border border-eco-border-g text-eco-green
+                                       py-2 rounded-lg text-sm font-medium hover:bg-eco-green-s transition-colors">
+                        Login
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-4 py-3 border-b border-eco-border">
+                        <p className="font-semibold text-eco-text text-sm">{user.name}</p>
+                        <p className="text-xs text-eco-muted truncate">{user.email}</p>
+                        <span className="mt-1.5 inline-block text-xs px-2 py-0.5 rounded-full font-medium"
+                              style={{ background:'rgba(34,197,94,0.12)', color:'#22C55E', border:'1px solid rgba(34,197,94,0.25)' }}>
+                          {user.role}
+                        </span>
+                      </div>
+                      {[
+                        { to: '/profile', icon: FiUser,    label: 'My Profile' },
+                        { to: '/orders',  icon: FiPackage, label: 'My Orders'  },
+                        { to: '/wishlist',icon: FiHeart,   label: 'Wishlist'   },
+                        ...(user.role === 'ADMIN'  ? [{ to:'/admin',  icon:FiSettings, label:'Admin Panel'      }] : []),
+                        ...(user.role === 'SELLER' ? [{ to:'/seller', icon:FiSettings, label:'Seller Dashboard' }] : []),
+                      ].map(item => {
+                        const Icon = item.icon;
+                        return (
+                          <Link key={item.to} to={item.to} onClick={() => setUserMenu(false)}
+                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-eco-sub
+                                           hover:bg-eco-elevated hover:text-eco-text transition-colors">
+                            <Icon size={14} className="text-eco-green" /> {item.label}
+                          </Link>
+                        );
+                      })}
+                      <button onClick={() => { logout(); setUserMenu(false); }}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-400
+                                         hover:bg-eco-elevated w-full transition-colors border-t border-eco-border">
+                        <FiLogOut size={14} /> Logout
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Wishlist */}
+            <Link to="/wishlist"
+                  className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-eco-sub
+                             hover:text-eco-text hover:bg-eco-elevated transition-all duration-200 text-sm font-medium">
+              <FiHeart size={18} />
+              <span className="hidden sm:inline">Wishlist</span>
+              {wishCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-eco-red text-white text-xs
+                                 rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {wishCount > 9 ? '9+' : wishCount}
+                </span>
+              )}
             </Link>
-          )}
-          <button className="rounded-md p-2 sm:hidden" onClick={() => setMobileMenuOpen(value => !value)}>{mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}</button>
-        </nav>
+
+            {/* Cart */}
+            <Link to="/cart"
+                  className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium
+                             transition-all duration-200 text-sm text-eco-text"
+                  style={{ background: cartCount > 0 ? 'rgba(34,197,94,0.12)' : 'transparent',
+                           border: cartCount > 0 ? '1px solid rgba(34,197,94,0.25)' : '1px solid transparent' }}
+                  onMouseEnter={e => e.currentTarget.style.background='rgba(34,197,94,0.18)'}
+                  onMouseLeave={e => e.currentTarget.style.background=cartCount>0?'rgba(34,197,94,0.12)':'transparent'}>
+              <FiShoppingCart size={18} className={cartCount > 0 ? 'text-eco-green' : 'text-eco-sub'} />
+              <span className="hidden sm:inline">Cart</span>
+              {cartCount > 0 && (
+                <span className="bg-eco-green text-white text-xs rounded-full w-5 h-5
+                                 flex items-center justify-center font-bold">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Mobile hamburger */}
+            <button className="sm:hidden p-2 text-eco-sub hover:text-eco-text transition-colors ml-1"
+                    onClick={() => setMobileOpen(v => !v)}>
+              {mobileOpen ? <FiX size={22} /> : <FiMenu size={22} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile search */}
+        <div className="sm:hidden pb-3">
+          <form onSubmit={handleSearch} className="flex rounded-full overflow-hidden border border-eco-border"
+                style={{ background: '#1F2937' }}>
+            <input type="text" placeholder="Search…" value={q} onChange={e => setQ(e.target.value)}
+                   className="flex-1 px-4 py-2 text-sm text-eco-text placeholder-eco-muted outline-none"
+                   style={{ background: 'transparent' }} />
+            <button type="submit" className="px-3 text-eco-green"><FiSearch size={16} /></button>
+          </form>
+        </div>
       </div>
 
-      <form onSubmit={handleSearch} className="px-3 pb-3 sm:hidden">
-        <div className="flex overflow-hidden rounded-full border border-white/[0.08] bg-[#161616]">
-          <input value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Search products" className="flex-1 bg-transparent px-3 py-2 text-sm text-white outline-none placeholder:text-white/40" />
-          <button className="px-3 text-[#FF6B00]"><FiSearch /></button>
-        </div>
-      </form>
-
-      <div className="border-t border-white/10 bg-[#161616]/95">
-        <div className="mx-auto flex h-12 max-w-7xl items-center gap-2 overflow-x-auto px-3 sm:px-4">
-          {categories.map(category => {
-            const Icon = category.icon;
-            return (
-              <Link key={category.name} to={category.link} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-[#161616]/5 px-3 py-1.5 text-xs font-black text-slate-200 transition hover:border-orange-300/40 hover:bg-orange-300/10 hover:text-orange-200">
-                <Icon size={15} /> {category.name}
-              </Link>
-            );
-          })}
+      {/* ── Category strip (desktop) ── */}
+      <div className="hidden sm:block border-t border-eco-border" style={{ background:'#0B0B0B' }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center gap-0 overflow-x-auto" style={{ scrollbarWidth:'none' }}>
+            {NAV_CATS.map(cat => (
+              <NavLink key={cat.label} to={cat.path}
+                       className={({ isActive }) =>
+                         `px-3.5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2
+                          ${isActive
+                            ? 'text-eco-green border-eco-green'
+                            : 'text-eco-sub border-transparent hover:text-eco-text hover:border-eco-border'}`
+                       }>
+                {cat.label}
+              </NavLink>
+            ))}
+          </div>
         </div>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="border-t border-white/10 bg-[#0D0D0D] sm:hidden">
-          {user && <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 border-b border-white/10 px-4 py-3 font-semibold text-slate-200"><FiUser /> My Profile</Link>}
-          {user && !isAdmin && <Link to="/orders" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 border-b border-white/10 px-4 py-3 font-semibold text-slate-200"><FiPackage /> Orders & Refunds</Link>}
-          {categories.map(category => {
-            const Icon = category.icon;
-            return <Link key={category.name} to={category.link} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 border-b border-white/10 px-4 py-3 text-slate-300"><Icon /> {category.name}</Link>;
-          })}
+      {/* ── Mobile menu ── */}
+      {mobileOpen && (
+        <div className="sm:hidden border-t border-eco-border" style={{ background:'#111827' }}>
+          {NAV_CATS.map(cat => (
+            <Link key={cat.label} to={cat.path} onClick={() => setMobileOpen(false)}
+                  className="flex items-center px-5 py-3.5 text-sm font-medium text-eco-sub
+                             hover:bg-eco-elevated hover:text-eco-text border-b border-eco-border transition-colors">
+              {cat.label}
+            </Link>
+          ))}
         </div>
       )}
-    </header>
+
+      {/* Close user menu on outside click */}
+      {userMenu && (
+        <div className="fixed inset-0 z-40" onClick={() => setUserMenu(false)} />
+      )}
+    </nav>
   );
 };
 
 export default Navbar;
-

@@ -131,6 +131,13 @@ const Profile = () => {
   }, [userId]);
 
   useEffect(() => {
+    document.documentElement.dataset.theme = form.darkMode ? 'dark' : 'light';
+    return () => {
+      document.documentElement.dataset.theme = 'dark';
+    };
+  }, [form.darkMode]);
+
+  useEffect(() => {
     const loadWishlist = async () => {
       if (!wishlist.length) {
         setWishlistProducts([]);
@@ -189,7 +196,7 @@ const Profile = () => {
     try {
       const res = await api.post('/profile/forgot-password', { emailOrPhone: resetForm.emailOrPhone });
       setResetForm(prev => ({ ...prev, token: res.data.devResetToken || '' }));
-      showToast('Reset token generated for development');
+      showToast(res.data.emailSent ? 'Reset link sent to email' : 'Reset token generated');
     } catch {
       showToast('Reset request failed');
     }
@@ -314,7 +321,7 @@ const Profile = () => {
   const panelClass = "rounded-md border border-white/[0.08] bg-[#161616] p-4 shadow-sm sm:p-5";
 
   return (
-    <div className={form.darkMode ? 'min-h-screen bg-gray-950 text-gray-100' : 'min-h-screen bg-[#0D0D0D] text-white'}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
       {toast && <div className="fixed right-4 top-20 z-[60] rounded-md bg-gray-950 px-4 py-3 text-sm font-bold text-white shadow-xl">{toast}</div>}
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4">
         <section className="mb-5 overflow-hidden rounded-md bg-gradient-to-r from-slate-950 to-slate-800 p-5 text-white shadow-sm">

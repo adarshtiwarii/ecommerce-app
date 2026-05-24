@@ -22,8 +22,8 @@ public class DeliveryEstimateService {
     @Value("${warehouse.base-delivery-hours}")
     private int baseDeliveryHours;
 
-    @Value("${warehouse.average-speed-kmph}")
-    private double averageSpeedKmph;
+    @Value("${warehouse.average-speed-km-per-hour:${warehouse.average-speed-kmph:35}}")
+    private double averageSpeedKmPerHour;
 
     private record Warehouse(String name, double latitude, double longitude) {}
 
@@ -56,7 +56,7 @@ public class DeliveryEstimateService {
                 .orElse(new Warehouse(warehouseName, warehouseLatitude, warehouseLongitude));
 
         double distance = haversine(nearest.latitude(), nearest.longitude(), customerLatitude, customerLongitude);
-        int travelHours = (int) Math.ceil(distance / Math.max(averageSpeedKmph, 1));
+        int travelHours = (int) Math.ceil(distance / Math.max(averageSpeedKmPerHour, 1));
         int eta = Math.max(24, baseDeliveryHours + travelHours);
         String message = eta <= 48 ? "Fast delivery available" : "Standard delivery available";
         return new DeliveryEstimateResponse(nearest.name(), round(distance), eta, message);

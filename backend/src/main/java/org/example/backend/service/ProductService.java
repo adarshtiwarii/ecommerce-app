@@ -48,6 +48,10 @@ public class ProductService {
         return productRepository.findAll(PageRequest.of(page, size));
     }
 
+    public long getTotalProductsCount() {
+        return productRepository.count();
+    }
+
     public Page<Product> getProductsBySeller(Long sellerId, int page, int size) {
         return productRepository.findBySellerId(sellerId, PageRequest.of(page, size));
     }

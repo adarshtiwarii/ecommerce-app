@@ -1,11 +1,19 @@
-// src/pages/LoginPage.js
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FiCheck, FiEye, FiEyeOff, FiLock, FiMail, FiPhone, FiShoppingBag, FiUser } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
+import { AUTH_GENDER_OPTIONS, AUTH_TEXT, BRAND } from '../constants/labels';
+import { ROUTES } from '../constants/routes';
 
-const LoginPage = () => {
-  const [mode, setMode] = useState('login');
+const FORM_MODES = {
+  LOGIN: 'login',
+  REGISTER: 'register',
+  FORGOT: 'forgot',
+};
+
+const LoginPage = ({ initialMode = FORM_MODES.LOGIN }) => {
+  const [mode, setMode] = useState(initialMode);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,202 +21,190 @@ const LoginPage = () => {
     gender: '',
     password: '',
     confirmPassword: '',
+    resetToken: '',
+    rememberMe: true,
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [devResetToken, setDevResetToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const { login, register } = useApp();
+  const { login, register, requestPasswordReset, resetPassword } = useApp();
   const navigate = useNavigate();
+  const isRegister = mode === FORM_MODES.REGISTER;
+  const isForgot = mode === FORM_MODES.FORGOT;
+
+  const heading = useMemo(() => {
+    if (isForgot) return AUTH_TEXT.forgotTitle;
+    return isRegister ? AUTH_TEXT.registerTitle : AUTH_TEXT.loginTitle;
+  }, [isForgot, isRegister]);
+
+  const subText = useMemo(() => {
+    if (isForgot) return AUTH_TEXT.forgotSub;
+    return isRegister ? AUTH_TEXT.registerSub : AUTH_TEXT.loginSub;
+  }, [isForgot, isRegister]);
 
   const update = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const validate = () => {
-    if (mode === 'register') {
-      if (!formData.name.trim()) return 'Full name is required';
-      if (formData.phoneNumber && !/^\d{10}$/.test(formData.phoneNumber)) return 'Enter a valid 10-digit phone number';
-      if (!formData.gender) return 'Please select your gender';
+    if (!formData.email.trim()) return `${AUTH_TEXT.email} is required`;
+    if (isForgot) {
+      if (formData.resetToken && formData.password.length < 6) return 'New password must be at least 6 characters';
+      return null;
+    }
+    if (isRegister) {
+      if (!formData.name.trim()) return `${AUTH_TEXT.fullName} is required`;
+      if (!/^\d{10}$/.test(formData.phoneNumber)) return 'Enter a valid 10-digit phone number';
+      if (!formData.gender) return `${AUTH_TEXT.gender} is required`;
       if (formData.password.length < 6) return 'Password must be at least 6 characters';
       if (formData.password !== formData.confirmPassword) return 'Passwords do not match';
     }
-    if (!formData.email.trim()) return 'Email is required';
-    if (!formData.password) return 'Password is required';
+    if (!formData.password) return `${AUTH_TEXT.password} is required`;
     return null;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setSuccess('');
-
     const validationError = validate();
     if (validationError) {
       setError(validationError);
       return;
     }
-
     setLoading(true);
     try {
-      if (mode === 'login') {
-        const result = await login(formData.email, formData.password);
-        if (result.success) navigate('/');
-        else setError(result.message || 'Invalid email or password');
-      } else {
-        const result = await register({
-          fullName: formData.name,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          gender: formData.gender,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword,
-        });
-
-        if (result.success) {
-          setSuccess('Account created. Please login.');
-          setFormData(prev => ({
-            ...prev,
-            name: '',
-            phoneNumber: '',
-            gender: '',
-            password: '',
-            confirmPassword: '',
-          }));
-          setTimeout(() => {
-            setMode('login');
-            setSuccess('');
-          }, 1500);
+      if (isForgot) {
+        if (!formData.resetToken) {
+          const result = await requestPasswordReset(formData.email);
+          if (result.success) {
+            setSuccess(result.emailSent ? 'Reset link sent to your email.' : result.message);
+            setDevResetToken(result.devResetToken || '');
+          } else {
+            setError(result.message);
+          }
         } else {
-          setError(result.message);
+          const result = await resetPassword(formData.resetToken, formData.password);
+          if (result.success) {
+            setSuccess(result.message);
+            setDevResetToken('');
+            setTimeout(() => switchMode(FORM_MODES.LOGIN), 900);
+          } else {
+            setError(result.message);
+          }
         }
+        return;
+      }
+      if (!isRegister) {
+        const result = await login(formData.email, formData.password, formData.rememberMe);
+        if (result.success) navigate(ROUTES.HOME);
+        else setError(result.message);
+        return;
+      }
+      const result = await register({
+        fullName: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        gender: formData.gender,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
+      if (result.success) {
+        setSuccess('Account created. Please login.');
+        setTimeout(() => switchMode(FORM_MODES.LOGIN), 1200);
+      } else {
+        setError(result.message);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const switchMode = (m) => {
-    setMode(m);
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
     setError('');
     setSuccess('');
+    setDevResetToken('');
   };
 
-  const inputClass = 'w-full rounded-2xl border border-white/[0.08] bg-[#161616] px-4 py-3 pl-11 text-sm text-white shadow-sm outline-none transition placeholder:text-white/40 focus:border-[#FF6B00] focus:ring-4 focus:ring-[rgba(255,107,0,0.18)]';
-  const iconClass = 'absolute left-4 top-1/2 -translate-y-1/2 text-[#FF6B00]';
-
   return (
-    <div className="min-h-screen bg-[#0D0D0D] px-4 py-8 flex items-center justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.32),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.28),transparent_34%)]" />
-      <div className="relative w-full max-w-md rounded-2xl bg-[#161616]/95 p-6 sm:p-8 shadow-2xl border border-white/[0.08] backdrop-blur">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FF6B00] text-white shadow-lg shadow-orange-950/30">
+    <div style={{ minHeight: '100vh', background: 'var(--bg-void)', padding: '32px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at top left, var(--primary-subtle), transparent 34%), radial-gradient(circle at bottom right, var(--bg-glass-hover), transparent 32%)', pointerEvents: 'none' }} />
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 240, damping: 22 }} style={{ position: 'relative', width: '100%', maxWidth: 440, background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-xl)', padding: 28, boxShadow: 'var(--shadow-lg)' }}>
+        <div style={{ width: 56, height: 56, margin: '0 auto 20px', borderRadius: 'var(--radius-lg)', background: 'var(--primary)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-orange-sm)' }}>
           <FiShoppingBag size={26} />
         </div>
-        <div className="text-center mb-7">
-          <h1 className="text-3xl font-black text-white">{mode === 'login' ? 'Welcome Back' : 'Join EcoMart'}</h1>
-          <p className="mt-2 text-sm text-white/50">
-            {mode === 'login' ? 'Sign in to manage orders, carts, and deals.' : 'Create your marketplace account in seconds.'}
-          </p>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <h1 style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-display)', fontWeight: 800 }}>{heading}</h1>
+          <p style={{ marginTop: 8, color: 'var(--text-secondary)' }}>{subText}</p>
         </div>
-
-        <div className="mb-6 grid grid-cols-2 rounded-2xl bg-[rgba(255,107,0,0.12)] p-1">
-          {[
-            { value: 'login', label: 'Login' },
-            { value: 'register', label: 'Register' },
-          ].map(tab => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => switchMode(tab.value)}
-              className={`rounded-lg px-4 py-2.5 text-sm font-black transition ${
-                mode === tab.value
-                  ? 'bg-[#161616] text-[#FF6B00] shadow-sm'
-                  : 'text-white/50 hover:text-[#FF6B00]'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {error && <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
-        {success && (
-          <div className="mb-4 flex items-center gap-2 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
-            <FiCheck size={16} /> {success}
+        {!isForgot && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)', padding: 4, marginBottom: 20 }}>
+            {[{ value: FORM_MODES.LOGIN, label: AUTH_TEXT.login }, { value: FORM_MODES.REGISTER, label: AUTH_TEXT.register }].map(tab => (
+              <motion.button key={tab.value} type="button" whileTap={{ scale: 0.97 }} onClick={() => switchMode(tab.value)} style={{ borderRadius: 'var(--radius-md)', padding: '10px 14px', fontWeight: 700, background: mode === tab.value ? 'var(--primary-subtle)' : 'transparent', color: mode === tab.value ? 'var(--primary)' : 'var(--text-secondary)', border: mode === tab.value ? '1px solid var(--primary-border)' : '1px solid transparent' }}>
+                {tab.label}
+              </motion.button>
+            ))}
           </div>
         )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
+        {error && <div style={{ marginBottom: 14, border: '1px solid var(--error-bg)', background: 'var(--error-bg)', color: 'var(--error-bright)', borderRadius: 'var(--radius-md)', padding: '10px 14px', fontWeight: 600, fontSize: 13 }}>{error}</div>}
+        {success && <div style={{ marginBottom: 14, border: '1px solid var(--success-bg)', background: 'var(--success-bg)', color: 'var(--success-bright)', borderRadius: 'var(--radius-md)', padding: '10px 14px', fontWeight: 600, fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}><FiCheck /> {success}</div>}
+        {devResetToken && <div style={{ marginBottom: 14, border: '1px solid var(--border-default)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', borderRadius: 'var(--radius-md)', padding: '10px 14px', fontSize: 12 }}><strong>{AUTH_TEXT.devResetToken}:</strong> <span style={{ fontFamily: 'var(--font-mono)' }}>{devResetToken}</span></div>}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {isRegister && (
             <>
-              <div className="relative">
-                <FiUser size={16} className={iconClass} />
-                <input type="text" placeholder="Full Name *" value={formData.name} onChange={e => update('name', e.target.value)} className={inputClass} required />
-              </div>
-              <div className="relative">
-                <FiPhone size={16} className={iconClass} />
-                <input type="tel" placeholder="Phone Number (10 digits) *" value={formData.phoneNumber} onChange={e => update('phoneNumber', e.target.value.replace(/\D/g, '').slice(0, 10))} className={inputClass} required />
-              </div>
-              <select value={formData.gender} onChange={e => update('gender', e.target.value)} className="w-full rounded-2xl border border-white/[0.08] bg-[#161616] px-4 py-3 text-sm text-white shadow-sm outline-none transition focus:border-[#FF6B00] focus:ring-4 focus:ring-[rgba(255,107,0,0.18)]" required>
-                <option value="">Select Gender *</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
+              <Field icon={<FiUser />} placeholder={AUTH_TEXT.fullName} value={formData.name} onChange={value => update('name', value)} />
+              <Field icon={<FiPhone />} placeholder={AUTH_TEXT.phone} value={formData.phoneNumber} onChange={value => update('phoneNumber', value.replace(/\D/g, '').slice(0, 10))} />
+              <select value={formData.gender} onChange={event => update('gender', event.target.value)} required>
+                {AUTH_GENDER_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </>
           )}
-
-          <div className="relative">
-            <FiMail size={16} className={iconClass} />
-            <input type="email" placeholder="Email Address *" value={formData.email} onChange={e => update('email', e.target.value)} className={inputClass} required />
-          </div>
-
-          <div className="relative">
-            <FiLock size={16} className={iconClass} />
-            <input type={showPassword ? 'text' : 'password'} placeholder="Password *" value={formData.password} onChange={e => update('password', e.target.value)} className={`${inputClass} pr-11`} required />
-            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-[#FF6B00]">
-              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-            </button>
-          </div>
-
-          {mode === 'register' && (
-            <div className="relative">
-              <FiLock size={16} className={iconClass} />
-              <input type={showConfirm ? 'text' : 'password'} placeholder="Confirm Password *" value={formData.confirmPassword} onChange={e => update('confirmPassword', e.target.value)} className={`${inputClass} pr-11 ${formData.confirmPassword && formData.password !== formData.confirmPassword ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`} required />
-              <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-[#FF6B00]">
-                {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-              </button>
+          <Field icon={<FiMail />} type="email" placeholder={AUTH_TEXT.email} value={formData.email} onChange={value => update('email', value)} />
+          {isForgot && <Field icon={<FiLock />} placeholder={AUTH_TEXT.resetToken} value={formData.resetToken} onChange={value => update('resetToken', value)} required={false} />}
+          {(!isForgot || formData.resetToken) && <PasswordField icon={<FiLock />} placeholder={isForgot ? AUTH_TEXT.resetPassword : AUTH_TEXT.password} value={formData.password} visible={showPassword} onToggle={() => setShowPassword(value => !value)} onChange={value => update('password', value)} />}
+          {isRegister && <PasswordField icon={<FiLock />} placeholder={AUTH_TEXT.confirmPassword} value={formData.confirmPassword} visible={showConfirm} onToggle={() => setShowConfirm(value => !value)} onChange={value => update('confirmPassword', value)} />}
+          {!isRegister && !isForgot && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 13 }}>
+                <input type="checkbox" checked={formData.rememberMe} onChange={event => update('rememberMe', event.target.checked)} style={{ width: 16, height: 16 }} />
+                {AUTH_TEXT.rememberMe}
+              </label>
+              <button type="button" onClick={() => switchMode(FORM_MODES.FORGOT)} style={{ background: 'transparent', color: 'var(--primary)', fontSize: 12, fontWeight: 700 }}>{AUTH_TEXT.forgotPassword}</button>
             </div>
           )}
-
-          {mode === 'login' && (
-            <div className="text-right">
-              <Link to="/forgot-password" className="text-xs font-bold text-[#FF6B00] transition hover:text-orange-700 hover:underline">Forgot Password?</Link>
-            </div>
-          )}
-
-          <p className="text-xs leading-relaxed text-white/50">
-            By continuing, you agree to EcoMart's <Link to="#" className="font-bold text-[#FF6B00] hover:underline">Terms of Use</Link> and <Link to="#" className="font-bold text-[#FF6B00] hover:underline">Privacy Policy</Link>.
-          </p>
-
-          <button type="submit" disabled={loading} className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[#FF6B00] px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-orange-950/30 transition hover:-translate-y-0.5 hover:bg-[#E55A00] disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
-            {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
-            {loading ? (mode === 'login' ? 'Logging in...' : 'Creating account...') : (mode === 'login' ? 'Login' : 'Create Account')}
-          </button>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{AUTH_TEXT.agreePrefix}</p>
+          <motion.button type="submit" whileTap={{ scale: 0.96 }} disabled={loading} className="btn-primary" style={{ width: '100%', padding: '14px 18px' }}>
+            {loading && <span className="spinner" />}
+            {loading ? (isForgot ? (formData.resetToken ? AUTH_TEXT.loadingReset : AUTH_TEXT.loadingToken) : isRegister ? AUTH_TEXT.loadingRegister : AUTH_TEXT.loadingLogin) : isForgot ? (formData.resetToken ? AUTH_TEXT.resetPassword : AUTH_TEXT.sendReset) : isRegister ? AUTH_TEXT.createAccount : AUTH_TEXT.login}
+          </motion.button>
         </form>
-
-        <p className="mt-5 text-center text-sm text-white/50">
-          {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-          <button type="button" onClick={() => switchMode(mode === 'login' ? 'register' : 'login')} className="font-black text-[#FF6B00] transition hover:text-orange-700 hover:underline">
-            {mode === 'login' ? 'Register' : 'Login'}
-          </button>
+        <p style={{ marginTop: 18, textAlign: 'center', color: 'var(--text-secondary)', fontSize: 14 }}>
+          {isForgot ? <button type="button" onClick={() => switchMode(FORM_MODES.LOGIN)} style={{ color: 'var(--primary)', background: 'transparent', fontWeight: 800 }}>{AUTH_TEXT.backToLogin}</button> : <>{isRegister ? AUTH_TEXT.hasAccount : AUTH_TEXT.noAccount} <button type="button" onClick={() => switchMode(isRegister ? FORM_MODES.LOGIN : FORM_MODES.REGISTER)} style={{ color: 'var(--primary)', background: 'transparent', fontWeight: 800 }}>{isRegister ? AUTH_TEXT.login : AUTH_TEXT.register}</button></>}
         </p>
-      </div>
+        <Link to={ROUTES.HOME} style={{ display: 'block', marginTop: 12, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>{BRAND.name}</Link>
+      </motion.div>
     </div>
   );
 };
 
+const Field = ({ icon, value, onChange, placeholder, type = 'text', required = true }) => (
+  <div style={{ position: 'relative' }}>
+    <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', display: 'flex' }}>{icon}</span>
+    <input type={type} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} required={required} style={{ paddingLeft: 42 }} />
+  </div>
+);
+
+const PasswordField = ({ icon, value, onChange, placeholder, visible, onToggle }) => (
+  <div style={{ position: 'relative' }}>
+    <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', display: 'flex' }}>{icon}</span>
+    <input type={visible ? 'text' : 'password'} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} required style={{ paddingLeft: 42, paddingRight: 42 }} />
+    <button type="button" onClick={onToggle} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'transparent', display: 'flex' }}>
+      {visible ? <FiEyeOff /> : <FiEye />}
+    </button>
+  </div>
+);
+
 export default LoginPage;
-
-
-
