@@ -5,11 +5,11 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-# ── Spring Boot Config (secrets) ──────────────────────────
-**/src/main/resources/application.properties
-**/src/main/resources/application-*.properties
-**/src/main/resources/application.yml
-**/src/main/resources/application-*.yml
+## ── Spring Boot Config (secrets) ──────────────────────────
+#**/src/main/resources/application.properties
+#**/src/main/resources/application-*.properties
+#**/src/main/resources/application.yml
+#**/src/main/resources/application-*.yml
 
 # ── Environment files ─────────────────────────────────────
 .env
