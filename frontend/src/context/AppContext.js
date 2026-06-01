@@ -127,8 +127,8 @@ export const AppProvider = ({ children }) => {
       alert('Please login to add items to cart');
       return;
     }
-    if (user.role === 'ADMIN') {
-      alert('Admin accounts cannot add products to cart');
+    if (user.role !== 'CUSTOMER' && user.role !== 'USER') {
+      alert('Only customer accounts can add products to cart');
       return;
     }
     const productId = product.productId || product.id;

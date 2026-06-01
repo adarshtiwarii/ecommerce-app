@@ -1,7 +1,20 @@
 import axios from 'axios';
 
+const DEFAULT_API_BASE_URL =
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8080/api'
+    : 'https://ecommerce-app-rttb.onrender.com/api';
+
+const configuredApiBaseUrl = process.env.REACT_APP_API_BASE_URL;
+const isLocalBrowser = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+export const API_BASE_URL =
+  !isLocalBrowser && configuredApiBaseUrl?.includes('localhost')
+    ? DEFAULT_API_BASE_URL
+    : configuredApiBaseUrl || DEFAULT_API_BASE_URL;
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 

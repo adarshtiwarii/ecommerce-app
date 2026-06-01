@@ -273,12 +273,12 @@ const EditProduct = () => {
       ) : <div />}
       {!isLast && nextSection ? (
         <button type="button" onClick={() => setActiveSection(nextSection)}
-          className="rounded-xl bg-[rgba(255,107,0,0.12)]0 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600">
+          className="rounded-xl bg-[#FF6B00] px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600">
           Next →
         </button>
       ) : isLast ? (
         <button type="submit" disabled={submitLoading}
-          className="rounded-xl bg-[rgba(255,107,0,0.12)]0 px-8 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
+          className="rounded-xl bg-[#FF6B00] px-8 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-600 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60">
           {submitLoading ? 'Saving...' : '✓ Save Changes'}
         </button>
       ) : null}
@@ -299,7 +299,7 @@ const EditProduct = () => {
     <div className="min-h-screen bg-[rgba(255,107,0,0.12)]/60 flex items-center justify-center px-4">
       <div className="text-center">
         <p className="text-red-400 text-lg mb-4">{error}</p>
-        <button onClick={() => navigate('/admin')} className="rounded-xl bg-[rgba(255,107,0,0.12)]0 px-6 py-2.5 font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-orange-600">
+        <button onClick={() => navigate('/admin')} className="rounded-xl bg-[#FF6B00] px-6 py-2.5 font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-orange-600">
           ← Back to Dashboard
         </button>
       </div>
@@ -333,7 +333,7 @@ const EditProduct = () => {
             <button key={s.id} type="button" onClick={() => setActiveSection(s.id)}
               className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black shadow-sm transition hover:-translate-y-0.5 ${
                 activeSection === s.id
-                  ? 'bg-[rgba(255,107,0,0.12)]0 text-white shadow-orange-200'
+                  ? 'bg-[#FF6B00] text-white shadow-orange-200'
                   : idx < currentIdx
                     ? 'border border-green-200 bg-green-50 text-green-700'
                     : 'border border-orange-100 bg-[#161616] text-white/50 hover:border-orange-300 hover:text-orange-600'
@@ -417,7 +417,7 @@ const EditProduct = () => {
                       ✕
                     </button>
                     {idx === 0 && (
-                      <span className="absolute bottom-1 left-1 bg-[rgba(255,107,0,0.12)]0 text-white text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
+                      <span className="absolute bottom-1 left-1 bg-[#FF6B00] text-white text-[9px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
                     )}
                   </div>
                 ))}

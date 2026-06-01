@@ -53,10 +53,9 @@ public class SecurityConfig {
 
                         // Auth and password reset endpoints must remain reachable before login.
                         .requestMatchers(
+                                "/api/health",
                                 "/api/auth/login",
                                 "/api/auth/register",
-                                "/api/auth/create-admin",
-                                "/api/auth/create-seller",
                                 "/api/profile/forgot-password",
                                 "/api/profile/reset-password"
                         ).permitAll()

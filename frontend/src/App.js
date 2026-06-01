@@ -23,8 +23,9 @@ import AddProduct from './components/AddProduct';
 import EditProduct from './components/EditProduct';
 import Profile from './components/user/Profile';
 import { ROUTES } from './constants/routes';
+import { API_BASE_URL } from './utils/api';
 
-const BACKEND_URL = 'https://ecommerce-app-rttb.onrender.com';
+const BACKEND_URL = API_BASE_URL.replace(/\/api\/?$/, '');
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -60,7 +61,7 @@ function App() {
               <Route
                 path={ROUTES.CHECKOUT}
                 element={
-                  <ProtectedRoute allowedRoles={['USER']}>
+                  <ProtectedRoute allowedRoles={['CUSTOMER', 'USER']}>
                     <CheckoutPage />
                   </ProtectedRoute>
                 }
@@ -68,7 +69,7 @@ function App() {
               <Route
                 path={ROUTES.ORDERS}
                 element={
-                  <ProtectedRoute allowedRoles={['USER']}>
+                  <ProtectedRoute allowedRoles={['CUSTOMER', 'USER']}>
                     <OrdersPage />
                   </ProtectedRoute>
                 }
@@ -76,7 +77,7 @@ function App() {
               <Route
                 path={ROUTES.WISHLIST}
                 element={
-                  <ProtectedRoute allowedRoles={['USER']}>
+                  <ProtectedRoute allowedRoles={['CUSTOMER', 'USER']}>
                     <WishlistPage />
                   </ProtectedRoute>
                 }

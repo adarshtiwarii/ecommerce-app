@@ -4,6 +4,10 @@ import { useApp } from '../../context/AppContext';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user } = useApp();
+  const roleAliases = {
+    CUSTOMER: ['CUSTOMER', 'USER'],
+    USER: ['USER', 'CUSTOMER'],
+  };
 
   // Redirect guests to the login page.
   if (!user) {
@@ -11,7 +15,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // Redirect users who do not match the required role.
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+  const effectiveRoles = roleAliases[user.role] || [user.role];
+  if (allowedRoles.length > 0 && !allowedRoles.some(role => effectiveRoles.includes(role))) {
     return <Navigate to="/" replace />;
   }
 

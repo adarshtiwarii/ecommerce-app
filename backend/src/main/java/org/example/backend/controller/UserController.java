@@ -6,7 +6,6 @@ import org.example.backend.dto.LoginRequest;
 import org.example.backend.dto.LoginResponse;
 import org.example.backend.dto.RegisterRequest;
 import org.example.backend.model.User;
-import org.example.backend.repository.UserRepository;
 import org.example.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -14,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -33,12 +31,6 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     // ============================================================
     // 📝 REGISTER – Create a new user account
@@ -103,56 +95,9 @@ public class UserController {
         }
     }
 
-    @PostMapping("/create-admin")
-    public ResponseEntity<?> createAdmin() {
-        if (userRepository.existsByEmail("adarsht072@gmail.com")) {
-            User admin = userRepository.findByEmail("adarsht072@gmail.com")
-                    .orElseThrow(() -> new RuntimeException("Admin not found"));
-            admin.setEnabled(true);
-            userRepository.save(admin);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Admin already exists and has been activated",
-                    "email", "adarsht072@gmail.com"
-            ));
-        }
-        User admin = new User();
-        admin.setFullName("Adarsh Tiwari");
-        admin.setEmail("adarsht072@gmail.com");
-        admin.setPhoneNumber("7007417650");
-        admin.setPasswordHash(passwordEncoder.encode("Adarsh@123"));
-        admin.setRole(User.Role.ADMIN);
-        admin.setGender(User.Gender.MALE);
-        admin.setEnabled(true);
-        userRepository.save(admin);
-        return ResponseEntity.ok(Map.of(
-                "message", "Admin created successfully",
-                "email", "adarsht072@gmail.com"
-        ));
-    }
-
     // ============================================================
     // ⚠️ TEMPORARY — Create seller account (use once, then disable)
     // ============================================================
-    @PostMapping("/create-seller")
-    public ResponseEntity<?> createSeller() {
-        if (userRepository.existsByEmail("seller@example.com")) {
-            return ResponseEntity.badRequest().body("Seller already exists!");
-        }
-        User seller = new User();
-        seller.setFullName("Test Seller");
-        seller.setEmail("seller@example.com");
-        seller.setPhoneNumber("1111111111");
-        seller.setPasswordHash(passwordEncoder.encode("seller123"));
-        seller.setRole(User.Role.SELLER);
-        seller.setGender(User.Gender.MALE);
-        seller.setEnabled(true);
-        userRepository.save(seller);
-        return ResponseEntity.ok(Map.of(
-                "message", "Seller created successfully",
-                "email", "seller@example.com"
-        ));
-    }
-
     // ============================================================
     // ❗ GLOBAL EXCEPTION HANDLERS
     // ============================================================

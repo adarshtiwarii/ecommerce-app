@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const useSearchSuggestions = (query) => {
   const [suggestions, setSuggestions] = useState([]);
@@ -13,9 +13,7 @@ const useSearchSuggestions = (query) => {
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await axios.get(
-          `http://localhost:8080/api/products/search?keyword=${query}&page=0&size=5`
-        );
+        const res = await api.get(`/products/search?keyword=${encodeURIComponent(query)}&page=0&size=5`);
         setSuggestions(res.data.content);
       } catch (err) {
         console.error('Search suggestions error', err);

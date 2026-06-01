@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiCheckCircle, FiClock, FiMapPin, FiPackage, FiRefreshCw, FiRotateCcw, FiShoppingBag, FiTruck, FiXCircle } from 'react-icons/fi';
 import { useApp } from '../context/AppContext';
@@ -18,9 +18,12 @@ const OrdersPage = () => {
   const [submittingReason, setSubmittingReason] = useState(false);
   const [trackingLocations, setTrackingLocations] = useState({});
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     const userId = user?.id || Number(localStorage.getItem('userId'));
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -43,7 +46,7 @@ const OrdersPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   const trackingSteps = [
     { key: 'PENDING', label: 'Order Placed' },
@@ -152,8 +155,22 @@ const OrdersPage = () => {
 
   useEffect(() => {
     loadOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [loadOrders]);
+
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (!document.hidden) loadOrders();
+    };
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    const interval = window.setInterval(refreshWhenVisible, 30000);
+
+    return () => {
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+      window.clearInterval(interval);
+    };
+  }, [loadOrders]);
 
   useEffect(() => {
     const unresolved = orders

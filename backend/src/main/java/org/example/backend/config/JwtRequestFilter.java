@@ -55,8 +55,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         boolean isAuthRoute = path.equals("/api/auth/login") ||
                 path.equals("/api/auth/register") ||
-                path.equals("/api/auth/create-admin") ||
-                path.equals("/api/auth/create-seller") ||
                 path.equals("/api/profile/forgot-password") ||
                 path.equals("/api/profile/reset-password");
 
