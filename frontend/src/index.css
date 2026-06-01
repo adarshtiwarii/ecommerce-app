@@ -267,4 +267,118 @@ button { font-family: var(--font-body); cursor: pointer; border: none; transitio
 @media (max-width: 400px) {
   .product-grid { grid-template-columns: repeat(2,1fr); gap: 8px; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
+}/* ═══════════════════════════════════════════════════════════════════
+   ADDITIONS TO index.css — paste these at the bottom of your file
+   DO NOT replace the whole file — just ADD these lines at the end
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── FIX 1: footer-bottom mobile layout ──────────────────────────────
+   OLD: no flex-wrap, no mobile layout — copyright text wrapped badly
+   NEW: flex-wrap + column on mobile so badges stack above copyright */
+.footer-bottom {
+  border-top: 1px solid var(--footer-border);
+  padding: 20px 24px;
+  max-width: 1100px;
+  margin: 32px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--footer-text);
+  flex-wrap: wrap;   /* NEW: allows wrapping on small screens */
+  gap: 12px;         /* NEW: spacing between badges and copyright */
 }
+
+@media (max-width: 480px) {
+  .footer-bottom {
+    flex-direction: column;  /* stack vertically on mobile */
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 16px;
+  }
+}
+
+/* ── FIX 2: Footer link text — make more visible ──────────────────────
+   OLD: color: var(--footer-text) which is too dim on dark background
+   NEW: slightly brighter so links are readable */
+.footer-link {
+  font-size: 14px;             /* was 13px — slightly bigger */
+  color: rgba(255,255,255,0.70); /* was var(--footer-text) — too dim */
+  display: block;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: color var(--t-fast);
+  text-decoration: none;
+}
+.footer-link:hover {
+  color: var(--primary);       /* orange on hover — same as before */
+}
+
+/* ── FIX 3: Footer col heading — more visible ─────────────────────────
+   OLD: color: var(--footer-heading) — ok but small text was hard to see
+   NEW: pure white, slightly larger tracking */
+.footer-col-heading {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.95);  /* was var(--footer-heading) */
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 18px;
+}
+
+/* ── FIX 4: Profile page — light bg cards replaced with dark ──────────
+   These 4 utility classes override the light Tailwind colors
+   used in the Account Health cards and Quick Action buttons */
+.profile-card-green {
+  background: #0D2B1A !important;
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #4ade80 !important;
+}
+.profile-card-orange {
+  background: #2B1500 !important;
+  border: 1px solid rgba(249,115,22,0.25);
+  color: #fb923c !important;
+}
+.profile-card-blue {
+  background: #0D1B2B !important;
+  border: 1px solid rgba(59,130,246,0.25);
+  color: #60a5fa !important;
+}
+.profile-card-purple {
+  background: #1A0D2B !important;
+  border: 1px solid rgba(168,85,247,0.25);
+  color: #c084fc !important;
+}
+
+/* ── FIX 5: Splash screen smooth exit ─────────────────────────────────
+   These vars ensure SplashScreen and App background match exactly */
+:root {
+  --splash-bg: var(--bg-main);  /* use same bg as app — no color jump */
+}
+
+/* ── FIX: Product detail page responsive layout ──────────────────────────
+   On mobile: image panel and info panel stack vertically (1 column)
+   On sm+ screens: side by side (left=image, right=info)                  */
+
+/* Image panel — on sm+ add right border like original */
+@media (min-width: 640px) {
+  .product-image-panel {
+    border-right: 1px solid var(--border-subtle) !important;
+    border-top: none !important;
+  }
+  .product-info-panel {
+    border-top: none !important;
+  }
+}
+
+/* On mobile the info panel border-top acts as separator */
+@media (max-width: 639px) {
+  .product-image-panel {
+    border-right: none !important;
+  }
+  .product-info-panel {
+    border-top: 1px solid var(--border-subtle) !important;
+  }
+}
+
