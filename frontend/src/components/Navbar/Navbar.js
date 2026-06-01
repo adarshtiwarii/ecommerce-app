@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
 
-// ── All nav categories — dynamic, never hardcoded in JSX ──
+// Keep nav categories data-driven.
 const NAV_CATS = [
   { label: 'For You',        path: '/' },
   { label: 'Electronics',    path: '/category/Electronics' },
@@ -48,7 +48,7 @@ const Navbar = () => {
          style={{ background: 'rgba(6,6,6,0.92)', backdropFilter: 'blur(20px) saturate(160%)',
                   borderBottom: '1px solid #1F2937' }}>
 
-      {/* ── Main bar ── */}
+      {/* Main bar */}
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center h-16 gap-4">
 
@@ -58,25 +58,25 @@ const Navbar = () => {
                  style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)',
                           boxShadow: '0 0 12px rgba(34,197,94,0.30)' }}>
               <img src="/logo.png" alt="" className="w-full h-full object-contain p-0.5"
-                   onError={e => { e.target.style.display='none'; e.target.parentNode.innerHTML='<span style="font-size:16px">🛒</span>'; }} />
+                   onError={e => { e.target.style.display='none'; e.target.parentNode.innerHTML='<span style="font-size:16px">E</span>'; }} />
             </div>
             <div>
               <span className="font-bold text-xl" style={{ fontFamily: 'Syne,system-ui', letterSpacing:'-0.01em' }}>
                 <span className="text-eco-green">eco</span>
                 <span className="text-eco-text">mart</span>
               </span>
-              <p className="text-xs text-eco-muted leading-none" style={{ marginTop: 1 }}>Shop Responsibly 🌿</p>
+              <p className="text-xs text-eco-muted leading-none" style={{ marginTop: 1 }}>Shop Responsibly</p>
             </div>
           </Link>
 
-          {/* Search bar — desktop */}
+          {/* Desktop search bar */}
           <form onSubmit={handleSearch} className="flex-1 max-w-xl hidden sm:flex">
             <div className="flex w-full rounded-full overflow-hidden border border-eco-border
                             focus-within:border-eco-green transition-colors duration-200"
                  style={{ background: '#1F2937' }}>
               <input
                 type="text"
-                placeholder="Search products, brands, categories…"
+                placeholder="Search products, brands, categories..."
                 value={q}
                 onChange={e => setQ(e.target.value)}
                 className="flex-1 px-5 py-2.5 text-sm text-eco-text placeholder-eco-muted outline-none"
@@ -206,7 +206,7 @@ const Navbar = () => {
         <div className="sm:hidden pb-3">
           <form onSubmit={handleSearch} className="flex rounded-full overflow-hidden border border-eco-border"
                 style={{ background: '#1F2937' }}>
-            <input type="text" placeholder="Search…" value={q} onChange={e => setQ(e.target.value)}
+            <input type="text" placeholder="Search..." value={q} onChange={e => setQ(e.target.value)}
                    className="flex-1 px-4 py-2 text-sm text-eco-text placeholder-eco-muted outline-none"
                    style={{ background: 'transparent' }} />
             <button type="submit" className="px-3 text-eco-green"><FiSearch size={16} /></button>
@@ -214,7 +214,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* ── Category strip (desktop) ── */}
+      {/* Desktop category strip */}
       <div className="hidden sm:block border-t border-eco-border" style={{ background:'#0B0B0B' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-0 overflow-x-auto" style={{ scrollbarWidth:'none' }}>
@@ -233,7 +233,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* ── Mobile menu ── */}
+      {/* Mobile menu */}
       {mobileOpen && (
         <div className="sm:hidden border-t border-eco-border" style={{ background:'#111827' }}>
           {NAV_CATS.map(cat => (

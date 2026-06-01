@@ -54,11 +54,11 @@ const emptyAddress = {
 
 const Skeleton = () => (
   <div className="animate-pulse space-y-4">
-    <div className="h-28 rounded-md bg-orange-100" />
+    <div className="h-28 rounded-md bg-[#1E1E1E]" />
     <div className="grid gap-4 md:grid-cols-3">
-      <div className="h-24 rounded-md bg-gray-100" />
-      <div className="h-24 rounded-md bg-gray-100" />
-      <div className="h-24 rounded-md bg-gray-100" />
+      <div className="h-24 rounded-md bg-[#1E1E1E]" />
+      <div className="h-24 rounded-md bg-[#1E1E1E]" />
+      <div className="h-24 rounded-md bg-[#1E1E1E]" />
     </div>
   </div>
 );
@@ -69,7 +69,7 @@ const Toggle = ({ checked, onChange, label, desc }) => (
       <span className="block font-black text-white">{label}</span>
       {desc && <span className="mt-1 block text-sm text-white/50">{desc}</span>}
     </span>
-    <span className={`relative h-7 w-12 rounded-full transition ${checked ? 'bg-orange-600' : 'bg-gray-300'}`}>
+    <span className={`relative h-7 w-12 rounded-full transition ${checked ? 'bg-orange-600' : 'bg-[#333]'}`}>
       <span className={`absolute top-1 h-5 w-5 rounded-full bg-[#161616] shadow transition ${checked ? 'left-6' : 'left-1'}`} />
     </span>
   </button>
@@ -309,7 +309,7 @@ const Profile = () => {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-orange-50 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[#0D0D0D] p-4">
         <div className="rounded-md bg-[#161616] p-8 text-center shadow-sm">
           <p className="mb-4 text-white/70">You are not logged in.</p>
           <button onClick={() => navigate('/login')} className="rounded-full bg-orange-600 px-6 py-3 font-black text-white">Go to Login</button>
@@ -349,13 +349,13 @@ const Profile = () => {
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
-                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 rounded-md px-3 py-3 text-left text-sm font-black transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'text-white/70 hover:bg-orange-50 hover:text-orange-600'}`}>
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 rounded-md px-3 py-3 text-left text-sm font-black transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'text-white/70 hover:bg-[#2B1500] hover:text-orange-400'}`}>
                     <Icon /> {tab.label}
                   </button>
                 );
               })}
             </div>
-            <button onClick={() => { logout(); navigate('/login'); }} className="mt-2 flex w-full items-center gap-2 rounded-md px-3 py-3 text-sm font-black text-red-600 hover:bg-red-50"><FiLogOut /> Logout</button>
+            <button onClick={() => { logout(); navigate('/login'); }} className="mt-2 flex w-full items-center gap-2 rounded-md px-3 py-3 text-sm font-black text-red-400 hover:bg-[#2B0D0D]"><FiLogOut /> Logout</button>
           </aside>
 
           <main className="min-w-0">
@@ -372,19 +372,19 @@ const Profile = () => {
                     <div className={panelClass}>
                       <h2 className="mb-4 text-lg font-black">Account health</h2>
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="flex items-center gap-3 rounded-md bg-green-50 p-3 text-green-700"><FiCheckCircle /> JWT protected route active</div>
-                        <div className="flex items-center gap-3 rounded-md bg-orange-50 p-3 text-orange-700"><FiShield /> Role: {profile?.role}</div>
-                        <div className="flex items-center gap-3 rounded-md bg-blue-50 p-3 text-blue-700"><FiBell /> Email {profile?.emailVerified ? 'verified' : 'not verified'}</div>
-                        <div className="flex items-center gap-3 rounded-md bg-purple-50 p-3 text-purple-700"><FiSmartphone /> Mobile {profile?.phoneVerified ? 'verified' : 'not verified'}</div>
+                        <div className="flex items-center gap-3 rounded-md border border-green-900/40 bg-[#0D2B1A] p-3 text-green-400"><FiCheckCircle /> JWT protected route active</div>
+                        <div className="flex items-center gap-3 rounded-md border border-orange-900/40 bg-[#2B1500] p-3 text-orange-400"><FiShield /> Role: {profile?.role}</div>
+                        <div className="flex items-center gap-3 rounded-md border border-blue-900/40 bg-[#0D1B2B] p-3 text-blue-400"><FiBell /> Email {profile?.emailVerified ? 'verified' : 'not verified'}</div>
+                        <div className="flex items-center gap-3 rounded-md border border-purple-900/40 bg-[#1A0D2B] p-3 text-purple-400"><FiSmartphone /> Mobile {profile?.phoneVerified ? 'verified' : 'not verified'}</div>
                       </div>
                     </div>
                     <div className={panelClass}>
                       <h2 className="mb-4 text-lg font-black">Quick actions</h2>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                        <button onClick={() => setActiveTab('security')} className="rounded-md border border-white/[0.08] bg-orange-50 p-4 text-left font-black text-orange-700 hover:bg-orange-100">Change password</button>
-                        <button onClick={() => setActiveTab('addresses')} className="rounded-md border border-white/[0.08] bg-orange-50 p-4 text-left font-black text-orange-700 hover:bg-orange-100">Add/edit address</button>
-                        <button onClick={() => setActiveTab('orders')} className="rounded-md border border-white/[0.08] bg-orange-50 p-4 text-left font-black text-orange-700 hover:bg-orange-100">View old orders</button>
-                        <button onClick={() => setActiveTab('wishlist')} className="rounded-md border border-white/[0.08] bg-orange-50 p-4 text-left font-black text-orange-700 hover:bg-orange-100">Manage wishlist</button>
+                        <button onClick={() => setActiveTab('security')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Change password</button>
+                        <button onClick={() => setActiveTab('addresses')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Add/edit address</button>
+                        <button onClick={() => setActiveTab('orders')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">View old orders</button>
+                        <button onClick={() => setActiveTab('wishlist')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Manage wishlist</button>
                       </div>
                     </div>
                   </>
@@ -394,10 +394,10 @@ const Profile = () => {
                   <div className={panelClass}>
                     <h2 className="text-lg font-black">Personal information</h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <input value={form.fullName || ''} onChange={e => setForm({ ...form, fullName: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Full name" />
-                      <input value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Email" />
-                      <input value={form.phoneNumber || ''} onChange={e => setForm({ ...form, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })} className="rounded-md border px-3 py-3" placeholder="Mobile number" />
-                      <input value={form.profileImageUrl || ''} onChange={e => setForm({ ...form, profileImageUrl: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Profile image URL" />
+                      <input value={form.fullName || ''} onChange={e => setForm({ ...form, fullName: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Full name" />
+                      <input value={form.email || ''} onChange={e => setForm({ ...form, email: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Email" />
+                      <input value={form.phoneNumber || ''} onChange={e => setForm({ ...form, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Mobile number" />
+                      <input value={form.profileImageUrl || ''} onChange={e => setForm({ ...form, profileImageUrl: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Profile image URL" />
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button onClick={saveProfile} className="rounded-full bg-orange-600 px-5 py-3 font-black text-white">Save changes</button>
@@ -405,8 +405,8 @@ const Profile = () => {
                       <button onClick={() => sendOtp('phone')} className="rounded-full border border-orange-200 px-5 py-3 font-black text-orange-600">Send mobile OTP</button>
                     </div>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div className="flex gap-2"><input value={otp.email} onChange={e => setOtp({ ...otp, email: e.target.value })} className="min-w-0 flex-1 rounded-md border px-3 py-3" placeholder="Email OTP" /><button onClick={() => verifyOtp('email')} className="rounded-md bg-gray-900 px-4 font-black text-white">Verify</button></div>
-                      <div className="flex gap-2"><input value={otp.phone} onChange={e => setOtp({ ...otp, phone: e.target.value })} className="min-w-0 flex-1 rounded-md border px-3 py-3" placeholder="Mobile OTP" /><button onClick={() => verifyOtp('phone')} className="rounded-md bg-gray-900 px-4 font-black text-white">Verify</button></div>
+                      <div className="flex gap-2"><input value={otp.email} onChange={e => setOtp({ ...otp, email: e.target.value })} className="min-w-0 flex-1 rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Email OTP" /><button onClick={() => verifyOtp('email')} className="rounded-md bg-gray-900 px-4 font-black text-white">Verify</button></div>
+                      <div className="flex gap-2"><input value={otp.phone} onChange={e => setOtp({ ...otp, phone: e.target.value })} className="min-w-0 flex-1 rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Mobile OTP" /><button onClick={() => verifyOtp('phone')} className="rounded-md bg-gray-900 px-4 font-black text-white">Verify</button></div>
                     </div>
                   </div>
                 )}
@@ -416,18 +416,18 @@ const Profile = () => {
                     <div className={panelClass}>
                       <h2 className="text-lg font-black">Change password</h2>
                       <div className="mt-4 space-y-3">
-                        <input type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} className="w-full rounded-md border px-3 py-3" placeholder="Current password" />
-                        <input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} className="w-full rounded-md border px-3 py-3" placeholder="New password" />
+                        <input type="password" value={passwordForm.currentPassword} onChange={e => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Current password" />
+                        <input type="password" value={passwordForm.newPassword} onChange={e => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="New password" />
                         <button onClick={changePassword} className="rounded-full bg-orange-600 px-5 py-3 font-black text-white">Update password</button>
                       </div>
                     </div>
                     <div className={panelClass}>
                       <h2 className="text-lg font-black">Forgot/reset password</h2>
                       <div className="mt-4 space-y-3">
-                        <input value={resetForm.emailOrPhone} onChange={e => setResetForm({ ...resetForm, emailOrPhone: e.target.value })} className="w-full rounded-md border px-3 py-3" placeholder="Email or mobile" />
+                        <input value={resetForm.emailOrPhone} onChange={e => setResetForm({ ...resetForm, emailOrPhone: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Email or mobile" />
                         <button onClick={forgotPassword} className="rounded-full border border-orange-200 px-5 py-3 font-black text-orange-600">Generate reset token</button>
-                        <input value={resetForm.token} onChange={e => setResetForm({ ...resetForm, token: e.target.value })} className="w-full rounded-md border px-3 py-3" placeholder="Reset token" />
-                        <input type="password" value={resetForm.newPassword} onChange={e => setResetForm({ ...resetForm, newPassword: e.target.value })} className="w-full rounded-md border px-3 py-3" placeholder="New password" />
+                        <input value={resetForm.token} onChange={e => setResetForm({ ...resetForm, token: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Reset token" />
+                        <input type="password" value={resetForm.newPassword} onChange={e => setResetForm({ ...resetForm, newPassword: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="New password" />
                         <button onClick={resetPassword} className="rounded-full bg-gray-900 px-5 py-3 font-black text-white">Reset password</button>
                       </div>
                     </div>
@@ -451,14 +451,14 @@ const Profile = () => {
                         {locationError && <p className="mt-2 text-xs font-bold text-red-500">{locationError}</p>}
                       </div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <input value={addressForm.label} onChange={e => setAddressForm({ ...addressForm, label: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Label" />
-                        <input value={addressForm.fullName} onChange={e => setAddressForm({ ...addressForm, fullName: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Full name" />
-                        <input value={addressForm.phoneNumber} onChange={e => setAddressForm({ ...addressForm, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })} className="rounded-md border px-3 py-3" placeholder="Mobile" />
-                        <input value={addressForm.pincode} onChange={e => setAddressForm({ ...addressForm, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })} className="rounded-md border px-3 py-3" placeholder="Pincode" />
-                        <input value={addressForm.line1} onChange={e => setAddressForm({ ...addressForm, line1: e.target.value })} className="rounded-md border px-3 py-3 sm:col-span-2" placeholder="House, street, area" />
-                        <input value={addressForm.line2} onChange={e => setAddressForm({ ...addressForm, line2: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Landmark" />
-                        <input value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} className="rounded-md border px-3 py-3" placeholder="City" />
-                        <select value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} className="rounded-md border px-3 py-3 sm:col-span-2"><option value="">State / UT</option>{INDIA_STATES_AND_UTS.map(s => <option key={s}>{s}</option>)}</select>
+                        <input value={addressForm.label} onChange={e => setAddressForm({ ...addressForm, label: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Label" />
+                        <input value={addressForm.fullName} onChange={e => setAddressForm({ ...addressForm, fullName: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Full name" />
+                        <input value={addressForm.phoneNumber} onChange={e => setAddressForm({ ...addressForm, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Mobile" />
+                        <input value={addressForm.pincode} onChange={e => setAddressForm({ ...addressForm, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Pincode" />
+                        <input value={addressForm.line1} onChange={e => setAddressForm({ ...addressForm, line1: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30 sm:col-span-2" placeholder="House, street, area" />
+                        <input value={addressForm.line2} onChange={e => setAddressForm({ ...addressForm, line2: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Landmark" />
+                        <input value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="City" />
+                        <select value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white sm:col-span-2"><option value="">State / UT</option>{INDIA_STATES_AND_UTS.map(s => <option key={s}>{s}</option>)}</select>
                       </div>
                       <label className="mt-3 flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={addressForm.defaultAddress} onChange={e => setAddressForm({ ...addressForm, defaultAddress: e.target.checked })} /> Make default address</label>
                       <button onClick={saveAddress} className="mt-4 rounded-full bg-orange-600 px-5 py-3 font-black text-white">Save address</button>
@@ -468,13 +468,13 @@ const Profile = () => {
                         <div key={address.addressId} className={panelClass}>
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="font-black">{address.label} {address.defaultAddress && <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700">Default</span>}</p>
+                              <p className="font-black">{address.label} {address.defaultAddress && <span className="rounded-full border border-green-700/30 bg-green-900/40 px-2 py-0.5 text-xs text-green-400">Default</span>}</p>
                               <p className="mt-1 text-sm text-white/70">{address.fullName} - {address.phoneNumber}</p>
                               <p className="mt-1 text-sm text-white/70">{address.line1}, {address.line2}, {address.city}, {address.state} - {address.pincode}</p>
                             </div>
                             <div className="flex gap-1">
-                              <button onClick={() => { setAddressForm(address); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="rounded-full p-2 text-orange-600 hover:bg-orange-50" title="Edit address"><FiEdit /></button>
-                              <button onClick={() => deleteAddress(address.addressId)} className="rounded-full p-2 text-red-600 hover:bg-red-50" title="Delete address"><FiTrash2 /></button>
+                              <button onClick={() => { setAddressForm(address); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="rounded-full p-2 text-orange-400 hover:bg-[#2B1500]" title="Edit address"><FiEdit /></button>
+                              <button onClick={() => deleteAddress(address.addressId)} className="rounded-full p-2 text-red-400 hover:bg-[#2B0D0D]" title="Delete address"><FiTrash2 /></button>
                             </div>
                           </div>
                           {!address.defaultAddress && <button onClick={() => setDefaultAddress(address.addressId)} className="mt-3 text-sm font-black text-orange-600">Set as default</button>}
@@ -507,12 +507,12 @@ const Profile = () => {
                   <div className={panelClass}>
                     <h2 className="text-lg font-black">Saved payment methods</h2>
                     <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                      <select value={paymentForm.brand} onChange={e => setPaymentForm({ ...paymentForm, brand: e.target.value })} className="rounded-md border px-3 py-3"><option>UPI</option><option>Card</option><option>Net banking</option></select>
-                      <input value={paymentForm.label} onChange={e => setPaymentForm({ ...paymentForm, label: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Label" />
-                      <input value={paymentForm.detail} onChange={e => setPaymentForm({ ...paymentForm, detail: e.target.value })} className="rounded-md border px-3 py-3" placeholder="Masked detail" />
+                      <select value={paymentForm.brand} onChange={e => setPaymentForm({ ...paymentForm, brand: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white"><option>UPI</option><option>Card</option><option>Net banking</option></select>
+                      <input value={paymentForm.label} onChange={e => setPaymentForm({ ...paymentForm, label: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Label" />
+                      <input value={paymentForm.detail} onChange={e => setPaymentForm({ ...paymentForm, detail: e.target.value })} className="rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Masked detail" />
                     </div>
                     <button onClick={addPayment} className="mt-3 rounded-full bg-orange-600 px-5 py-3 font-black text-white">Save method</button>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">{savedPayments.map(method => <div key={method.id} className="rounded-md border bg-gray-50 p-4"><p className="font-black">{method.brand} - {method.label}</p><p className="text-sm text-white/50">{method.detail}</p></div>)}</div>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">{savedPayments.map(method => <div key={method.id} className="rounded-md border border-white/[0.08] bg-[#1E1E1E] p-4"><p className="font-black">{method.brand} - {method.label}</p><p className="text-sm text-white/50">{method.detail}</p></div>)}</div>
                   </div>
                 )}
 
@@ -535,5 +535,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-

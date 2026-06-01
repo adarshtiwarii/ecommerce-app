@@ -1121,29 +1121,6 @@ export default function CheckoutPage() {
               }}>₹{finalPrice.toLocaleString('en-IN')}</span>
             </div>
 
-            {/* Trust badges */}
-            <div style={{
-              margin: '0 20px 20px',
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '12px 14px',
-              display: 'flex', flexDirection: 'column', gap: 7,
-            }}>
-              {[
-                ['🔒', '256-bit SSL encryption'],
-                ['↩️', '7-day easy returns'],
-                ['✅', 'Verified seller products'],
-              ].map(([icon, text]) => (
-                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13 }}>{icon}</span>
-                  <p style={{
-                    fontSize: 12, color: 'var(--text-muted)',
-                    margin: 0, fontFamily: 'var(--font-body)',
-                  }}>{text}</p>
-                </div>
-              ))}
-            </div>
           </div>
         </aside>
       </div>

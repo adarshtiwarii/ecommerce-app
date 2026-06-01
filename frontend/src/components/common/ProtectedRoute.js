@@ -5,12 +5,12 @@ import { useApp } from '../../context/AppContext';
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user } = useApp();
 
-  // ✅ Login nahi hai — login page pe bhejo
+  // Redirect guests to the login page.
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Role check — agar allowedRoles diye hain aur user ka role match nahi karta
+  // Redirect users who do not match the required role.
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }

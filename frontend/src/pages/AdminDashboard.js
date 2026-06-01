@@ -45,6 +45,8 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ users: null, orders: null, products: null, revenue: null });
   const [summaryStatusCounts, setSummaryStatusCounts] = useState({});
   const [statErrors, setStatErrors] = useState({});
+  const [statusSavingId, setStatusSavingId] = useState(null);
+  const [toast, setToast] = useState('');
 
   const fetchStats = useCallback(async () => {
     try {
@@ -167,12 +169,22 @@ const AdminDashboard = () => {
   };
 
   const updateOrderStatus = async (orderId, status) => {
+    setStatusSavingId(orderId);
     try {
-      await api.patch(`/orders/admin/${orderId}/status`, { status });
-      setOrders(prev => prev.map(order => order.orderId === orderId ? { ...order, status } : order));
+      const res = await api.patch(`/orders/admin/${orderId}/status`, { status });
+      const updatedOrder = res.data && typeof res.data === 'object' ? res.data : null;
+      setOrders(prev => prev.map(order => (
+        order.orderId === orderId
+          ? { ...order, ...(updatedOrder || {}), status: updatedOrder?.status || status }
+          : order
+      )));
+      setToast(`Order #${orderId} updated to ${status.replaceAll('_', ' ')}`);
+      window.setTimeout(() => setToast(''), 2400);
       fetchStats();
     } catch (e) {
       alert(getErrorMessage(e, 'Failed to update order status'));
+    } finally {
+      setStatusSavingId(null);
     }
   };
 
@@ -215,6 +227,11 @@ const AdminDashboard = () => {
 
   return (
     <div className="bg-[#0D0D0D] min-h-screen">
+      {toast && (
+        <div className="fixed right-4 top-20 z-[60] rounded-md border border-white/10 bg-[#1E1E1E] px-4 py-3 text-sm font-bold text-white shadow-xl">
+          {toast}
+        </div>
+      )}
       <div className="bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 text-white">
         <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row justify-between gap-5">
           <div>
@@ -281,7 +298,7 @@ const AdminDashboard = () => {
         {activePanel === 'orders' && (
           <div className="bg-[#161616] border rounded-xl shadow-sm overflow-x-auto">
             <div className="px-4 py-3 border-b flex justify-between items-center"><h2 className="font-black text-white flex items-center gap-2"><FiShoppingBag className="text-orange-500" /> Orders</h2>{ordersError && <span className="text-xs text-red-600">{ordersError}</span>}</div>
-            <table className="w-full text-sm"><thead className="bg-[rgba(255,107,0,0.12)] text-white/80"><tr>{['Order ID','User ID','Amount','Items','Payment','Progress','Status Action','Date'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap font-black">{h}</th>)}</tr></thead><tbody>{orders.length === 0 ? <tr><td colSpan="8" className="py-10 text-center text-white/50">No orders found</td></tr> : orders.map(order => <tr key={order.orderId} className="border-t hover:bg-[rgba(255,107,0,0.12)]/40"><td className="px-4 py-3 font-mono text-white/50">#{order.orderId}</td><td className="px-4 py-3">#{order.userId}</td><td className="px-4 py-3 font-black">Rs {Number(order.totalAmount || 0).toLocaleString()}</td><td className="px-4 py-3">{order.itemsCount}</td><td className="px-4 py-3">{order.paymentMethod || '-'}</td><td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">{order.status || 'PENDING'}</span><OrderProgress status={order.status} />{order.nearestWarehouse && <p className="mt-1 text-xs text-white/50">{order.nearestWarehouse} · ETA {order.estimatedDeliveryHours || '-'}h</p>}</td><td className="px-4 py-3"><select value={order.status || 'PENDING'} onChange={event => updateOrderStatus(order.orderId, event.target.value)} className="min-w-[160px] rounded-md border border-white/10 bg-[#0D0D0D] px-3 py-2 text-xs font-bold text-white">{ORDER_STATUS_OPTIONS.map(status => <option key={status} value={status}>{status.replaceAll('_', ' ')}</option>)}</select></td><td className="px-4 py-3 whitespace-nowrap text-white/70">{order.orderDate ? new Date(order.orderDate).toLocaleString() : '-'}</td></tr>)}</tbody></table>
+            <table className="w-full text-sm"><thead className="bg-[rgba(255,107,0,0.12)] text-white/80"><tr>{['Order ID','User ID','Amount','Items','Payment','Progress','Status Action','Date'].map(h => <th key={h} className="px-4 py-3 text-left whitespace-nowrap font-black">{h}</th>)}</tr></thead><tbody>{orders.length === 0 ? <tr><td colSpan="8" className="py-10 text-center text-white/50">No orders found</td></tr> : orders.map(order => <tr key={order.orderId} className="border-t hover:bg-[rgba(255,107,0,0.12)]/40"><td className="px-4 py-3 font-mono text-white/50">#{order.orderId}</td><td className="px-4 py-3">#{order.userId}</td><td className="px-4 py-3 font-black">Rs {Number(order.totalAmount || 0).toLocaleString()}</td><td className="px-4 py-3">{order.itemsCount}</td><td className="px-4 py-3">{order.paymentMethod || '-'}</td><td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">{order.status || 'PENDING'}</span><OrderProgress status={order.status} />{order.nearestWarehouse && <p className="mt-1 text-xs text-white/50">{order.nearestWarehouse} · ETA {order.estimatedDeliveryHours || '-'}h</p>}</td><td className="px-4 py-3"><select value={order.status || 'PENDING'} onChange={event => updateOrderStatus(order.orderId, event.target.value)} disabled={statusSavingId === order.orderId} className="min-w-[160px] rounded-md border border-white/10 bg-[#0D0D0D] px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{ORDER_STATUS_OPTIONS.map(status => <option key={status} value={status}>{status.replaceAll('_', ' ')}</option>)}</select>{statusSavingId === order.orderId && <p className="mt-1 text-xs text-white/50">Updating...</p>}</td><td className="px-4 py-3 whitespace-nowrap text-white/70">{order.orderDate ? new Date(order.orderDate).toLocaleString() : '-'}</td></tr>)}</tbody></table>
           </div>
         )}
 

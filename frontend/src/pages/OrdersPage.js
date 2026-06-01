@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import api from '../utils/api';
 import { getErrorMessage } from '../utils/errorMessage';
 import { IMG_FALLBACK } from '../utils/imgFallback';
+import { reverseGeocode } from '../utils/location';
 
 const OrdersPage = () => {
   const { user } = useApp();
@@ -15,6 +16,7 @@ const OrdersPage = () => {
   const [reasonText, setReasonText] = useState('');
   const [reasonAction, setReasonAction] = useState(null);
   const [submittingReason, setSubmittingReason] = useState(false);
+  const [trackingLocations, setTrackingLocations] = useState({});
 
   const loadOrders = async () => {
     const userId = user?.id || Number(localStorage.getItem('userId'));
@@ -68,6 +70,14 @@ const OrdersPage = () => {
     return `Estimated delivery: ${min.toLocaleDateString()} - ${max.toLocaleDateString()}`;
   };
 
+  const getOrderCoordinates = (order) => {
+    const latitude = order.trackingLatitude || order.customerLatitude;
+    const longitude = order.trackingLongitude || order.customerLongitude;
+    return latitude && longitude ? { latitude, longitude } : null;
+  };
+
+  const getLocationKey = (coords) => `${coords.latitude},${coords.longitude}`;
+
   const openReason = (order, type) => {
     setReasonAction({ order, type });
     setReasonText('');
@@ -96,7 +106,7 @@ const OrdersPage = () => {
 
     if (cancelled) {
       return (
-        <div className="border-t bg-red-50 px-4 py-4 text-sm font-bold text-red-700">
+        <div className="border-t border-red-900/30 bg-[#2B0D0D] px-4 py-4 text-sm font-bold text-red-300">
           This order has been cancelled.
           {order.cancelReason && <p className="mt-1 text-xs font-semibold">Reason: {order.cancelReason}</p>}
         </div>
@@ -127,9 +137,13 @@ const OrdersPage = () => {
           })}
         </div>
         <p className="mt-3 text-xs text-white/50 sm:hidden">{getEstimatedDelivery(order.orderDate)}</p>
-        {(order.customerLatitude || order.trackingLatitude) && (
-          <div className="mt-3 rounded-sm bg-green-50 p-3 text-xs text-green-800">
-            <FiMapPin className="mr-1 inline" /> Live tracking: {order.trackingLatitude || order.customerLatitude}, {order.trackingLongitude || order.customerLongitude}
+        {getOrderCoordinates(order) && (
+          <div className="mt-3 rounded-sm border border-green-900/30 bg-[#0D2B1A] p-3 text-xs text-green-300">
+            <FiMapPin className="mr-1 inline" />
+            Live tracking:{' '}
+            {trackingLocations[getLocationKey(getOrderCoordinates(order))]
+              || order.shippingAddress
+              || 'Resolving delivery location...'}
           </div>
         )}
       </div>
@@ -140,6 +154,39 @@ const OrdersPage = () => {
     loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  useEffect(() => {
+    const unresolved = orders
+      .map(getOrderCoordinates)
+      .filter(Boolean)
+      .filter(coords => !trackingLocations[getLocationKey(coords)]);
+
+    if (!unresolved.length) return;
+
+    let active = true;
+    const unique = Array.from(new Map(unresolved.map(coords => [getLocationKey(coords), coords])).values());
+
+    Promise.allSettled(unique.map(async coords => {
+      const geo = await reverseGeocode(coords.latitude, coords.longitude);
+      return [getLocationKey(coords), geo.displayName || [geo.city, geo.state, geo.pincode].filter(Boolean).join(', ')];
+    })).then(results => {
+      if (!active) return;
+      const next = {};
+      results.forEach(result => {
+        if (result.status === 'fulfilled') {
+          const [key, label] = result.value;
+          next[key] = label || 'Delivery location detected';
+        }
+      });
+      if (Object.keys(next).length) {
+        setTrackingLocations(prev => ({ ...prev, ...next }));
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [orders, trackingLocations]);
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center bg-[#0D0D0D]"><div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" /></div>;
@@ -161,7 +208,7 @@ const OrdersPage = () => {
           </div>
         </div>
 
-        {error && <div className="mb-4 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>}
+        {error && <div className="mb-4 rounded-sm border border-red-900/30 bg-[#2B0D0D] px-4 py-3 text-red-300">{error}</div>}
 
         {orders.length === 0 ? (
           <div className="rounded-md border bg-[#161616] p-10 text-center shadow-sm">
@@ -180,7 +227,7 @@ const OrdersPage = () => {
                     <p className="text-xs text-white/50">{order.orderDate ? new Date(order.orderDate).toLocaleString() : 'Date unavailable'}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="rounded-full bg-orange-50 px-3 py-1 font-bold text-orange-700">{order.status || 'PENDING'}</span>
+                    <span className="rounded-full border border-orange-500/30 bg-[#2B1500] px-3 py-1 font-bold text-orange-300">{order.status || 'PENDING'}</span>
                     <span className="font-black text-white">Rs {Number(order.totalAmount || 0).toLocaleString()}</span>
                   </div>
                 </div>
@@ -189,7 +236,7 @@ const OrdersPage = () => {
                     const product = productsById[item.productId] || {};
                     const image = product.images?.[0] || product.imageUrl || IMG_FALLBACK;
                     return (
-                      <Link key={item.orderItemId || `${order.orderId}-${item.productId}`} to={`/product/${item.productId}`} className="flex gap-4 p-4 hover:bg-orange-50/40">
+                      <Link key={item.orderItemId || `${order.orderId}-${item.productId}`} to={`/product/${item.productId}`} className="flex gap-4 p-4 hover:bg-[#1E1E1E]">
                         <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-md border bg-[#161616]">
                           <img src={image} alt={product.name || 'Product'} className="max-h-full max-w-full object-contain p-2" onError={e => { e.target.onerror = null; e.target.src = IMG_FALLBACK; }} />
                         </div>
@@ -206,22 +253,22 @@ const OrdersPage = () => {
                 <TrackingTimeline order={order} />
                 {order.shippingAddress && <div className="border-t px-4 py-3 text-sm text-white/70"><b>Delivery:</b> {order.shippingAddress}</div>}
                 {String(order.status || '').toUpperCase() === 'RETURN_REQUESTED' && (
-                  <div className="border-t bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  <div className="border-t border-blue-900/30 bg-[#0D1B2B] px-4 py-3 text-sm text-blue-300">
                     <b>Return requested:</b> {order.returnReason}
                     <p className="mt-1 text-xs font-semibold">Refund will be reviewed and credited after pickup verification.</p>
                   </div>
                 )}
                 {String(order.status || '').toUpperCase() === 'RETURNED' && (
-                  <div className="border-t bg-green-50 px-4 py-3 text-sm text-green-700">
+                  <div className="border-t border-green-900/30 bg-[#0D2B1A] px-4 py-3 text-sm text-green-300">
                     <b>Refund processing:</b> Rs {Number(order.totalAmount || 0).toLocaleString()} will be credited to the original payment method.
                   </div>
                 )}
                 <div className="border-t px-4 py-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
                   {!['CANCELLED', 'DELIVERED', 'RETURN_REQUESTED', 'RETURNED'].includes(String(order.status || '').toUpperCase()) && (
-                    <button onClick={() => openReason(order, 'cancel')} className="rounded-sm border border-red-200 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 flex items-center justify-center gap-2"><FiXCircle /> Cancel with reason</button>
+                    <button onClick={() => openReason(order, 'cancel')} className="flex items-center justify-center gap-2 rounded-sm border border-red-500/30 px-4 py-2 text-sm font-bold text-red-300 hover:bg-[#2B0D0D]"><FiXCircle /> Cancel with reason</button>
                   )}
                   {String(order.status || '').toUpperCase() === 'DELIVERED' && (
-                    <button onClick={() => openReason(order, 'return')} className="flex items-center justify-center gap-2 rounded-md border border-orange-200 px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50"><FiRotateCcw /> Return with reason</button>
+                    <button onClick={() => openReason(order, 'return')} className="flex items-center justify-center gap-2 rounded-md border border-orange-500/30 px-4 py-2 text-sm font-bold text-orange-300 hover:bg-[#2B1500]"><FiRotateCcw /> Return with reason</button>
                   )}
                 </div>
               </section>

@@ -2,18 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
+<<<<<<< HEAD
   FiChevronLeft, FiChevronRight,
   FiNavigation, FiRefreshCw, FiShield, FiTruck,
+=======
+  FiChevronLeft,
+  FiChevronRight,
+  FiMapPin,
+  FiNavigation,
+  FiRefreshCw,
+>>>>>>> 563c935 (make respansive ui)
 } from 'react-icons/fi';
 import ProductCard, { ProductCardSkeleton } from '../components/Product/ProductCard';
 import api from '../utils/api';
 import { reverseGeocode } from '../utils/location';
-import { EMPTY_STATES, TRUST_BADGES } from '../constants/labels';
+import { EMPTY_STATES } from '../constants/labels';
 import { ROUTE } from '../constants/routes';
 import { SLIDER_CONFIG } from '../constants/sliderConfig';
 import { useAutoSlider } from '../hooks/useAutoSlider';
 
 const sectionCopy = {
+<<<<<<< HEAD
   heroLabel:       'Fresh picks',
   heroCta:         'Shop now',
   locationTitle:   'Delivery location',
@@ -22,34 +31,60 @@ const sectionCopy = {
   trending:        'Trending Products',
   deals:           'Top Deals',
   recent:          'Recently Viewed',
+=======
+  heroLabel: 'Featured pick',
+  heroCta: 'Shop now',
+  locationTitle: 'Delivery location',
+  locationFallback: 'Detect your area for faster delivery estimates.',
+  detectLocation: 'Detect location',
+  trending: 'Trending Products',
+  deals: 'Top Deals',
+  recent: 'Recently Viewed',
+>>>>>>> 563c935 (make respansive ui)
   newsletterTitle: 'Get the best deals first',
   newsletterText:  'Fresh offers, product drops, and order updates in one tidy place.',
   subscribe:       'Subscribe',
 };
 
+<<<<<<< HEAD
 // Reusable product section used for Trending and Recently Viewed
+=======
+const getProductId = product => product.productId || product.id;
+const getProductName = product => product.productName || product.name || 'Featured product';
+const getProductImage = product => product.images?.[0] || product.imageUrl || '';
+
+>>>>>>> 563c935 (make respansive ui)
 const HomeSection = ({ title, products, loading }) => {
   if (loading) {
     return (
-      <section className="card" style={{ padding: 20 }}>
+      <section className="site-section">
         <h2 className="section-heading-left">{title}</h2>
+<<<<<<< HEAD
         <div className="product-grid" style={{ marginTop: 18 }}>
           {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
+=======
+        <div className="product-grid">
+          {Array.from({ length: 8 }).map((_, index) => <ProductCardSkeleton key={index} />)}
+>>>>>>> 563c935 (make respansive ui)
         </div>
       </section>
     );
   }
   if (!products?.length) return null;
   return (
-    <section className="card" style={{ padding: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', marginBottom: 18 }}>
+    <section className="site-section">
+      <div className="section-row">
         <h2 className="section-heading-left">{title}</h2>
         <Link to={ROUTE.search()} className="btn-subtle">View all</Link>
       </div>
       <div className="product-grid">
         {products.slice(0, 8).map((product, index) => (
           <motion.div
+<<<<<<< HEAD
             key={product.productId || product.id}
+=======
+            key={getProductId(product)}
+>>>>>>> 563c935 (make respansive ui)
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -82,12 +117,16 @@ const HomePage = () => {
         setProducts(res.data?.content || []);
       } catch (err) {
         console.error('Failed to fetch products', err);
+<<<<<<< HEAD
         // FIX: was Hinglish 'Products load nahi ho pa rahe. Backend check karo.'
+=======
+>>>>>>> 563c935 (make respansive ui)
         setError('Unable to load products. Please check your connection and try again.');
       } finally {
         setLoading(false);
       }
     };
+
     load();
     setRecentProducts(JSON.parse(localStorage.getItem('recentProducts') || '[]'));
   }, []);
@@ -97,6 +136,7 @@ const HomePage = () => {
     return [{ id: null, name: 'All' }, ...unique.map(name => ({ id: name, name }))];
   }, [products]);
 
+<<<<<<< HEAD
   const filteredProducts = useMemo(() =>
     activeCategory
       ? products.filter(p => p.category === activeCategory)
@@ -127,6 +167,36 @@ const HomePage = () => {
         }))
       : [];
   }, [products]);
+=======
+  const filteredProducts = useMemo(() => (
+    activeCategory
+      ? products.filter(product => product.category === activeCategory)
+      : products
+  ), [activeCategory, products]);
+
+  const topDeals = useMemo(() => (
+    [...products].sort((a, b) => {
+      const dealA = a.mrp > a.price ? (a.mrp - a.price) / a.mrp : 0;
+      const dealB = b.mrp > b.price ? (b.mrp - b.price) / b.mrp : 0;
+      return dealB - dealA;
+    })
+  ), [products]);
+
+  const banners = useMemo(() => (
+    products.slice(0, 5).map(product => ({
+      id: getProductId(product),
+      label: product.category || sectionCopy.heroLabel,
+      heading: getProductName(product),
+      subtext: product.description || 'Fresh arrivals selected from current marketplace products.',
+      ctaText: sectionCopy.heroCta,
+      ctaUrl: ROUTE.product(getProductId(product)),
+      image: getProductImage(product),
+      price: product.price,
+      mrp: product.mrp,
+      brand: product.brand,
+    }))
+  ), [products]);
+>>>>>>> 563c935 (make respansive ui)
 
   const heroSlider = useAutoSlider({ total: banners.length, config: SLIDER_CONFIG.hero });
   const dealPages  = Math.max(1, Math.ceil(topDeals.length / 4));
@@ -137,16 +207,21 @@ const HomePage = () => {
       setLocationLabel('Location is not supported in this browser.');
       return;
     }
+
     setDetectingLocation(true);
     navigator.geolocation.getCurrentPosition(
-      async pos => {
+      async position => {
         try {
+<<<<<<< HEAD
           const geo   = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+=======
+          const geo = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+>>>>>>> 563c935 (make respansive ui)
           const label = geo.displayName || [geo.city, geo.state, geo.pincode].filter(Boolean).join(', ');
           setLocationLabel(label);
           localStorage.setItem('deliveryLocation', label);
         } catch {
-          setLocationLabel('Location detected, address lookup failed.');
+          setLocationLabel('Location detected, but address lookup failed.');
         } finally {
           setDetectingLocation(false);
         }
@@ -165,16 +240,21 @@ const HomePage = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-main)' }}>
+    <div className="page-shell">
       <div className="mx-auto max-w-7xl space-y-6 px-3 py-5 sm:px-4">
 
         {/* Error message */}
         {error && (
+<<<<<<< HEAD
           <div className="card" style={{
             borderColor: 'var(--error)', background: 'var(--error-bg)',
             padding: 14, display: 'flex', justifyContent: 'space-between', gap: 12,
           }}>
             <span style={{ color: 'var(--error)' }}>{error}</span>
+=======
+          <div className="notice notice-error">
+            <span>{error}</span>
+>>>>>>> 563c935 (make respansive ui)
             <button onClick={() => window.location.reload()} className="btn-subtle">
               <FiRefreshCw /> Retry
             </button>
@@ -214,6 +294,7 @@ const HomePage = () => {
             New: textShadow: '0 1px 6px rgba(0,0,0,0.4)' on all text        */}
 
         {loading ? (
+<<<<<<< HEAD
           <div className="skeleton" style={{ height: 320, borderRadius: 'var(--r-xl)' }} />
         ) : banners.length > 0 ? (
           <section
@@ -354,11 +435,40 @@ const HomePage = () => {
                         }}
                       />
                     )}
+=======
+          <div className="skeleton hero-skeleton" />
+        ) : banners.length > 0 ? (
+          <section
+            className="hero-banner slider-wrap"
+            onMouseEnter={heroSlider.pause}
+            onMouseLeave={heroSlider.resume}
+          >
+            <div className="slider-track" style={{ transform: `translateX(-${heroSlider.current * 100}%)` }}>
+              {banners.map(banner => (
+                <article key={banner.id} className="hero-slide">
+                  <div className="hero-copy">
+                    <p className="hero-eyebrow">{banner.brand || banner.label}</p>
+                    <h1>{banner.heading}</h1>
+                    <p className="hero-text">{banner.subtext}</p>
+                    <div className="hero-actions">
+                      <Link to={banner.ctaUrl} className="btn-primary">{banner.ctaText}</Link>
+                      {banner.price && (
+                        <span className="hero-price">
+                          Rs {Number(banner.price).toLocaleString('en-IN')}
+                          {banner.mrp > banner.price && <small> Rs {Number(banner.mrp).toLocaleString('en-IN')}</small>}
+                        </span>
+                      )}
+                    </div>
+>>>>>>> 563c935 (make respansive ui)
                   </div>
-                );
-              })}
+                  <Link to={banner.ctaUrl} className="hero-media" aria-label={`View ${banner.heading}`}>
+                    {banner.image ? <img src={banner.image} alt={banner.heading} /> : <span>{banner.heading[0]}</span>}
+                  </Link>
+                </article>
+              ))}
             </div>
 
+<<<<<<< HEAD
             {/* Prev / Next arrows */}
             <button className="slider-arrow prev" onClick={heroSlider.prev}>
               <FiChevronLeft />
@@ -380,11 +490,29 @@ const HomePage = () => {
 
             {/* Dot indicators bottom-center */}
             <div className="slider-dots" style={{ position: 'absolute', bottom: 14, left: 0, right: 0 }}>
+=======
+            <button className="slider-arrow prev" onClick={heroSlider.prev} aria-label="Previous banner">
+              <FiChevronLeft />
+            </button>
+            <button className="slider-arrow next" onClick={heroSlider.next} aria-label="Next banner">
+              <FiChevronRight />
+            </button>
+
+            <div className="slider-counter">
+              {String(heroSlider.current + 1).padStart(2, '0')} / {String(banners.length).padStart(2, '0')}
+            </div>
+
+            <div className="slider-dots">
+>>>>>>> 563c935 (make respansive ui)
               {banners.map((_, index) => (
                 <button
                   key={index}
                   className={`slider-dot ${index === heroSlider.current ? 'active' : ''}`}
                   onClick={() => heroSlider.goTo(index)}
+<<<<<<< HEAD
+=======
+                  aria-label={`Go to banner ${index + 1}`}
+>>>>>>> 563c935 (make respansive ui)
                 />
               ))}
             </div>
@@ -397,8 +525,12 @@ const HomePage = () => {
           </div>
         )}
 
+<<<<<<< HEAD
         {/* Category pills */}
         <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
+=======
+        <div className="category-row">
+>>>>>>> 563c935 (make respansive ui)
           {categories.map(category => (
             <button
               key={category.name}
@@ -410,6 +542,7 @@ const HomePage = () => {
           ))}
         </div>
 
+<<<<<<< HEAD
         {/* Delivery location card */}
         <div className="card" style={{
           padding: 16,
@@ -417,11 +550,15 @@ const HomePage = () => {
           alignItems: 'center', justifyContent: 'space-between',
           gap: 14,
         }}>
+=======
+        <section className="location-strip">
+>>>>>>> 563c935 (make respansive ui)
           <div>
             <h2 className="section-heading-left">{sectionCopy.locationTitle}</h2>
-            <p style={{ marginTop: 4 }}>{locationLabel || sectionCopy.locationFallback}</p>
+            <p><FiMapPin /> {locationLabel || sectionCopy.locationFallback}</p>
           </div>
           <button onClick={detectLocation} className="btn-ghost">
+<<<<<<< HEAD
             {detectingLocation
               ? <FiRefreshCw className="animate-spin" />
               : <FiNavigation />
@@ -452,6 +589,12 @@ const HomePage = () => {
             <p style={{ fontWeight: 700 }}>Fast delivery on available items</p>
           </div>
         </div>
+=======
+            {detectingLocation ? <FiRefreshCw className="animate-spin" /> : <FiNavigation />}
+            {sectionCopy.detectLocation}
+          </button>
+        </section>
+>>>>>>> 563c935 (make respansive ui)
 
         {/* Trending products */}
         <HomeSection title={sectionCopy.trending} products={filteredProducts} loading={loading} />
@@ -459,6 +602,7 @@ const HomePage = () => {
         {/* Top deals slider */}
         {!loading && topDeals.length > 0 && (
           <section
+<<<<<<< HEAD
             className="card slider-wrap"
             onMouseEnter={dealSlider.pause}
             onMouseLeave={dealSlider.resume}
@@ -470,16 +614,70 @@ const HomePage = () => {
             }}>
               <h2 className="section-heading-left">{sectionCopy.deals}</h2>
               <div style={{ display: 'flex', gap: 8 }}>
+=======
+            className="site-section slider-wrap"
+            onMouseEnter={dealSlider.pause}
+            onMouseLeave={dealSlider.resume}
+          >
+            <div className="section-row">
+              <h2 className="section-heading-left">{sectionCopy.deals}</h2>
+              <div className="inline-dots">
+>>>>>>> 563c935 (make respansive ui)
                 {Array.from({ length: dealPages }).map((_, index) => (
                   <button
                     key={index}
                     className={`slider-dot ${index === dealSlider.current ? 'active' : ''}`}
                     onClick={() => dealSlider.goTo(index)}
+<<<<<<< HEAD
+=======
+                    aria-label={`Go to deals page ${index + 1}`}
+>>>>>>> 563c935 (make respansive ui)
                   />
                 ))}
               </div>
             </div>
             <div className="slider-track" style={{ transform: `translateX(-${dealSlider.current * 100}%)` }}>
               {Array.from({ length: dealPages }).map((_, page) => (
+<<<<<<< HEAD
                 <div key={page} className="product-grid" style={{ width: '100%', flexShrink: 0 }}>
                   
+=======
+                <div key={page} className="product-grid slider-page">
+                  {topDeals.slice(page * 4, page * 4 + 4).map(product => (
+                    <ProductCard key={getProductId(product)} product={product} />
+                  ))}
+                </div>
+              ))}
+            </div>
+            <button className="slider-arrow prev" onClick={dealSlider.prev} aria-label="Previous deals">
+              <FiChevronLeft />
+            </button>
+            <button className="slider-arrow next" onClick={dealSlider.next} aria-label="Next deals">
+              <FiChevronRight />
+            </button>
+          </section>
+        )}
+
+        <HomeSection title={sectionCopy.recent} products={recentProducts} loading={false} />
+
+        <section className="newsletter-strip">
+          <h2>{sectionCopy.newsletterTitle}</h2>
+          <p>{sectionCopy.newsletterText}</p>
+          <form className="newsletter-input-wrap" onSubmit={subscribe}>
+            <input
+              type="email"
+              value={email}
+              onChange={event => setEmail(event.target.value)}
+              placeholder="Email address"
+              required
+            />
+            <button className="btn-primary" type="submit">{sectionCopy.subscribe}</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;
+>>>>>>> 563c935 (make respansive ui)

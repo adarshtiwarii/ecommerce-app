@@ -81,56 +81,49 @@ export const USER_NAV = [
 ];
 
 export const EMPTY_STATES = {
-  cart: { icon: 'cart', title: 'Your cart is empty', sub: 'Add products to get started' },
-  orders: { icon: 'box', title: 'No orders yet', sub: 'Your order history will appear here' },
-  wishlist: { icon: 'heart', title: 'Nothing saved yet', sub: 'Tap the heart on products you love' },
-  products: { icon: 'search', title: 'No products found', sub: 'Try a different search or filter' },
-  adminOrders: { icon: 'list', title: 'No orders found', sub: 'Orders appear here once placed' },
-  adminUsers: { icon: 'users', title: 'No users found', sub: 'Registered users appear here' },
-  search: { icon: 'search', title: 'No results for this search', sub: 'Try different keywords' },
+  cart:        { icon: 'cart',   title: 'Your cart is empty',        sub: 'Add products to get started' },
+  orders:      { icon: 'box',    title: 'No orders yet',             sub: 'Your order history will appear here' },
+  wishlist:    { icon: 'heart',  title: 'Nothing saved yet',         sub: 'Tap the heart on products you love' },
+  products:    { icon: 'search', title: 'No products found',         sub: 'Try a different search or filter' },
+  adminOrders: { icon: 'list',   title: 'No orders found',           sub: 'Orders appear here once placed' },
+  adminUsers:  { icon: 'users',  title: 'No users found',            sub: 'Registered users appear here' },
+  search:      { icon: 'search', title: 'No results for this search', sub: 'Try different keywords' },
 };
 
 export const STATUS_CONFIG = {
-  PENDING: { label: 'Pending', color: 'var(--warning-bright)', bg: 'var(--warning-bg)', dot: true },
-  CONFIRMED: { label: 'Confirmed', color: 'var(--info-bright)', bg: 'var(--info-bg)', dot: true },
-  PROCESSING: { label: 'Processing', color: 'var(--primary)', bg: 'var(--primary-subtle)', dot: true },
-  SHIPPED: { label: 'Shipped', color: 'var(--info-bright)', bg: 'var(--info-bg)', dot: true },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'var(--info-bright)', bg: 'var(--info-bg)', dot: true },
-  DELIVERED: { label: 'Delivered', color: 'var(--success-bright)', bg: 'var(--success-bg)', dot: true },
-  CANCELLED: { label: 'Cancelled', color: 'var(--error-bright)', bg: 'var(--error-bg)', dot: true },
-  RETURN_REQUESTED: { label: 'Return Requested', color: 'var(--warning-bright)', bg: 'var(--warning-bg)', dot: true },
-  RETURNED: { label: 'Returned', color: 'var(--text-secondary)', bg: 'var(--bg-overlay)', dot: true },
+  PENDING:          { label: 'Pending',          color: 'var(--warning-bright)', bg: 'var(--warning-bg)', dot: true },
+  CONFIRMED:        { label: 'Confirmed',         color: 'var(--info-bright)',    bg: 'var(--info-bg)',    dot: true },
+  PROCESSING:       { label: 'Processing',        color: 'var(--primary)',        bg: 'var(--primary-subtle)', dot: true },
+  SHIPPED:          { label: 'Shipped',           color: 'var(--info-bright)',    bg: 'var(--info-bg)',    dot: true },
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery',  color: 'var(--info-bright)',    bg: 'var(--info-bg)',    dot: true },
+  DELIVERED:        { label: 'Delivered',         color: 'var(--success-bright)', bg: 'var(--success-bg)', dot: true },
+  CANCELLED:        { label: 'Cancelled',         color: 'var(--error-bright)',   bg: 'var(--error-bg)',   dot: true },
+  RETURN_REQUESTED: { label: 'Return Requested',  color: 'var(--warning-bright)', bg: 'var(--warning-bg)', dot: true },
+  RETURNED:         { label: 'Returned',          color: 'var(--text-secondary)', bg: 'var(--bg-overlay)', dot: true },
 };
 
 export const PAYMENT_METHODS = [
   { id: 'razorpay', label: 'Razorpay', desc: 'UPI, cards, EMI, net banking and QR', icon: 'bolt', badge: 'Recommended' },
-  { id: 'cod', label: 'Cash on Delivery', desc: 'Pay when your order arrives', icon: 'cash', badge: '' },
+  { id: 'cod',      label: 'Cash on Delivery', desc: 'Pay when your order arrives', icon: 'cash', badge: '' },
 ];
 
 export const ADMIN_STAT_CONFIG = {
-  orders: { icon: 'box', color: 'var(--primary)', bg: 'var(--primary-subtle)', label: 'Total Orders' },
-  revenue: { icon: 'rupee', color: 'var(--success-bright)', bg: 'var(--success-bg)', label: 'Total Revenue' },
-  users: { icon: 'user', color: 'var(--info-bright)', bg: 'var(--info-bg)', label: 'Registered Users' },
-  products: { icon: 'bag', color: 'var(--warning-bright)', bg: 'var(--warning-bg)', label: 'Active Products' },
+  orders:   { icon: 'box',    color: 'var(--primary)',        bg: 'var(--primary-subtle)', label: 'Total Orders' },
+  revenue:  { icon: 'rupee',  color: 'var(--success-bright)', bg: 'var(--success-bg)',     label: 'Total Revenue' },
+  users:    { icon: 'user',   color: 'var(--info-bright)',    bg: 'var(--info-bg)',         label: 'Registered Users' },
+  products: { icon: 'bag',    color: 'var(--warning-bright)', bg: 'var(--warning-bg)',      label: 'Active Products' },
 };
 
 export const ADMIN_NAV = [
-  { key: 'dashboard', label: 'Dashboard', icon: 'grid', route: ROUTES.ADMIN_DASHBOARD },
-  { key: 'orders', label: 'Orders', icon: 'box', route: ROUTES.ADMIN_ORDERS },
-  { key: 'products', label: 'Products', icon: 'bag', route: ROUTES.ADMIN_PRODUCTS },
-  { key: 'users', label: 'Users', icon: 'users', route: ROUTES.ADMIN_USERS },
-  { key: 'analytics', label: 'Analytics', icon: 'chart', route: ROUTES.ADMIN_ANALYTICS },
-  { key: 'settings', label: 'Settings', icon: 'settings', route: ROUTES.ADMIN_SETTINGS },
+  { key: 'dashboard', label: 'Dashboard', icon: 'grid',     route: ROUTES.ADMIN_DASHBOARD },
+  { key: 'orders',    label: 'Orders',    icon: 'box',      route: ROUTES.ADMIN_ORDERS },
+  { key: 'products',  label: 'Products',  icon: 'bag',      route: ROUTES.ADMIN_PRODUCTS },
+  { key: 'users',     label: 'Users',     icon: 'users',    route: ROUTES.ADMIN_USERS },
+  { key: 'analytics', label: 'Analytics', icon: 'chart',    route: ROUTES.ADMIN_ANALYTICS },
+  { key: 'settings',  label: 'Settings',  icon: 'settings', route: ROUTES.ADMIN_SETTINGS },
 ];
 
 export const ORDER_STATUS_OPTIONS = Object.keys(STATUS_CONFIG);
-
-export const TRUST_BADGES = [
-  { icon: 'lock', text: '256-bit SSL encryption' },
-  { icon: 'return', text: '7-day easy returns' },
-  { icon: 'verified', text: 'Verified seller products' },
-  { icon: 'support', text: 'Priority checkout support' },
-];
 
 export const CHECKOUT_STEPS = [
   { n: 1, label: 'Delivery' },
@@ -138,20 +131,20 @@ export const CHECKOUT_STEPS = [
 ];
 
 export const CHECKOUT_LABELS = {
-  step1Title: 'Delivery Address',
-  step1Sub: 'Where should we deliver?',
-  step2Title: 'Payment Method',
-  step2Sub: 'Safe and encrypted checkout',
-  detectBtn: 'Use My Current Location',
-  detectLoading: 'Detecting location...',
-  detectSuccess: 'Location detected - edit if needed',
-  detectPrivacy: 'Only used to fill your address - never stored or tracked.',
-  deliverBtn: 'Deliver Here',
-  sslNote: '256-bit SSL. Your data is safe.',
-  successTitle: 'Order Placed!',
-  successSub: 'Estimated delivery in 2-5 business days.',
-  viewOrders: 'View Orders',
-  continueShopping: 'Continue Shopping',
+  step1Title:      'Delivery Address',
+  step1Sub:        'Where should we deliver?',
+  step2Title:      'Payment Method',
+  step2Sub:        'Safe and encrypted checkout',
+  detectBtn:       'Use My Current Location',
+  detectLoading:   'Detecting location...',
+  detectSuccess:   'Location detected - edit if needed',
+  detectPrivacy:   'Only used to fill your address - never stored or tracked.',
+  deliverBtn:      'Deliver Here',
+  sslNote:         '256-bit SSL. Your data is safe.',
+  successTitle:    'Order Placed!',
+  successSub:      'Estimated delivery in 2-5 business days.',
+  viewOrders:      'View Orders',
+  continueShopping:'Continue Shopping',
 };
 
 export const HERO = {
@@ -159,66 +152,66 @@ export const HERO = {
   headline_line1: 'Shop smarter',
   headline_line2: 'Live better',
   sub: 'Premium essentials, verified sellers, fast delivery, and secure checkout in one place.',
-  cta_primary: { label: 'Shop Products', path: ROUTES.PRODUCTS },
-  cta_secondary: { label: 'View Orders', path: ROUTES.ORDERS },
+  cta_primary:   { label: 'Shop Products', path: ROUTES.PRODUCTS },
+  cta_secondary: { label: 'View Orders',   path: ROUTES.ORDERS },
   stats: [
     { value: '12K+', label: 'Products' },
-    { value: '4.8', label: 'Avg Rating' },
-    { value: '24h', label: 'Dispatch' },
+    { value: '4.8',  label: 'Avg Rating' },
+    { value: '24h',  label: 'Dispatch' },
   ],
 };
 
 export const HOME_CATEGORIES = [
   { id: 'Electronics', label: 'Electronics', icon: 'monitor', accent: 'var(--info-bright)' },
-  { id: 'Fashion', label: 'Fashion', icon: 'shirt', accent: 'var(--primary)' },
-  { id: 'Home', label: 'Home', icon: 'home', accent: 'var(--success-bright)' },
-  { id: 'Appliances', label: 'Appliances', icon: 'tool', accent: 'var(--warning-bright)' },
-  { id: 'Beauty', label: 'Beauty', icon: 'spark', accent: 'var(--error-bright)' },
-  { id: 'All', label: 'All', icon: 'grid', accent: 'var(--text-secondary)' },
+  { id: 'Fashion',     label: 'Fashion',     icon: 'shirt',   accent: 'var(--primary)' },
+  { id: 'Home',        label: 'Home',        icon: 'home',    accent: 'var(--success-bright)' },
+  { id: 'Appliances',  label: 'Appliances',  icon: 'tool',    accent: 'var(--warning-bright)' },
+  { id: 'Beauty',      label: 'Beauty',      icon: 'spark',   accent: 'var(--error-bright)' },
+  { id: 'All',         label: 'All',         icon: 'grid',    accent: 'var(--text-secondary)' },
 ];
 
 export const HOME_FEATURES = [
-  { icon: 'truck', title: 'Fast Delivery', desc: 'Nearest warehouse ETA' },
-  { icon: 'return', title: 'Easy Returns', desc: 'Refund-aware order flow' },
-  { icon: 'shield', title: 'Secure Checkout', desc: 'JWT and verified payments' },
-  { icon: 'support', title: 'Live Support', desc: 'Help across the order journey' },
+  { icon: 'truck',    title: 'Fast Delivery' },
+  { icon: 'return',   title: 'Easy Returns' },
+  { icon: 'shield',   title: 'Secure Checkout' },
+  { icon: 'support',  title: 'Live Support' },
 ];
 
 export const HOME_SECTIONS = {
-  trending: { eyebrow: 'Trending now', heading: 'Trending Products', sub: 'Popular products customers are checking now' },
-  new: { eyebrow: 'Fresh arrivals', heading: 'New Arrivals', sub: 'Recently added picks across categories' },
-  featured: { eyebrow: 'Top value', heading: 'Top Deals', sub: 'Highest discounts across all categories' },
+  trending: { eyebrow: 'Trending now',   heading: 'Trending Products', sub: 'Popular products customers are checking now' },
+  new:      { eyebrow: 'Fresh arrivals', heading: 'New Arrivals',      sub: 'Recently added picks across categories' },
+  featured: { eyebrow: 'Top value',      heading: 'Top Deals',         sub: 'Highest discounts across all categories' },
 };
 
 export const TOAST_CONFIG = {
   success: { icon: 'check', color: 'var(--success-bright)', bg: 'var(--success-bg)', border: 'var(--success-bg)' },
-  error: { icon: 'x', color: 'var(--error-bright)', bg: 'var(--error-bg)', border: 'var(--error-bg)' },
+  error:   { icon: 'x',     color: 'var(--error-bright)',   bg: 'var(--error-bg)',   border: 'var(--error-bg)' },
   warning: { icon: 'alert', color: 'var(--warning-bright)', bg: 'var(--warning-bg)', border: 'var(--warning-bg)' },
-  info: { icon: 'info', color: 'var(--info-bright)', bg: 'var(--info-bg)', border: 'var(--info-bg)' },
+  info:    { icon: 'info',  color: 'var(--info-bright)',    bg: 'var(--info-bg)',    border: 'var(--info-bg)' },
 };
 
 export const CHART_COLORS = {
-  primary: 'var(--primary)',
+  primary:   'var(--primary)',
   secondary: 'var(--primary-subtle)',
-  success: 'var(--success-bright)',
-  info: 'var(--info-bright)',
-  warning: 'var(--warning-bright)',
+  success:   'var(--success-bright)',
+  info:      'var(--info-bright)',
+  warning:   'var(--warning-bright)',
 };
 
 export const PRODUCT_LABELS = {
-  quickView: 'Quick View',
-  outOfStock: 'Out of Stock',
-  addToCart: '+ Add to Cart',
-  addedToCart: 'Added to Cart',
-  adding: 'Adding...',
-  freeDelivery: 'Free Delivery',
+  quickView:      'Quick View',
+  outOfStock:     'Out of Stock',
+  addToCart:      '+ Add to Cart',
+  addedToCart:    'Added to Cart',
+  adding:         'Adding...',
+  freeDelivery:   'Free Delivery',
   inclusiveTaxes: 'Inclusive of all taxes',
-  buyNow: 'Buy Now',
-  inStock: 'In Stock',
-  noDescription: 'No description available.',
-  noSpecs: 'No specifications available.',
-  noReviews: 'No reviews yet.',
-  related: 'Related Products',
+  buyNow:         'Buy Now',
+  inStock:        'In Stock',
+  noDescription:  'No description available.',
+  noSpecs:        'No specifications available.',
+  noReviews:      'No reviews yet.',
+  related:        'Related Products',
 };
 
 export const ADDRESS_TYPES = ['HOME', 'WORK', 'OTHER'];
