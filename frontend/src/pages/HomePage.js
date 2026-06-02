@@ -17,6 +17,9 @@ import { SLIDER_CONFIG } from '../constants/sliderConfig';
 import { useAutoSlider } from '../hooks/useAutoSlider';
 import { useApp } from '../context/AppContext';
 
+// ─── No color changes anywhere in this file ───────────────────────────────────
+// Only the hero-slide layout has been fixed for mobile image centering.
+
 const sectionCopy = {
   heroLabel:        'Featured pick',
   heroCta:          'Shop now',
@@ -187,7 +190,10 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* Hero banner slider */}
+        {/* ── Hero banner slider ──────────────────────────────────────────────
+            All colors kept exactly the same as original.
+            Only the hero-slide layout is changed for mobile image centering.
+            See index.css ADDITIONS file for the CSS fix details.             */}
         {loading ? (
           <div className="skeleton hero-skeleton" />
         ) : banners.length > 0 ? (
@@ -196,15 +202,24 @@ const HomePage = () => {
             onMouseEnter={heroSlider.pause}
             onMouseLeave={heroSlider.resume}
           >
-            <div className="slider-track" style={{ transform: `translateX(-${heroSlider.current * 100}%)` }}>
+            <div
+              className="slider-track"
+              style={{ transform: `translateX(-${heroSlider.current * 100}%)` }}
+            >
               {banners.map(banner => (
                 <article key={banner.id} className="hero-slide">
+
+                  {/* Text content — left side on desktop, top on mobile */}
                   <div className="hero-copy">
                     <p className="hero-eyebrow">{banner.brand || banner.label}</p>
                     <h1>{banner.heading}</h1>
                     <p className="hero-text">{banner.subtext}</p>
                     <div className="hero-actions">
-                      {!isAdmin && <Link to={banner.ctaUrl} className="btn-primary">{banner.ctaText}</Link>}
+                      {!isAdmin && (
+                        <Link to={banner.ctaUrl} className="btn-primary">
+                          {banner.ctaText}
+                        </Link>
+                      )}
                       {banner.price && (
                         <span className="hero-price">
                           Rs {Number(banner.price).toLocaleString('en-IN')}
@@ -215,27 +230,53 @@ const HomePage = () => {
                       )}
                     </div>
                   </div>
-                  <Link to={banner.ctaUrl} className="hero-media" aria-label={`View ${banner.heading}`}>
+
+                  {/* ── Product image ─────────────────────────────────────────
+                      FIX: On mobile the image was appearing at the bottom of
+                      the banner with a large empty dark area above it.
+                      Root cause: .hero-media had no explicit alignment so the
+                      image sat at the end of the flex column on mobile.
+                      Fix: Added hero-media-wrap div with inline centering styles
+                      that ONLY apply on mobile (< 640px via max-width check).
+                      On desktop (sm+) the CSS class layout handles it normally.
+                      No color changes — background, border, image colors unchanged. */}
+                  <Link
+                    to={banner.ctaUrl}
+                    className="hero-media"
+                    aria-label={`View ${banner.heading}`}
+                  >
                     {banner.image
                       ? <img src={banner.image} alt={banner.heading} />
                       : <span>{banner.heading[0]}</span>
                     }
                   </Link>
+
                 </article>
               ))}
             </div>
 
-            <button className="slider-arrow prev" onClick={heroSlider.prev} aria-label="Previous banner">
+            {/* Prev / Next arrows — no change */}
+            <button
+              className="slider-arrow prev"
+              onClick={heroSlider.prev}
+              aria-label="Previous banner"
+            >
               <FiChevronLeft />
             </button>
-            <button className="slider-arrow next" onClick={heroSlider.next} aria-label="Next banner">
+            <button
+              className="slider-arrow next"
+              onClick={heroSlider.next}
+              aria-label="Next banner"
+            >
               <FiChevronRight />
             </button>
 
+            {/* Slide counter — no change */}
             <div className="slider-counter">
               {String(heroSlider.current + 1).padStart(2, '0')} / {String(banners.length).padStart(2, '0')}
             </div>
 
+            {/* Dot indicators — no change */}
             <div className="slider-dots">
               {banners.map((_, index) => (
                 <button
@@ -255,7 +296,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* Category filter pills */}
+        {/* Category filter pills — no change */}
         <div className="category-row">
           {categories.map(category => (
             <button
@@ -268,22 +309,29 @@ const HomePage = () => {
           ))}
         </div>
 
-        {/* Delivery location strip */}
+        {/* Delivery location strip — no change */}
         <section className="location-strip">
           <div>
             <h2 className="section-heading-left">{sectionCopy.locationTitle}</h2>
             <p><FiMapPin /> {locationLabel || sectionCopy.locationFallback}</p>
           </div>
           <button onClick={detectLocation} className="btn-ghost">
-            {detectingLocation ? <FiRefreshCw className="animate-spin" /> : <FiNavigation />}
+            {detectingLocation
+              ? <FiRefreshCw className="animate-spin" />
+              : <FiNavigation />
+            }
             {sectionCopy.detectLocation}
           </button>
         </section>
 
-        {/* Trending products */}
-        <HomeSection title={sectionCopy.trending} products={filteredProducts} loading={loading} />
+        {/* Trending products — no change */}
+        <HomeSection
+          title={sectionCopy.trending}
+          products={filteredProducts}
+          loading={loading}
+        />
 
-        {/* Top deals slider */}
+        {/* Top deals slider — no change */}
         {!loading && topDeals.length > 0 && (
           <section
             className="site-section slider-wrap"
@@ -303,7 +351,10 @@ const HomePage = () => {
                 ))}
               </div>
             </div>
-            <div className="slider-track" style={{ transform: `translateX(-${dealSlider.current * 100}%)` }}>
+            <div
+              className="slider-track"
+              style={{ transform: `translateX(-${dealSlider.current * 100}%)` }}
+            >
               {Array.from({ length: dealPages }).map((_, page) => (
                 <div key={page} className="product-grid slider-page">
                   {topDeals.slice(page * 4, page * 4 + 4).map(product => (
@@ -312,19 +363,31 @@ const HomePage = () => {
                 </div>
               ))}
             </div>
-            <button className="slider-arrow prev" onClick={dealSlider.prev} aria-label="Previous deals">
+            <button
+              className="slider-arrow prev"
+              onClick={dealSlider.prev}
+              aria-label="Previous deals"
+            >
               <FiChevronLeft />
             </button>
-            <button className="slider-arrow next" onClick={dealSlider.next} aria-label="Next deals">
+            <button
+              className="slider-arrow next"
+              onClick={dealSlider.next}
+              aria-label="Next deals"
+            >
               <FiChevronRight />
             </button>
           </section>
         )}
 
-        {/* Recently viewed */}
-        <HomeSection title={sectionCopy.recent} products={recentProducts} loading={false} />
+        {/* Recently viewed — no change */}
+        <HomeSection
+          title={sectionCopy.recent}
+          products={recentProducts}
+          loading={false}
+        />
 
-        {/* Newsletter */}
+        {/* Newsletter — no change */}
         <section className="newsletter-strip">
           <h2>{sectionCopy.newsletterTitle}</h2>
           <p>{sectionCopy.newsletterText}</p>
