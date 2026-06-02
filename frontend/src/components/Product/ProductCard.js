@@ -33,7 +33,7 @@ const ProductCard = ({ product }) => {
   const discountPct = product.mrp && product.price ? Math.max(0, Math.round((1 - product.price / product.mrp) * 100)) : 0;
   const rating = product.avgRating ?? product.rating;
   const reviews = product.reviewCount ?? product.reviewsCount ?? product.reviews;
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
   const isOutOfStock = product.stockQuantity === 0;
 
   const handleAdd = async (event) => {

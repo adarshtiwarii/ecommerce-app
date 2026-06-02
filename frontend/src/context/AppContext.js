@@ -75,7 +75,7 @@ export const AppProvider = ({ children }) => {
       setUser({ email, role, name: fullName, id: numericUserId });
       const cartRes = await api.get(`/cart?userId=${numericUserId}`);
       dispatch({ type: 'SET_CART', payload: cartRes.data });
-      return { success: true };
+      return { success: true, role };
     } catch (err) {
       console.error('Login failed:', err.response?.data);
       return { success: false, message: getErrorMessage(err, 'Invalid email/phone or password') };

@@ -12,6 +12,19 @@ const FORM_MODES = {
   FORGOT: 'forgot',
 };
 
+const authInputStyle = {
+  width: '100%',
+  borderRadius: 'var(--radius-lg)',
+  border: '1px solid var(--border-default)',
+  background: 'var(--bg-elevated)',
+  color: 'var(--text-primary)',
+  outline: 'none',
+  padding: '12px 14px',
+  fontSize: 14,
+  lineHeight: 1.4,
+  caretColor: 'var(--primary)',
+};
+
 const LoginPage = ({ initialMode = FORM_MODES.LOGIN }) => {
   const [mode, setMode] = useState(initialMode);
   const [formData, setFormData] = useState({
@@ -99,7 +112,7 @@ const LoginPage = ({ initialMode = FORM_MODES.LOGIN }) => {
       }
       if (!isRegister) {
         const result = await login(formData.email, formData.password, formData.rememberMe);
-        if (result.success) navigate(ROUTES.HOME);
+        if (result.success) navigate(String(result.role || '').toUpperCase() === 'ADMIN' ? ROUTES.ADMIN_DASHBOARD : ROUTES.HOME);
         else setError(result.message);
         return;
       }
@@ -157,7 +170,7 @@ const LoginPage = ({ initialMode = FORM_MODES.LOGIN }) => {
             <>
               <Field icon={<FiUser />} placeholder={AUTH_TEXT.fullName} value={formData.name} onChange={value => update('name', value)} />
               <Field icon={<FiPhone />} placeholder={AUTH_TEXT.phone} value={formData.phoneNumber} onChange={value => update('phoneNumber', value.replace(/\D/g, '').slice(0, 10))} />
-              <select value={formData.gender} onChange={event => update('gender', event.target.value)} required>
+              <select value={formData.gender} onChange={event => update('gender', event.target.value)} required style={authInputStyle}>
                 {AUTH_GENDER_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
               </select>
             </>
@@ -193,14 +206,14 @@ const LoginPage = ({ initialMode = FORM_MODES.LOGIN }) => {
 const Field = ({ icon, value, onChange, placeholder, type = 'text', required = true }) => (
   <div style={{ position: 'relative' }}>
     <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', display: 'flex' }}>{icon}</span>
-    <input type={type} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} required={required} style={{ paddingLeft: 42 }} />
+    <input type={type} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} required={required} style={{ ...authInputStyle, paddingLeft: 42 }} />
   </div>
 );
 
 const PasswordField = ({ icon, value, onChange, placeholder, visible, onToggle }) => (
   <div style={{ position: 'relative' }}>
     <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)', display: 'flex' }}>{icon}</span>
-    <input type={visible ? 'text' : 'password'} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} required style={{ paddingLeft: 42, paddingRight: 42 }} />
+    <input type={visible ? 'text' : 'password'} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} required style={{ ...authInputStyle, paddingLeft: 42, paddingRight: 42 }} />
     <button type="button" onClick={onToggle} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', background: 'transparent', display: 'flex' }}>
       {visible ? <FiEyeOff /> : <FiEye />}
     </button>

@@ -21,6 +21,8 @@ const NAV_CATS = [
   { label: 'Grocery',        path: '/category/Grocery' },
 ];
 
+const isCustomerRole = (role) => ['CUSTOMER', 'USER'].includes(String(role || '').toUpperCase());
+
 const Navbar = () => {
   const [q, setQ]                     = useState('');
   const [userMenu, setUserMenu]       = useState(false);
@@ -42,6 +44,8 @@ const Navbar = () => {
 
   const wishCount = wishlist?.length || 0;
   const cartCount = totalItems || cart?.length || 0;
+  const isCustomer = isCustomerRole(user?.role);
+  const showCustomerLinks = !user || isCustomer;
 
   return (
     <nav className={`sticky top-0 z-50 transition-shadow duration-300 ${scrolled ? 'shadow-card' : ''}`}
@@ -136,9 +140,11 @@ const Navbar = () => {
                         </span>
                       </div>
                       {[
-                        { to: '/profile', icon: FiUser,    label: 'My Profile' },
-                        { to: '/orders',  icon: FiPackage, label: 'My Orders'  },
-                        { to: '/wishlist',icon: FiHeart,   label: 'Wishlist'   },
+                        { to: '/profile', icon: FiUser, label: 'My Profile' },
+                        ...(isCustomer ? [
+                          { to: '/orders', icon: FiPackage, label: 'My Orders' },
+                          { to: '/wishlist', icon: FiHeart, label: 'Wishlist' },
+                        ] : []),
                         ...(user.role === 'ADMIN'  ? [{ to:'/admin',  icon:FiSettings, label:'Admin Panel'      }] : []),
                         ...(user.role === 'SELLER' ? [{ to:'/seller', icon:FiSettings, label:'Seller Dashboard' }] : []),
                       ].map(item => {
@@ -163,7 +169,7 @@ const Navbar = () => {
             </div>
 
             {/* Wishlist */}
-            <Link to="/wishlist"
+            {showCustomerLinks && <Link to="/wishlist"
                   className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-eco-sub
                              hover:text-eco-text hover:bg-eco-elevated transition-all duration-200 text-sm font-medium">
               <FiHeart size={18} />
@@ -174,10 +180,10 @@ const Navbar = () => {
                   {wishCount > 9 ? '9+' : wishCount}
                 </span>
               )}
-            </Link>
+            </Link>}
 
             {/* Cart */}
-            <Link to="/cart"
+            {showCustomerLinks && <Link to="/cart"
                   className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium
                              transition-all duration-200 text-sm text-eco-text"
                   style={{ background: cartCount > 0 ? 'rgba(34,197,94,0.12)' : 'transparent',
@@ -192,7 +198,7 @@ const Navbar = () => {
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
-            </Link>
+            </Link>}
 
             {/* Mobile hamburger */}
             <button className="sm:hidden p-2 text-eco-sub hover:text-eco-text transition-colors ml-1"

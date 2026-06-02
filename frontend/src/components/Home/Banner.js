@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiArrowRight, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { IMG_FALLBACK } from '../../utils/imgFallback';
+import { useApp } from '../../context/AppContext';
 
 const SLIDES = [
   {
@@ -43,8 +44,10 @@ const SLIDES = [
 ];
 
 const Banner = ({ products = [] }) => {
+  const { user } = useApp();
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
 
   const featuredImages = useMemo(
     () => products.slice(0, 8).map(product => product.images?.[0] || product.imageUrl).filter(Boolean),
@@ -85,10 +88,10 @@ const Banner = ({ products = [] }) => {
             <span className="block" style={{ color: slide.accent }}>{slide.titleAccent}</span>
           </h1>
           <p className="mt-3 max-w-md text-sm leading-6 text-white/70">{slide.subtitle}</p>
-          <Link to={slide.link} className="mt-6 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black" style={{ background: slide.accent, color: '#000' }}>
+          {!isAdmin && <Link to={slide.link} className="mt-6 inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-black" style={{ background: slide.accent, color: '#000' }}>
             {slide.cta}
             <FiArrowRight />
-          </Link>
+          </Link>}
         </div>
 
         <div className="hidden grid-cols-3 gap-3 sm:grid">

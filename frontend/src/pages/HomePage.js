@@ -15,6 +15,7 @@ import { EMPTY_STATES } from '../constants/labels';
 import { ROUTE } from '../constants/routes';
 import { SLIDER_CONFIG } from '../constants/sliderConfig';
 import { useAutoSlider } from '../hooks/useAutoSlider';
+import { useApp } from '../context/AppContext';
 
 const sectionCopy = {
   heroLabel:        'Featured pick',
@@ -33,6 +34,7 @@ const sectionCopy = {
 const getProductId    = product => product.productId || product.id;
 const getProductName  = product => product.productName || product.name || 'Featured product';
 const getProductImage = product => product.images?.[0] || product.imageUrl || '';
+const isAdminRole     = role => String(role || '').toUpperCase() === 'ADMIN';
 
 const HomeSection = ({ title, products, loading }) => {
   if (loading) {
@@ -70,6 +72,7 @@ const HomeSection = ({ title, products, loading }) => {
 };
 
 const HomePage = () => {
+  const { user } = useApp();
   const [products,          setProducts]          = useState([]);
   const [loading,           setLoading]           = useState(true);
   const [error,             setError]             = useState('');
@@ -135,6 +138,7 @@ const HomePage = () => {
   const heroSlider = useAutoSlider({ total: banners.length, config: SLIDER_CONFIG.hero });
   const dealPages  = Math.max(1, Math.ceil(topDeals.length / 4));
   const dealSlider = useAutoSlider({ total: dealPages, config: SLIDER_CONFIG.productCarousel });
+  const isAdmin = isAdminRole(user?.role);
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
@@ -200,7 +204,7 @@ const HomePage = () => {
                     <h1>{banner.heading}</h1>
                     <p className="hero-text">{banner.subtext}</p>
                     <div className="hero-actions">
-                      <Link to={banner.ctaUrl} className="btn-primary">{banner.ctaText}</Link>
+                      {!isAdmin && <Link to={banner.ctaUrl} className="btn-primary">{banner.ctaText}</Link>}
                       {banner.price && (
                         <span className="hero-price">
                           Rs {Number(banner.price).toLocaleString('en-IN')}

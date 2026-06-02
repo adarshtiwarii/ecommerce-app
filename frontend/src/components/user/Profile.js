@@ -29,6 +29,8 @@ import { getErrorMessage } from '../../utils/errorMessage';
 import { INDIA_STATES_AND_UTS } from '../../utils/indiaStates';
 import { reverseGeocode } from '../../utils/location';
 
+const isAdminRole = (role) => String(role || '').toUpperCase() === 'ADMIN';
+
 const tabs = [
   { id: 'overview', label: 'Overview', icon: FiUser },
   { id: 'profile', label: 'Personal info', icon: FiShield },
@@ -98,6 +100,11 @@ const Profile = () => {
   const [locationError, setLocationError] = useState('');
 
   const userId = user?.id || Number(localStorage.getItem('userId'));
+  const isAdmin = isAdminRole(profile?.role || user?.role);
+  const visibleTabs = useMemo(
+    () => tabs.filter(tab => !isAdmin || !['orders', 'wishlist'].includes(tab.id)),
+    [isAdmin]
+  );
 
   const showToast = (message) => {
     setToast(typeof message === 'string' ? message : getErrorMessage(message));
@@ -107,10 +114,11 @@ const Profile = () => {
   const loadProfile = async () => {
     setLoading(true);
     try {
+      const shouldLoadOrders = !isAdminRole(user?.role);
       const [profileRes, addressRes, ordersRes] = await Promise.allSettled([
         api.get('/profile/me'),
         api.get('/profile/addresses'),
-        api.get(`/orders/my?userId=${userId}`),
+        shouldLoadOrders ? api.get(`/orders/my?userId=${userId}`) : Promise.resolve({ data: [] }),
       ]);
       if (profileRes.status === 'fulfilled') {
         setProfile(profileRes.value.data);
@@ -139,6 +147,10 @@ const Profile = () => {
 
   useEffect(() => {
     const loadWishlist = async () => {
+      if (isAdmin) {
+        setWishlistProducts([]);
+        return;
+      }
       if (!wishlist.length) {
         setWishlistProducts([]);
         return;
@@ -147,13 +159,22 @@ const Profile = () => {
       setWishlistProducts(results.filter(r => r.status === 'fulfilled').map(r => r.value.data));
     };
     loadWishlist();
-  }, [wishlist]);
+  }, [isAdmin, wishlist]);
 
-  const stats = useMemo(() => [
-    { label: 'Orders', value: orders.length, icon: FiShoppingBag },
-    { label: 'Addresses', value: addresses.length, icon: FiHome },
-    { label: 'Wishlist', value: wishlistProducts.length, icon: FiHeart },
-  ], [orders.length, addresses.length, wishlistProducts.length]);
+  useEffect(() => {
+    if (isAdmin && ['orders', 'wishlist'].includes(activeTab)) {
+      setActiveTab('overview');
+    }
+  }, [activeTab, isAdmin]);
+
+  const stats = useMemo(() => {
+    const profileStats = [{ label: 'Addresses', value: addresses.length, icon: FiHome }];
+    if (!isAdmin) {
+      profileStats.unshift({ label: 'Orders', value: orders.length, icon: FiShoppingBag });
+      profileStats.push({ label: 'Wishlist', value: wishlistProducts.length, icon: FiHeart });
+    }
+    return profileStats;
+  }, [addresses.length, isAdmin, orders.length, wishlistProducts.length]);
 
   const saveProfile = async () => {
     setSaving(true);
@@ -346,7 +367,7 @@ const Profile = () => {
         <div className="grid gap-5 lg:grid-cols-[270px_1fr]">
           <aside className="rounded-md border border-white/[0.08] bg-[#161616] p-2 shadow-sm lg:sticky lg:top-28 lg:self-start">
             <div className="grid grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-1">
-              {tabs.map(tab => {
+              {visibleTabs.map(tab => {
                 const Icon = tab.icon;
                 return (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 rounded-md px-3 py-3 text-left text-sm font-black transition ${activeTab === tab.id ? 'bg-orange-600 text-white' : 'text-white/70 hover:bg-[#2B1500] hover:text-orange-400'}`}>
@@ -363,7 +384,7 @@ const Profile = () => {
               <motion.div key={activeTab} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
                 {activeTab === 'overview' && (
                   <>
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className={`grid gap-4 ${isAdmin ? 'md:grid-cols-1' : 'md:grid-cols-3'}`}>
                       {stats.map(stat => {
                         const Icon = stat.icon;
                         return <div key={stat.label} className={panelClass}><Icon className="mb-3 text-orange-600" size={24} /><p className="text-3xl font-black">{stat.value}</p><p className="text-sm text-white/50">{stat.label}</p></div>;
@@ -383,8 +404,8 @@ const Profile = () => {
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <button onClick={() => setActiveTab('security')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Change password</button>
                         <button onClick={() => setActiveTab('addresses')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Add/edit address</button>
-                        <button onClick={() => setActiveTab('orders')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">View old orders</button>
-                        <button onClick={() => setActiveTab('wishlist')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Manage wishlist</button>
+                        {!isAdmin && <button onClick={() => setActiveTab('orders')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">View old orders</button>}
+                        {!isAdmin && <button onClick={() => setActiveTab('wishlist')} className="rounded-md border border-orange-500/20 bg-[#1E1E1E] p-4 text-left font-black text-orange-400 hover:bg-[#2B1500]">Manage wishlist</button>}
                       </div>
                     </div>
                   </>
@@ -484,7 +505,7 @@ const Profile = () => {
                   </div>
                 )}
 
-                {activeTab === 'orders' && (
+                {!isAdmin && activeTab === 'orders' && (
                   <div className={panelClass}>
                     <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-black">Order history and tracking</h2><Link to="/orders" className="text-sm font-black text-orange-600">Open orders page</Link></div>
                     <div className="space-y-3">
@@ -494,7 +515,7 @@ const Profile = () => {
                   </div>
                 )}
 
-                {activeTab === 'wishlist' && (
+                {!isAdmin && activeTab === 'wishlist' && (
                   <div className={panelClass}>
                     <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-black">Wishlist management</h2><Link to="/wishlist" className="text-sm font-black text-orange-600">View wishlist</Link></div>
                     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">{wishlistProducts.slice(0, 8).map(product => <ProductCard key={product.id || product.productId} product={product} />)}</div>
