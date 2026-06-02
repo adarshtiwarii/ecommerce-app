@@ -17,9 +17,6 @@ import { SLIDER_CONFIG } from '../constants/sliderConfig';
 import { useAutoSlider } from '../hooks/useAutoSlider';
 import { useApp } from '../context/AppContext';
 
-// ─── No color changes anywhere in this file ───────────────────────────────────
-// Only the hero-slide layout has been fixed for mobile image centering.
-
 const sectionCopy = {
   heroLabel:        'Featured pick',
   heroCta:          'Shop now',
@@ -190,10 +187,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* ── Hero banner slider ──────────────────────────────────────────────
-            All colors kept exactly the same as original.
-            Only the hero-slide layout is changed for mobile image centering.
-            See index.css ADDITIONS file for the CSS fix details.             */}
+        {/* ── Hero banner slider ─────────────────────────────────────────── */}
         {loading ? (
           <div className="skeleton hero-skeleton" />
         ) : banners.length > 0 ? (
@@ -207,9 +201,17 @@ const HomePage = () => {
               style={{ transform: `translateX(-${heroSlider.current * 100}%)` }}
             >
               {banners.map(banner => (
-                <article key={banner.id} className="hero-slide">
+                /*
+                 * FIX — only change in this file:
+                 * Added `!items-start` on the article so the two columns
+                 * don't stretch to fill the full banner height on mobile
+                 * (single-column layout). On desktop the CSS class
+                 * `hero-slide` still controls alignment normally.
+                 * Zero color / style changes elsewhere.
+                 */
+                <article key={banner.id} className="hero-slide !items-start">
 
-                  {/* Text content — left side on desktop, top on mobile */}
+                  {/* Text content */}
                   <div className="hero-copy">
                     <p className="hero-eyebrow">{banner.brand || banner.label}</p>
                     <h1>{banner.heading}</h1>
@@ -231,18 +233,16 @@ const HomePage = () => {
                     </div>
                   </div>
 
-                  {/* ── Product image ─────────────────────────────────────────
-                      FIX: On mobile the image was appearing at the bottom of
-                      the banner with a large empty dark area above it.
-                      Root cause: .hero-media had no explicit alignment so the
-                      image sat at the end of the flex column on mobile.
-                      Fix: Added hero-media-wrap div with inline centering styles
-                      that ONLY apply on mobile (< 640px via max-width check).
-                      On desktop (sm+) the CSS class layout handles it normally.
-                      No color changes — background, border, image colors unchanged. */}
+                  {/*
+                   * FIX — `self-center` added so the image container
+                   * centres itself in the column instead of stretching
+                   * to match the text column height on mobile.
+                   * On desktop this has no visible effect because both
+                   * columns are already the same height.
+                   */}
                   <Link
                     to={banner.ctaUrl}
-                    className="hero-media"
+                    className="hero-media self-center"
                     aria-label={`View ${banner.heading}`}
                   >
                     {banner.image
@@ -255,7 +255,6 @@ const HomePage = () => {
               ))}
             </div>
 
-            {/* Prev / Next arrows — no change */}
             <button
               className="slider-arrow prev"
               onClick={heroSlider.prev}
@@ -271,12 +270,10 @@ const HomePage = () => {
               <FiChevronRight />
             </button>
 
-            {/* Slide counter — no change */}
             <div className="slider-counter">
               {String(heroSlider.current + 1).padStart(2, '0')} / {String(banners.length).padStart(2, '0')}
             </div>
 
-            {/* Dot indicators — no change */}
             <div className="slider-dots">
               {banners.map((_, index) => (
                 <button
@@ -296,7 +293,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* Category filter pills — no change */}
+        {/* Category filter pills */}
         <div className="category-row">
           {categories.map(category => (
             <button
@@ -309,7 +306,7 @@ const HomePage = () => {
           ))}
         </div>
 
-        {/* Delivery location strip — no change */}
+        {/* Delivery location strip */}
         <section className="location-strip">
           <div>
             <h2 className="section-heading-left">{sectionCopy.locationTitle}</h2>
@@ -324,14 +321,14 @@ const HomePage = () => {
           </button>
         </section>
 
-        {/* Trending products — no change */}
+        {/* Trending products */}
         <HomeSection
           title={sectionCopy.trending}
           products={filteredProducts}
           loading={loading}
         />
 
-        {/* Top deals slider — no change */}
+        {/* Top deals slider */}
         {!loading && topDeals.length > 0 && (
           <section
             className="site-section slider-wrap"
@@ -380,14 +377,14 @@ const HomePage = () => {
           </section>
         )}
 
-        {/* Recently viewed — no change */}
+        {/* Recently viewed */}
         <HomeSection
           title={sectionCopy.recent}
           products={recentProducts}
           loading={false}
         />
 
-        {/* Newsletter — no change */}
+        {/* Newsletter */}
         <section className="newsletter-strip">
           <h2>{sectionCopy.newsletterTitle}</h2>
           <p>{sectionCopy.newsletterText}</p>
