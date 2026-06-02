@@ -745,6 +745,12 @@ img {
     max-width: none;
   }
 
+  /* FIX: media container ko center karo aur height cap karo */
+  .hero-media {
+    align-self: center;
+    max-height: 280px;
+  }
+
   .hero-media img {
     height: clamp(180px, 44vw, 290px);
   }
@@ -801,6 +807,17 @@ img {
 
   .hero-actions .btn-primary {
     width: 100%;
+  }
+
+  /* FIX: small screens pe media container aur tighten karo */
+  .hero-media {
+    align-self: center;
+    max-height: 220px;
+    padding: 12px;
+  }
+
+  .hero-media img {
+    height: clamp(140px, 38vw, 200px);
   }
 
   .slider-arrow,
