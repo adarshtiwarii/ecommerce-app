@@ -66,8 +66,8 @@ const Navbar = () => {
             </div>
             <div>
               <span className="font-bold text-xl" style={{ fontFamily: 'Syne,system-ui', letterSpacing:'-0.01em' }}>
-                <span className="text-eco-green">eco</span>
-                <span className="text-eco-text">mart</span>
+                <span className="text-eco-green">Eco</span>
+                <span className="text-eco-text">Mart</span>
               </span>
               <p className="text-xs text-eco-muted leading-none" style={{ marginTop: 1 }}>Shop Responsibly</p>
             </div>
