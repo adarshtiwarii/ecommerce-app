@@ -58,13 +58,9 @@
   --t-fast: 160ms ease;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html {
-  background: var(--bg-main);
-}
+html { background: var(--bg-main); }
 
 body {
   margin: 0;
@@ -75,24 +71,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
+button, input, select, textarea { font: inherit; }
 
-input,
-select,
-textarea {
+input, select, textarea {
   color: var(--text-primary);
   caret-color: var(--primary);
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted);
-}
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
@@ -103,19 +89,51 @@ input:-webkit-autofill:focus {
   transition: background-color 9999s ease-out;
 }
 
-button {
-  border: 0;
+button { border: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+/* ── Login / Register input text visibility fix ──────────────────────────────
+   Some browsers render inputs with white background — text becomes invisible.
+   Explicitly set dark background + white text on all form inputs.           */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+select,
+textarea {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+}
+
+select {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-img {
-  display: block;
-  max-width: 100%;
+select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .page-shell {
@@ -125,17 +143,14 @@ img {
     linear-gradient(180deg, #111 0%, var(--bg-main) 22rem);
 }
 
-.card,
-.site-section {
+.card, .site-section {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-sm);
 }
 
-.site-section {
-  padding: clamp(14px, 2vw, 20px);
-}
+.site-section { padding: clamp(14px, 2vw, 20px); }
 
 .section-row {
   display: flex;
@@ -160,15 +175,9 @@ img {
   gap: clamp(12px, 1.8vw, 18px);
 }
 
-.slider-page {
-  width: 100%;
-  flex-shrink: 0;
-}
+.slider-page { width: 100%; flex-shrink: 0; }
 
-.btn-primary,
-.btn-ghost,
-.btn-ghost-white,
-.btn-subtle {
+.btn-primary, .btn-ghost, .btn-ghost-white, .btn-subtle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -187,8 +196,7 @@ img {
   box-shadow: var(--shadow-orange);
 }
 
-.btn-ghost,
-.btn-subtle {
+.btn-ghost, .btn-subtle {
   background: var(--bg-elevated);
   color: var(--text-primary);
   border: 1px solid var(--border-default);
@@ -200,10 +208,8 @@ img {
   border: 1px solid rgba(255, 255, 255, 0.26);
 }
 
-.btn-primary:hover,
-.btn-ghost:hover,
-.btn-ghost-white:hover,
-.btn-subtle:hover {
+.btn-primary:hover, .btn-ghost:hover,
+.btn-ghost-white:hover, .btn-subtle:hover {
   transform: translateY(-1px);
 }
 
@@ -235,10 +241,7 @@ img {
   border-radius: var(--r-xl);
 }
 
-.slider-wrap {
-  position: relative;
-  overflow: hidden;
-}
+.slider-wrap { position: relative; overflow: hidden; }
 
 .slider-track {
   display: flex;
@@ -254,6 +257,10 @@ img {
   box-shadow: var(--shadow-lg);
 }
 
+/* ── hero-slide: DESKTOP layout — 2 column grid ──────────────────────────────
+   Left col (1.1fr): text content (hero-copy)
+   Right col (0.9fr min 280px): product image (hero-media)
+   Desktop looks perfect as-is — no changes here.                            */
 .hero-slide {
   position: relative;
   display: grid;
@@ -341,6 +348,9 @@ img {
   text-decoration: line-through;
 }
 
+/* ── hero-media: DESKTOP — right column image container ──────────────────────
+   Background gradient and border kept exactly as original.
+   No color changes.                                                          */
 .hero-media {
   position: relative;
   z-index: 1;
@@ -384,13 +394,8 @@ img {
   transform: translateY(-50%);
 }
 
-.slider-arrow.prev {
-  left: 12px;
-}
-
-.slider-arrow.next {
-  right: 12px;
-}
+.slider-arrow.prev { left: 12px; }
+.slider-arrow.next { right: 12px; }
 
 .slider-counter {
   position: absolute;
@@ -403,8 +408,7 @@ img {
   font-weight: 800;
 }
 
-.slider-dots,
-.inline-dots {
+.slider-dots, .inline-dots {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -440,10 +444,7 @@ img {
   padding-bottom: 2px;
   scrollbar-width: none;
 }
-
-.category-row::-webkit-scrollbar {
-  display: none;
-}
+.category-row::-webkit-scrollbar { display: none; }
 
 .category-pill {
   flex: 0 0 auto;
@@ -498,10 +499,7 @@ img {
   font-weight: 900;
 }
 
-.newsletter-strip p {
-  margin: 8px 0 0;
-  color: var(--footer-text);
-}
+.newsletter-strip p { margin: 8px 0 0; color: var(--footer-text); }
 
 .newsletter-input-wrap {
   display: flex;
@@ -530,51 +528,20 @@ img {
   font-weight: 800;
 }
 
-.badge-sale,
-.badge-hot {
+.badge-sale, .badge-hot {
   background: var(--primary-subtle);
   color: var(--primary-bright);
   border: 1px solid var(--border-orange);
 }
 
-.badge-new,
-.badge-success {
-  background: var(--success-bg);
-  color: var(--success);
-}
+.badge-new, .badge-success { background: var(--success-bg); color: var(--success); }
+.badge-warning { background: var(--warning-bg); color: var(--warning-bright); }
+.badge-error   { background: var(--error-bg); color: #fecdd3; }
+.badge-muted   { background: var(--bg-elevated); color: var(--text-secondary); }
 
-.badge-warning {
-  background: var(--warning-bg);
-  color: var(--warning-bright);
-}
-
-.badge-error {
-  background: var(--error-bg);
-  color: #fecdd3;
-}
-
-.badge-muted {
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-}
-
-.price-tag {
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-  font-weight: 900;
-}
-
-.price-strike {
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  text-decoration: line-through;
-}
-
-.price-save {
-  color: var(--success);
-  font-size: 12px;
-  font-weight: 800;
-}
+.price-tag   { color: var(--text-primary); font-family: var(--font-mono); font-weight: 900; }
+.price-strike { color: var(--text-muted); font-family: var(--font-mono); text-decoration: line-through; }
+.price-save   { color: var(--success); font-size: 12px; font-weight: 800; }
 
 .empty-state {
   display: flex;
@@ -586,27 +553,11 @@ img {
   text-align: center;
 }
 
-.empty-state-icon {
-  color: var(--primary);
-  font-size: 34px;
-  font-weight: 900;
-}
+.empty-state-icon  { color: var(--primary); font-size: 34px; font-weight: 900; }
+.empty-state-title { color: var(--text-primary); font-size: 18px; font-weight: 900; }
+.empty-state-sub   { color: var(--text-muted); }
 
-.empty-state-title {
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.empty-state-sub {
-  color: var(--text-muted);
-}
-
-.two-col {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
+.two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
 .product-detail-grid {
   display: grid;
@@ -614,24 +565,18 @@ img {
   overflow: hidden;
 }
 
-.hover-lift,
-.hover-coral,
-.hover-zoom-img {
+.hover-lift, .hover-coral, .hover-zoom-img {
   transition: border-color var(--t-fast), box-shadow var(--t-fast), transform var(--t-fast);
 }
 
-.hover-coral:hover {
-  border-color: var(--border-orange);
-}
+.hover-coral:hover { border-color: var(--border-orange); }
 
 .product-card-quick-view {
   transform: translateY(100%);
   transition: transform var(--t-fast), opacity var(--t-fast);
 }
 
-.hover-zoom-img:hover .product-card-quick-view {
-  transform: translateY(0);
-}
+.hover-zoom-img:hover .product-card-quick-view { transform: translateY(0); }
 
 .footer-bottom {
   border-top: 1px solid var(--footer-border);
@@ -656,9 +601,7 @@ img {
   transition: color var(--t-fast);
 }
 
-.footer-link:hover {
-  color: var(--primary);
-}
+.footer-link:hover { color: var(--primary); }
 
 .footer-col-heading {
   margin-bottom: 18px;
@@ -693,19 +636,12 @@ img {
 
 .text-eco-green  { color: #22c55e; }
 .text-eco-text   { color: var(--text-primary); }
-.text-eco-sub,
-.text-eco-muted  { color: var(--text-muted); }
+.text-eco-sub, .text-eco-muted { color: var(--text-muted); }
 .text-eco-red    { color: #ef4444; }
-
 .bg-eco-green    { background: #22c55e; }
 .bg-eco-red      { background: #ef4444; }
-
-.bg-eco-elevated,
-.hover\:bg-eco-elevated:hover { background: var(--bg-elevated); }
-
-.border-eco-border,
-.border-eco-border-g { border-color: var(--border-subtle); }
-
+.bg-eco-elevated, .hover\:bg-eco-elevated:hover { background: var(--bg-elevated); }
+.border-eco-border, .border-eco-border-g { border-color: var(--border-subtle); }
 .hover\:text-eco-text:hover      { color: var(--text-primary); }
 .hover\:bg-eco-green-b:hover     { background: #16a34a; }
 .hover\:bg-eco-green-s:hover     { background: rgba(34, 197, 94, 0.12); }
@@ -713,118 +649,118 @@ img {
 .profile-card-green,
 .profile-card-orange,
 .profile-card-blue,
-.profile-card-purple {
-  border: 1px solid var(--border-subtle) !important;
-}
+.profile-card-purple { border: 1px solid var(--border-subtle) !important; }
 
 .profile-card-green  { background: #0d2b1a !important; color: #4ade80 !important; }
 .profile-card-orange { background: #2b1500 !important; color: #fb923c !important; }
 .profile-card-blue   { background: #0d1b2b !important; color: #60a5fa !important; }
 .profile-card-purple { background: #1a0d2b !important; color: #c084fc !important; }
 
-@keyframes skeleton-shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
+@keyframes skeleton-shimmer { to { background-position: -200% 0; } }
+@keyframes pulse-coral { 50% { box-shadow: 0 0 0 6px rgba(255, 107, 0, 0.12); } }
 
-@keyframes pulse-coral {
-  50% {
-    box-shadow: 0 0 0 6px rgba(255, 107, 0, 0.12);
-  }
-}
-
-/* ── Responsive: 900px ───────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 900px
+   Hero switches from 2-column grid to 1-column grid (tablet landscape/small desktop)
+   ══════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .hero-slide {
     grid-template-columns: 1fr;
     gap: 18px;
   }
 
+  .hero-copy { max-width: none; }
+
+  /* Reduce image height slightly on tablet — still grid layout */
+  .hero-media img { height: clamp(180px, 38vw, 280px); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 768px
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .product-grid  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stats-grid    { grid-template-columns: repeat(2, 1fr); }
+  .two-col       { grid-template-columns: 1fr; }
+  .footer-grid   { grid-template-columns: 1fr; gap: 24px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — 639px (MOBILE)
+
+   MAIN FIX for the large dark image container problem:
+
+   Problem: At 900px, hero-slide becomes grid with grid-template-columns:1fr.
+   With align-items:stretch, the grid stretches hero-media to fill the row
+   height which is much taller than the image itself — creating a large
+   empty dark box with the image floating inside it.
+
+   Fix: On mobile, switch hero-slide from GRID to FLEX COLUMN.
+   With flex-direction:column, each child (hero-copy and hero-media) takes
+   only its natural content height — no stretching, no empty space.
+   hero-media gets a fixed compact height (190px) so it is always tight.
+
+   All colors unchanged — only layout (display, height) values changed.
+   ══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 639px) {
+
+  /* Switch from grid to flex column — this is the core fix */
+  .hero-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: auto;
+    padding: 20px 16px 48px;
+    gap: 14px;
+  }
+
+  /* hero-copy: start from top, no vertical centering on mobile */
   .hero-copy {
+    justify-content: flex-start;
     max-width: none;
   }
 
-  /* FIX: media container ko center karo aur height cap karo */
-  .hero-media {
-    align-self: center;
-    max-height: 280px;
-  }
-
-  .hero-media img {
-    height: clamp(180px, 44vw, 290px);
-  }
-}
-
-/* ── Responsive: 768px ───────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .product-grid        { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stats-grid          { grid-template-columns: repeat(2, 1fr); }
-  .two-col             { grid-template-columns: 1fr; }
-  .footer-grid         { grid-template-columns: 1fr; gap: 24px; }
-}
-
-/* ── Responsive: 639px ───────────────────────────────────────────── */
-@media (max-width: 639px) {
-  .product-detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .product-image-panel {
-    border-right: none !important;
-  }
-
-  .product-info-panel {
-    border-top: 1px solid var(--border-subtle) !important;
-  }
-
-  .product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .hero-banner,
-  .hero-slide {
-    min-height: auto;
-  }
-
-  .hero-slide {
-    padding: 22px 16px 52px;
-  }
-
   .hero-copy h1 {
-    font-size: clamp(25px, 9vw, 38px);
+    font-size: clamp(22px, 7vw, 34px);
   }
 
   .hero-text {
     -webkit-line-clamp: 2;
     line-clamp: 2;
+    margin-top: 10px;
   }
 
   .hero-actions {
     align-items: stretch;
     flex-direction: column;
+    margin-top: 16px;
   }
 
-  .hero-actions .btn-primary {
-    width: 100%;
-  }
+  .hero-actions .btn-primary { width: 100%; }
 
-  /* FIX: small screens pe media container aur tighten karo */
+  /* hero-media: fixed compact height — no more stretching large empty box
+     190px is enough to show the product image clearly on mobile.
+     Same colors as desktop (gradient bg + border-subtle).                  */
   .hero-media {
-    align-self: center;
-    max-height: 220px;
-    padding: 12px;
+    height: 190px;          /* fixed height — image stays compact */
+    flex-shrink: 0;         /* never shrink below 190px */
+    padding: 12px;          /* less padding than desktop */
+    align-self: stretch;    /* full width within flex column */
   }
 
   .hero-media img {
-    height: clamp(140px, 38vw, 200px);
+    height: 160px;          /* image fits inside the 190px container */
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto;
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
   }
 
+  /* Hide arrows and counter on small screens — dots are enough */
   .slider-arrow,
-  .slider-counter {
-    display: none;
-  }
+  .slider-counter { display: none; }
 
+  /* Stack these sections vertically on mobile */
   .location-strip,
   .newsletter-input-wrap,
   .section-row {
@@ -832,48 +768,3 @@ img {
     flex-direction: column;
   }
 
-  .newsletter-input-wrap .btn-primary,
-  .location-strip .btn-ghost {
-    width: 100%;
-  }
-
-  .footer-bottom {
-    flex-direction: column;
-    align-items: center;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .footer-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ── Responsive: 480px ───────────────────────────────────────────── */
-@media (max-width: 480px) {
-  .footer-bottom {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    padding: 16px;
-  }
-}
-
-/* ── Responsive: 400px ───────────────────────────────────────────── */
-@media (max-width: 400px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .stats-grid   { grid-template-columns: 1fr 1fr; }
-}
-
-/* ── Product detail panel borders (sm+) ─────────────────────────── */
-@media (min-width: 640px) {
-  .product-image-panel {
-    border-right: 1px solid var(--border-subtle) !important;
-    border-top: none !important;
-  }
-
-  .product-info-panel {
-    border-top: none !important;
-  }
-}
