@@ -742,14 +742,14 @@ select option {
      190px is enough to show the product image clearly on mobile.
      Same colors as desktop (gradient bg + border-subtle).                  */
   .hero-media {
-    height: 140px;          /* fixed height === image stays compact */
+    height: 190px;          /* fixed height === image stays compact */
     flex-shrink: 0;         /* never shrink below 190px */
     padding: 12px;          /* less padding than desktop */
     align-self: stretch;    /* full width within flex column */
   }
 
   .hero-media img {
-    height: 110px;          /* image fits inside the 190px container */
+    height: 160px;          /* image fits inside the 190px container */
     width: auto;
     max-width: 100%;
     margin: 0 auto;
