@@ -41,6 +41,23 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- ADDED: WebFlux — provides WebClient, Flux, Mono, ReactorClientHttpConnector.
+                    Required by KeepAliveScheduler. Without this, all reactor/webflux
+                    symbols fail to resolve. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- ADDED: reactor-netty-http — provides HttpClient and ChannelOption
+                    used in KeepAliveScheduler to set connect/response timeouts.
+                    WebFlux pulls this transitively, but declared explicitly
+                    so the IDE resolves it without ambiguity. -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty-http</artifactId>
+        </dependency>
+
         <!-- DevTools & Database -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -79,18 +96,18 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
+            <version>0.12.6</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
+            <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
+            <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -110,6 +127,31 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Selenium WebDriver - complete package -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.21.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- WebDriverManager - auto manages ChromeDriver -->
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>5.9.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TestNG - testing framework -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.9.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

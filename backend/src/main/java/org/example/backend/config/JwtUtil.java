@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
+// CHANGED: SignatureAlgorithm removed — deprecated in 0.12.x, no longer needed
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -80,11 +80,11 @@ public class JwtUtil {
      */
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .claims(claims)                                                      // CHANGED: setClaims() → claims() in 0.12.x
+                .subject(subject)                                                    // CHANGED: setSubject() → subject() in 0.12.x
+                .issuedAt(new Date(System.currentTimeMillis()))                      // CHANGED: setIssuedAt() → issuedAt() in 0.12.x
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))  // CHANGED: setExpiration() → expiration() in 0.12.x
+                .signWith(SECRET_KEY)                                                // CHANGED: signWith(key, algo) → signWith(key) in 0.12.x, algo auto-detected
                 .compact();
     }
 
@@ -147,11 +147,11 @@ public class JwtUtil {
      * @return Claims object
      */
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+        return Jwts.parser()                       // CHANGED: parserBuilder() → parser() in 0.12.x
+                .verifyWith(SECRET_KEY)            // CHANGED: setSigningKey() → verifyWith() in 0.12.x
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)          // CHANGED: parseClaimsJws() → parseSignedClaims() in 0.12.x
+                .getPayload();                     // CHANGED: getBody() → getPayload() in 0.12.x
     }
 
     // ============================================================
