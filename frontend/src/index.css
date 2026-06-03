@@ -93,8 +93,8 @@ button { border: 0; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 
-/* ── Login / Register input text visibility fix ──────────────────────────────
-   Some browsers render inputs with white background — text becomes invisible.
+/* ====== Login / Register input text visibility fix ==========================================================================================
+   Some browsers render inputs with white background === text becomes invisible.
    Explicitly set dark background + white text on all form inputs.           */
 input[type="text"],
 input[type="email"],
@@ -257,10 +257,10 @@ select option {
   box-shadow: var(--shadow-lg);
 }
 
-/* ── hero-slide: DESKTOP layout — 2 column grid ──────────────────────────────
+/* ====== hero-slide: DESKTOP layout === 2 column grid ==========================================================================================
    Left col (1.1fr): text content (hero-copy)
    Right col (0.9fr min 280px): product image (hero-media)
-   Desktop looks perfect as-is — no changes here.                            */
+   Desktop looks perfect as-is === no changes here.                            */
 .hero-slide {
   position: relative;
   display: grid;
@@ -348,7 +348,7 @@ select option {
   text-decoration: line-through;
 }
 
-/* ── hero-media: DESKTOP — right column image container ──────────────────────
+/* ====== hero-media: DESKTOP === right column image container ==================================================================
    Background gradient and border kept exactly as original.
    No color changes.                                                          */
 .hero-media {
@@ -659,10 +659,10 @@ select option {
 @keyframes skeleton-shimmer { to { background-position: -200% 0; } }
 @keyframes pulse-coral { 50% { box-shadow: 0 0 0 6px rgba(255, 107, 0, 0.12); } }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — 900px
+/* ==========================================================================================================================================================================================================================================
+   RESPONSIVE === 900px
    Hero switches from 2-column grid to 1-column grid (tablet landscape/small desktop)
-   ══════════════════════════════════════════════════════════════════════════════ */
+   ========================================================================================================================================================================================================================================== */
 @media (max-width: 900px) {
   .hero-slide {
     grid-template-columns: 1fr;
@@ -671,13 +671,13 @@ select option {
 
   .hero-copy { max-width: none; }
 
-  /* Reduce image height slightly on tablet — still grid layout */
+  /* Reduce image height slightly on tablet === still grid layout */
   .hero-media img { height: clamp(180px, 38vw, 280px); }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — 768px
-   ══════════════════════════════════════════════════════════════════════════════ */
+/* ==========================================================================================================================================================================================================================================
+   RESPONSIVE === 768px
+   ========================================================================================================================================================================================================================================== */
 @media (max-width: 768px) {
   .product-grid  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .stats-grid    { grid-template-columns: repeat(2, 1fr); }
@@ -685,26 +685,26 @@ select option {
   .footer-grid   { grid-template-columns: 1fr; gap: 24px; }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — 639px (MOBILE)
+/* ==========================================================================================================================================================================================================================================
+   RESPONSIVE === 639px (MOBILE)
 
    MAIN FIX for the large dark image container problem:
 
    Problem: At 900px, hero-slide becomes grid with grid-template-columns:1fr.
    With align-items:stretch, the grid stretches hero-media to fill the row
-   height which is much taller than the image itself — creating a large
+   height which is much taller than the image itself === creating a large
    empty dark box with the image floating inside it.
 
    Fix: On mobile, switch hero-slide from GRID to FLEX COLUMN.
    With flex-direction:column, each child (hero-copy and hero-media) takes
-   only its natural content height — no stretching, no empty space.
+   only its natural content height === no stretching, no empty space.
    hero-media gets a fixed compact height (190px) so it is always tight.
 
-   All colors unchanged — only layout (display, height) values changed.
-   ══════════════════════════════════════════════════════════════════════════════ */
+   All colors unchanged === only layout (display, height) values changed.
+   ========================================================================================================================================================================================================================================== */
 @media (max-width: 639px) {
 
-  /* Switch from grid to flex column — this is the core fix */
+  /* Switch from grid to flex column === this is the core fix */
   .hero-slide {
     display: flex;
     flex-direction: column;
@@ -730,41 +730,4 @@ select option {
     margin-top: 10px;
   }
 
-  .hero-actions {
-    align-items: stretch;
-    flex-direction: column;
-    margin-top: 16px;
-  }
-
-  .hero-actions .btn-primary { width: 100%; }
-
-  /* hero-media: fixed compact height — no more stretching large empty box
-     190px is enough to show the product image clearly on mobile.
-     Same colors as desktop (gradient bg + border-subtle).                  */
-  .hero-media {
-    height: 190px;          /* fixed height — image stays compact */
-    flex-shrink: 0;         /* never shrink below 190px */
-    padding: 12px;          /* less padding than desktop */
-    align-self: stretch;    /* full width within flex column */
-  }
-
-  .hero-media img {
-    height: 160px;          /* image fits inside the 190px container */
-    width: auto;
-    max-width: 100%;
-    margin: 0 auto;
-    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
-  }
-
-  /* Hide arrows and counter on small screens — dots are enough */
-  .slider-arrow,
-  .slider-counter { display: none; }
-
-  /* Stack these sections vertically on mobile */
-  .location-strip,
-  .newsletter-input-wrap,
-  .section-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
+  .hero-
