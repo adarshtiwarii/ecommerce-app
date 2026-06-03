@@ -102,13 +102,15 @@ const HomePage = () => {
   }, []);
 
   const categories = useMemo(() => {
-    const unique = [...new Set(products.map(p => p.category).filter(Boolean))];
+    // FIX: .trim() removes trailing/leading spaces that cause duplicate category pills
+    const unique = [...new Set(products.map(p => p.category?.trim()).filter(Boolean))];
     return [{ id: null, name: 'All' }, ...unique.map(name => ({ id: name, name }))];
   }, [products]);
 
   const filteredProducts = useMemo(() => (
     activeCategory
-      ? products.filter(product => product.category === activeCategory)
+      // FIX: .trim() ensures comparison matches even if DB has extra whitespace
+      ? products.filter(product => product.category?.trim() === activeCategory)
       : products
   ), [activeCategory, products]);
 
@@ -187,7 +189,7 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* ── Hero banner slider ─────────────────────────────────────────── */}
+        {/* Hero banner slider */}
         {loading ? (
           <div className="skeleton hero-skeleton" />
         ) : banners.length > 0 ? (
@@ -201,17 +203,7 @@ const HomePage = () => {
               style={{ transform: `translateX(-${heroSlider.current * 100}%)` }}
             >
               {banners.map(banner => (
-                /*
-                 * FIX — only change in this file:
-                 * Added `!items-start` on the article so the two columns
-                 * don't stretch to fill the full banner height on mobile
-                 * (single-column layout). On desktop the CSS class
-                 * `hero-slide` still controls alignment normally.
-                 * Zero color / style changes elsewhere.
-                 */
                 <article key={banner.id} className="hero-slide !items-start">
-
-                  {/* Text content */}
                   <div className="hero-copy">
                     <p className="hero-eyebrow">{banner.brand || banner.label}</p>
                     <h1>{banner.heading}</h1>
@@ -232,14 +224,6 @@ const HomePage = () => {
                       )}
                     </div>
                   </div>
-
-                  {/*
-                   * FIX — `self-center` added so the image container
-                   * centres itself in the column instead of stretching
-                   * to match the text column height on mobile.
-                   * On desktop this has no visible effect because both
-                   * columns are already the same height.
-                   */}
                   <Link
                     to={banner.ctaUrl}
                     className="hero-media self-center"
@@ -250,23 +234,14 @@ const HomePage = () => {
                       : <span>{banner.heading[0]}</span>
                     }
                   </Link>
-
                 </article>
               ))}
             </div>
 
-            <button
-              className="slider-arrow prev"
-              onClick={heroSlider.prev}
-              aria-label="Previous banner"
-            >
+            <button className="slider-arrow prev" onClick={heroSlider.prev} aria-label="Previous banner">
               <FiChevronLeft />
             </button>
-            <button
-              className="slider-arrow next"
-              onClick={heroSlider.next}
-              aria-label="Next banner"
-            >
+            <button className="slider-arrow next" onClick={heroSlider.next} aria-label="Next banner">
               <FiChevronRight />
             </button>
 
@@ -360,18 +335,10 @@ const HomePage = () => {
                 </div>
               ))}
             </div>
-            <button
-              className="slider-arrow prev"
-              onClick={dealSlider.prev}
-              aria-label="Previous deals"
-            >
+            <button className="slider-arrow prev" onClick={dealSlider.prev} aria-label="Previous deals">
               <FiChevronLeft />
             </button>
-            <button
-              className="slider-arrow next"
-              onClick={dealSlider.next}
-              aria-label="Next deals"
-            >
+            <button className="slider-arrow next" onClick={dealSlider.next} aria-label="Next deals">
               <FiChevronRight />
             </button>
           </section>
