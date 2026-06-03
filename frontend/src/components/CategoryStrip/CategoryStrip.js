@@ -4,12 +4,12 @@ import { FiGrid, FiHome, FiMonitor, FiSmartphone, FiSmile, FiTool, FiUser } from
 
 const categories = [
   { name: 'All', link: '/', icon: FiGrid },
-  { name: 'Electronics', link: '/category/Electronics', icon: FiMonitor },
-  { name: 'Mobiles', link: '/category/Electronics', icon: FiSmartphone },
-  { name: 'Fashion', link: '/category/Fashion', icon: FiUser },
-  { name: 'Home', link: '/category/Home', icon: FiHome },
-  { name: 'Appliances', link: '/category/Appliances', icon: FiTool },
-  { name: 'Beauty', link: '/category/Beauty', icon: FiSmile },
+  { name: 'Electronics', link: '/category/electronics', icon: FiMonitor },
+  { name: 'Mobiles', link: '/category/mobiles', icon: FiSmartphone },
+  { name: 'Fashion', link: '/category/fashion', icon: FiUser },
+  { name: 'Home', link: '/category/home', icon: FiHome },
+  { name: 'Appliances', link: '/category/appliances', icon: FiTool },
+  { name: 'Beauty', link: '/category/beauty', icon: FiSmile },
 ];
 
 const CategoryStrip = () => (

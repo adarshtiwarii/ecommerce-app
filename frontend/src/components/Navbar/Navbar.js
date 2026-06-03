@@ -10,15 +10,15 @@ import { useApp } from '../../context/AppContext';
 // Keep nav categories data-driven.
 const NAV_CATS = [
   { label: 'For You',        path: '/' },
-  { label: 'Electronics',    path: '/category/Electronics' },
-  { label: 'Mobiles',        path: '/category/Electronics' },
-  { label: 'Fashion',        path: '/category/Fashion' },
-  { label: 'Appliances',     path: '/category/Appliances' },
-  { label: 'Home & Kitchen', path: '/category/Home' },
-  { label: 'Beauty',         path: '/category/Beauty' },
-  { label: 'Sports',         path: '/category/Sports' },
-  { label: 'Books',          path: '/category/Books' },
-  { label: 'Grocery',        path: '/category/Grocery' },
+  { label: 'Electronics',    path: '/category/electronics' },
+  { label: 'Mobiles',        path: '/category/mobiles' },
+  { label: 'Fashion',        path: '/category/fashion' },
+  { label: 'Appliances',     path: '/category/appliances' },
+  { label: 'Home & Kitchen', path: '/category/home' },
+  { label: 'Beauty',         path: '/category/beauty' },
+  { label: 'Sports',         path: '/category/sports' },
+  { label: 'Books',          path: '/category/books' },
+  { label: 'Grocery',        path: '/category/grocery' },
 ];
 
 const isCustomerRole = (role) => ['CUSTOMER', 'USER'].includes(String(role || '').toUpperCase());

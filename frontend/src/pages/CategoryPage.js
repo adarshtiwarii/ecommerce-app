@@ -15,8 +15,12 @@ const CategoryPage = () => {
     const fetchCategory = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/products/category/${encodeURIComponent(category)}?page=0&size=80`);
-        setProducts(res.data?.content || []);
+        const res = await api.get('/products?page=0&size=80');
+        const normalizedCategory = String(category || '').trim().toLowerCase();
+        const filteredProducts = (res.data?.content || []).filter(product =>
+          String(product.category || '').trim().toLowerCase() === normalizedCategory
+        );
+        setProducts(filteredProducts);
       } catch (err) {
         console.error('Failed to fetch category', err);
         setProducts([]);
