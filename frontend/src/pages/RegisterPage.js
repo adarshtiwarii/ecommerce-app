@@ -425,4 +425,8 @@ const RegisterPage = () => {
   );
 };
 
+<<<<<<< HEAD
 export default RegisterPage;
+=======
+export default RegisterPage;
+>>>>>>> f16b25342fcadefcf4548fe59356ef476c129ece
