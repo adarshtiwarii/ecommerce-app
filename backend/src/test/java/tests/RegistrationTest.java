@@ -18,17 +18,17 @@ public class RegistrationTest extends BaseTest {
         RegistrationPage registrationPage =
                 new RegistrationPage(driver);
 
-        registrationPage.enterFullName("Sita");
+        registrationPage.enterFullName("Ram");
 
-        registrationPage.enterEmail("sita123@gmail.com");
+        registrationPage.enterEmail("ram36@gmail.com");
 
-        registrationPage.enterPhoneNumber("9936273045");
+        registrationPage.enterPhoneNumber("9936273745");
 
         registrationPage.selectMale();
 
-        registrationPage.enterPassword("Sita@123");
+        registrationPage.enterPassword("Ram@995652");
 
-        registrationPage.enterConfirmPassword("Sita@123");
+        registrationPage.enterConfirmPassword("Ram@995652");
 
         registrationPage.clickRegisterButton();
 

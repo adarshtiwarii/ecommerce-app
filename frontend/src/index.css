@@ -93,9 +93,8 @@ button { border: 0; cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
 
-/* ====== Login / Register input text visibility fix ==========================================================================================
-   Some browsers render inputs with white background === text becomes invisible.
-   Explicitly set dark background + white text on all form inputs.           */
+/* Fix: some browsers render inputs with white background making text invisible.
+   Set dark background and white text on all form inputs explicitly. */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -107,7 +106,6 @@ textarea {
   color: var(--text-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-  padding: 12px 14px;
   width: 100%;
   outline: none;
   transition: border-color var(--t-fast);
@@ -257,10 +255,8 @@ select option {
   box-shadow: var(--shadow-lg);
 }
 
-/* ====== hero-slide: DESKTOP layout === 2 column grid ==========================================================================================
-   Left col (1.1fr): text content (hero-copy)
-   Right col (0.9fr min 280px): product image (hero-media)
-   Desktop looks perfect as-is === no changes here.                            */
+/* hero-slide: desktop 2-column grid layout.
+   Left column for text, right column for product image. */
 .hero-slide {
   position: relative;
   display: grid;
@@ -348,9 +344,8 @@ select option {
   text-decoration: line-through;
 }
 
-/* ====== hero-media: DESKTOP === right column image container ==================================================================
-   Background gradient and border kept exactly as original.
-   No color changes.                                                          */
+/* hero-media: right column image container on desktop.
+   Colors and gradient kept exactly as original. */
 .hero-media {
   position: relative;
   z-index: 1;
@@ -444,6 +439,7 @@ select option {
   padding-bottom: 2px;
   scrollbar-width: none;
 }
+
 .category-row::-webkit-scrollbar { display: none; }
 
 .category-pill {
@@ -539,7 +535,7 @@ select option {
 .badge-error   { background: var(--error-bg); color: #fecdd3; }
 .badge-muted   { background: var(--bg-elevated); color: var(--text-secondary); }
 
-.price-tag   { color: var(--text-primary); font-family: var(--font-mono); font-weight: 900; }
+.price-tag    { color: var(--text-primary); font-family: var(--font-mono); font-weight: 900; }
 .price-strike { color: var(--text-muted); font-family: var(--font-mono); text-decoration: line-through; }
 .price-save   { color: var(--success); font-size: 12px; font-weight: 800; }
 
@@ -557,7 +553,11 @@ select option {
 .empty-state-title { color: var(--text-primary); font-size: 18px; font-weight: 900; }
 .empty-state-sub   { color: var(--text-muted); }
 
-.two-col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
 
 .product-detail-grid {
   display: grid;
@@ -642,9 +642,9 @@ select option {
 .bg-eco-red      { background: #ef4444; }
 .bg-eco-elevated, .hover\:bg-eco-elevated:hover { background: var(--bg-elevated); }
 .border-eco-border, .border-eco-border-g { border-color: var(--border-subtle); }
-.hover\:text-eco-text:hover      { color: var(--text-primary); }
-.hover\:bg-eco-green-b:hover     { background: #16a34a; }
-.hover\:bg-eco-green-s:hover     { background: rgba(34, 197, 94, 0.12); }
+.hover\:text-eco-text:hover   { color: var(--text-primary); }
+.hover\:bg-eco-green-b:hover  { background: #16a34a; }
+.hover\:bg-eco-green-s:hover  { background: rgba(34, 197, 94, 0.12); }
 
 .profile-card-green,
 .profile-card-orange,
@@ -659,52 +659,29 @@ select option {
 @keyframes skeleton-shimmer { to { background-position: -200% 0; } }
 @keyframes pulse-coral { 50% { box-shadow: 0 0 0 6px rgba(255, 107, 0, 0.12); } }
 
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 900px
-   Hero switches from 2-column grid to 1-column grid (tablet landscape/small desktop)
-   ========================================================================================================================================================================================================================================== */
+/* Responsive 900px: hero switches from 2-column to 1-column grid */
 @media (max-width: 900px) {
   .hero-slide {
     grid-template-columns: 1fr;
     gap: 18px;
   }
-
   .hero-copy { max-width: none; }
-
-  /* Reduce image height slightly on tablet === still grid layout */
   .hero-media img { height: clamp(180px, 38vw, 280px); }
 }
 
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 768px
-   ========================================================================================================================================================================================================================================== */
+/* Responsive 768px */
 @media (max-width: 768px) {
-  .product-grid  { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stats-grid    { grid-template-columns: repeat(2, 1fr); }
-  .two-col       { grid-template-columns: 1fr; }
-  .footer-grid   { grid-template-columns: 1fr; gap: 24px; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stats-grid   { grid-template-columns: repeat(2, 1fr); }
+  .two-col      { grid-template-columns: 1fr; }
+  .footer-grid  { grid-template-columns: 1fr; gap: 24px; }
 }
 
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 639px (MOBILE)
-
-   MAIN FIX for the large dark image container problem:
-
-   Problem: At 900px, hero-slide becomes grid with grid-template-columns:1fr.
-   With align-items:stretch, the grid stretches hero-media to fill the row
-   height which is much taller than the image itself === creating a large
-   empty dark box with the image floating inside it.
-
-   Fix: On mobile, switch hero-slide from GRID to FLEX COLUMN.
-   With flex-direction:column, each child (hero-copy and hero-media) takes
-   only its natural content height === no stretching, no empty space.
-   hero-media gets a fixed compact height (190px) so it is always tight.
-
-   All colors unchanged === only layout (display, height) values changed.
-   ========================================================================================================================================================================================================================================== */
+/* Responsive 639px (Mobile)
+   Fix: hero-slide switches from grid to flex-column so hero-media
+   takes only its natural height instead of stretching to fill the grid row.
+   This removes the large empty dark box around the product image on mobile. */
 @media (max-width: 639px) {
-
-  /* Switch from grid to flex column === this is the core fix */
   .hero-slide {
     display: flex;
     flex-direction: column;
@@ -714,15 +691,12 @@ select option {
     gap: 14px;
   }
 
-  /* hero-copy: start from top, no vertical centering on mobile */
   .hero-copy {
     justify-content: flex-start;
     max-width: none;
   }
 
-  .hero-copy h1 {
-    font-size: clamp(22px, 7vw, 34px);
-  }
+  .hero-copy h1 { font-size: clamp(22px, 7vw, 34px); }
 
   .hero-text {
     -webkit-line-clamp: 2;
@@ -738,29 +712,25 @@ select option {
 
   .hero-actions .btn-primary { width: 100%; }
 
-  /* hero-media: fixed compact height === no more stretching large empty box
-     190px is enough to show the product image clearly on mobile.
-     Same colors as desktop (gradient bg + border-subtle).                  */
+  /* Fixed compact height for image container on mobile.
+     190px prevents the large empty dark box shown in screenshots. */
   .hero-media {
-    height: 190px;          /* fixed height === image stays compact */
-    flex-shrink: 0;         /* never shrink below 190px */
-    padding: 12px;          /* less padding than desktop */
-    align-self: stretch;    /* full width within flex column */
+    height: 190px;
+    flex-shrink: 0;
+    padding: 12px;
+    align-self: stretch;
   }
 
   .hero-media img {
-    height: 160px;          /* image fits inside the 190px container */
+    height: 160px;
     width: auto;
     max-width: 100%;
     margin: 0 auto;
     filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
   }
 
-  /* Hide arrows and counter on small screens === dots are enough */
-  .slider-arrow,
-  .slider-counter { display: none; }
+  .slider-arrow, .slider-counter { display: none; }
 
-  /* Stack these sections vertically on mobile */
   .location-strip,
   .newsletter-input-wrap,
   .section-row {
@@ -784,13 +754,10 @@ select option {
   .product-image-panel { border-right: none !important; }
   .product-info-panel  { border-top: 1px solid var(--border-subtle) !important; }
   .product-grid        { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-  .hero-banner { min-height: auto; }
+  .hero-banner         { min-height: auto; }
 }
 
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 480px
-   ========================================================================================================================================================================================================================================== */
+/* Responsive 480px */
 @media (max-width: 480px) {
   .footer-bottom {
     flex-direction: column;
@@ -801,18 +768,13 @@ select option {
   }
 }
 
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 400px
-   ========================================================================================================================================================================================================================================== */
+/* Responsive 400px */
 @media (max-width: 400px) {
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .stats-grid   { grid-template-columns: 1fr 1fr; }
 }
 
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === sm+ (640px+)
-   Product detail panel borders restored
-   ========================================================================================================================================================================================================================================== */
+/* sm+ (640px and above): product detail panel borders */
 @media (min-width: 640px) {
   .product-image-panel {
     border-right: 1px solid var(--border-subtle) !important;
