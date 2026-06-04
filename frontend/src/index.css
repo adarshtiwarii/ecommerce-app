@@ -107,7 +107,7 @@ textarea {
   color: var(--text-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-
+  padding: 12px 14px;
   width: 100%;
   outline: none;
   transition: border-color var(--t-fast);
@@ -730,5 +730,4 @@ select option {
     margin-top: 10px;
   }
 
-  .hero-actions {
-    align-i
+  .hero-
