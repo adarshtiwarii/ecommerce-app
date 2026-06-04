@@ -107,7 +107,7 @@ textarea {
   color: var(--text-primary);
   border: 1px solid var(--border-default);
   border-radius: var(--r-md);
-  padding: 12px 14px;
+
   width: 100%;
   outline: none;
   transition: border-color var(--t-fast);
@@ -731,92 +731,4 @@ select option {
   }
 
   .hero-actions {
-    align-items: stretch;
-    flex-direction: column;
-    margin-top: 16px;
-  }
-
-  .hero-actions .btn-primary { width: 100%; }
-
-  /* hero-media: fixed compact height === no more stretching large empty box
-     190px is enough to show the product image clearly on mobile.
-     Same colors as desktop (gradient bg + border-subtle).                  */
-  .hero-media {
-    height: 190px;          /* fixed height === image stays compact */
-    flex-shrink: 0;         /* never shrink below 190px */
-    padding: 12px;          /* less padding than desktop */
-    align-self: stretch;    /* full width within flex column */
-  }
-
-  .hero-media img {
-    height: 160px;          /* image fits inside the 190px container */
-    width: auto;
-    max-width: 100%;
-    margin: 0 auto;
-    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
-  }
-
-  /* Hide arrows and counter on small screens === dots are enough */
-  .slider-arrow,
-  .slider-counter { display: none; }
-
-  /* Stack these sections vertically on mobile */
-  .location-strip,
-  .newsletter-input-wrap,
-  .section-row {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .newsletter-input-wrap .btn-primary,
-  .location-strip .btn-ghost { width: 100%; }
-
-  .footer-bottom {
-    flex-direction: column;
-    align-items: center;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .footer-grid { grid-template-columns: 1fr; }
-
-  .product-detail-grid { grid-template-columns: 1fr; }
-  .product-image-panel { border-right: none !important; }
-  .product-info-panel  { border-top: 1px solid var(--border-subtle) !important; }
-  .product-grid        { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-
-  .hero-banner { min-height: auto; }
-}
-
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 480px
-   ========================================================================================================================================================================================================================================== */
-@media (max-width: 480px) {
-  .footer-bottom {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    padding: 16px;
-  }
-}
-
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === 400px
-   ========================================================================================================================================================================================================================================== */
-@media (max-width: 400px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .stats-grid   { grid-template-columns: 1fr 1fr; }
-}
-
-/* ==========================================================================================================================================================================================================================================
-   RESPONSIVE === sm+ (640px+)
-   Product detail panel borders restored
-   ========================================================================================================================================================================================================================================== */
-@media (min-width: 640px) {
-  .product-image-panel {
-    border-right: 1px solid var(--border-subtle) !important;
-    border-top: none !important;
-  }
-  .product-info-panel { border-top: none !important; }
-}
+    align-i
