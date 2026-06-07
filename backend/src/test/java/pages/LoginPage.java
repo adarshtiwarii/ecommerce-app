@@ -31,7 +31,7 @@ public class LoginPage {
 
     // Error message shown when login fails (wrong credentials)
     private By errorMessage = By.xpath(
-            "//div[contains(@class,'text-red-700') or contains(@class,'bg-red-50')]"
+            "//*[@id=\"root\"]/div/main/div/div[2]/div[4]"
     );
 
     // Success indicator after login — navbar profile icon or user name
