@@ -28,7 +28,7 @@ public class RegistrationTest extends BaseTest {
 
         registrationPage.enterPassword("Ram@995652");
 
-        registrationPage.enterConfirmPassword("Ram@995652");
+        registrationPage.enterConfirmPassword("Ram@9956");
 
         registrationPage.clickRegisterButton();
 
