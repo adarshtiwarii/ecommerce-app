@@ -2,11 +2,13 @@
 
 <suite name="Automation Test Suite">
 
-    <test name="Registration Test">
+    <test name="EcoMart Automation Tests">
 
         <classes>
 
             <class name="tests.RegistrationTest"/>
+
+            <class name="tests.LoginTest"/>
 
         </classes>
 
