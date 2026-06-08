@@ -1,6 +1,7 @@
 package org.example.backend.controller;
 
 import org.example.backend.model.Product;
+import org.example.backend.repository.ProductRepository;
 import org.example.backend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/products")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -16,6 +19,10 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+    // Injected to fetch distinct categories directly from DB
+    @Autowired
+    private ProductRepository productRepository;
 
     // Public: get all enabled products (user view)
     @GetMapping
@@ -40,6 +47,13 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(productService.searchProducts(keyword, page, size));
+    }
+
+    // Public: returns all unique category names from enabled products.
+    // Navbar uses this to dynamically show custom categories added by admin via "Other".
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getAllCategories() {
+        return ResponseEntity.ok(productRepository.findAllDistinctCategories());
     }
 
     // Public: get products by category (only enabled)
@@ -78,7 +92,6 @@ public class ProductController {
     public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         Product existing = productService.getProductById(id);
         if (existing == null) return ResponseEntity.notFound().build();
-        // Optional ownership check for seller can be added here
         Product updated = productService.updateProduct(id, product);
         return ResponseEntity.ok(updated);
     }
@@ -124,7 +137,6 @@ public class ProductController {
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         Product existing = productService.getProductById(id);
         if (existing == null) return ResponseEntity.notFound().build();
-        // Optional ownership check for seller can be added here
         productService.deleteProduct(id);
         return ResponseEntity.ok("Product deleted successfully");
     }

@@ -82,13 +82,17 @@ const CATEGORY_FIELDS = {
   },
 };
 
+// Known preset category values — used to detect if loaded product has a custom category
+const PRESET_CATEGORY_VALUES = new Set(['mobiles', 'fashion', 'beauty', 'appliances', 'other', '']);
+
 const CATEGORIES = [
   { value: '',           label: '— Select Category —' },
   { value: 'mobiles',    label: '📱 Mobiles & Tablets' },
   { value: 'fashion',    label: '👗 Clothing & Fashion' },
   { value: 'beauty',     label: '💄 Beauty & Personal Care' },
   { value: 'appliances', label: '🏠 Home Appliances' },
-  { value: 'other',      label: '📦 Other' },
+  // Selecting this reveals a custom text input for the category name
+  { value: 'other',      label: '📦 Other (Custom Category)' },
 ];
 
 const EditProduct = () => {
@@ -102,7 +106,10 @@ const EditProduct = () => {
 
   const [form, setForm] = useState({
     name: '', description: '', price: '', mrp: '',
-    stockQuantity: '', category: '', brand: '', images: [],
+    stockQuantity: '', category: '',
+    // Stores the custom name when "other" is selected
+    customCategory: '',
+    brand: '', images: [],
     highlights: [''], inTheBox: '', categorySpecs: {},
     specifications: [{ key: '', value: '' }],
     warrantyType: '', warrantySummary: '', warrantyServiceType: '',
@@ -118,14 +125,11 @@ const EditProduct = () => {
         const r = await api.get(`/products/${id}`);
         const p = r.data;
 
-        // Convert specifications array back from backend format
-        // Backend might store them as array of {key,value} or as categorySpecs object
         const specs = Array.isArray(p.specifications) ? p.specifications : [];
 
-        // Separate category specs from custom specs
-        const catConfig  = CATEGORY_FIELDS[p.category];
-        const catKeys    = catConfig ? catConfig.specs.map(s => s.name) : [];
-        const catSpecs   = {};
+        const catConfig   = CATEGORY_FIELDS[p.category];
+        const catKeys     = catConfig ? catConfig.specs.map(s => s.name) : [];
+        const catSpecs    = {};
         const customSpecs = [];
 
         specs.forEach(s => {
@@ -136,13 +140,20 @@ const EditProduct = () => {
           }
         });
 
+        // Detect if the saved category is a custom one (not in the preset list).
+        // If so, set category to "other" and put the real name in customCategory.
+        const isCustomCategory = p.category && !PRESET_CATEGORY_VALUES.has(p.category);
+
         setForm({
           name:          p.name          || '',
           description:   p.description   || '',
           price:         p.price         || '',
           mrp:           p.mrp           || '',
           stockQuantity: p.stockQuantity || '',
-          category:      p.category      || '',
+          // If category was custom, show "other" in the dropdown
+          category:      isCustomCategory ? 'other' : (p.category || ''),
+          // Pre-fill the custom category input with the saved value
+          customCategory: isCustomCategory ? p.category : '',
           brand:         p.brand         || '',
           images:        p.images        || (p.imageUrl ? [p.imageUrl] : []),
           highlights:    p.highlights?.length > 0 ? p.highlights : [''],
@@ -174,7 +185,8 @@ const EditProduct = () => {
   const handleChange = e => set(e.target.name, e.target.value);
 
   const handleCategoryChange = e => {
-    setForm(f => ({ ...f, category: e.target.value, categorySpecs: {} }));
+    // Reset categorySpecs and customCategory when switching categories
+    setForm(f => ({ ...f, category: e.target.value, categorySpecs: {}, customCategory: '' }));
   };
   const handleCatSpec = (name, value) => {
     setForm(f => ({ ...f, categorySpecs: { ...f.categorySpecs, [name]: value } }));
@@ -188,10 +200,26 @@ const EditProduct = () => {
   const addSpec    = ()         => set('specifications', [...form.specifications, { key: '', value: '' }]);
   const removeSpec = i          => set('specifications', form.specifications.filter((_, j) => j !== i));
 
+  // Use custom category name when "other" is selected, otherwise use the preset value
+  const getFinalCategory = () => {
+    if (form.category === 'other' && form.customCategory.trim()) {
+      return form.customCategory.trim().toLowerCase();
+    }
+    return form.category;
+  };
+
   // ── submit ───────────────────────────────────────────────
   const handleSubmit = async e => {
     e.preventDefault();
     if (form.images.length === 0) { setError('Please keep at least one image'); return; }
+
+    // Validate custom category name is provided when "other" is selected
+    if (form.category === 'other' && !form.customCategory.trim()) {
+      setError('Please enter a custom category name');
+      setActiveSection('basic');
+      return;
+    }
+
     setSubmitLoading(true);
     setError('');
 
@@ -205,7 +233,8 @@ const EditProduct = () => {
       price:         parseFloat(form.price),
       mrp:           parseFloat(form.mrp || form.price),
       stockQuantity: parseInt(form.stockQuantity),
-      category:      form.category,
+      // Send the resolved final category (custom name or preset value)
+      category:      getFinalCategory(),
       brand:         form.brand,
       imageUrl:      form.images[0] || '',
       images:        form.images,
@@ -322,7 +351,6 @@ const EditProduct = () => {
       </div>
       <div className="max-w-4xl mx-auto px-4">
 
-        {/* Header */}
         {error && (
           <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</div>
         )}
@@ -356,6 +384,29 @@ const EditProduct = () => {
                 <select value={form.category} onChange={handleCategoryChange} className={`${inputClass} cursor-pointer`}>
                   {CATEGORIES.map(c => <option key={c.value} value={c.value} className="bg-gray-900">{c.label}</option>)}
                 </select>
+
+                {/* Show custom category input when Other is selected */}
+                {form.category === 'other' && (
+                  <div className="mt-3">
+                    <label className={labelClass}>Custom Category Name *</label>
+                    <input
+                      type="text"
+                      name="customCategory"
+                      placeholder="e.g. Books, Furniture, Sports, Toys, Grocery, Gaming..."
+                      value={form.customCategory}
+                      onChange={handleChange}
+                      required
+                      autoFocus
+                      className={inputClass}
+                    />
+                    {/* Live preview of what will be saved */}
+                    {form.customCategory.trim() && (
+                      <p className="mt-1.5 text-xs font-semibold text-orange-400">
+                        ✓ Will be saved as: "{form.customCategory.trim().toLowerCase()}"
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -567,6 +618,3 @@ const EditProduct = () => {
 };
 
 export default EditProduct;
-
-
-

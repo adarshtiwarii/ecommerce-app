@@ -6,9 +6,10 @@ import {
   FiHeart, FiLogOut, FiSettings, FiPackage, FiChevronDown,
 } from 'react-icons/fi';
 import { useApp } from '../../context/AppContext';
+import api from '../../utils/api';
 
-// Keep nav categories data-driven.
-const NAV_CATS = [
+// Static categories always shown in the navbar (preset ones)
+const STATIC_CATS = [
   { label: 'For You',        path: '/' },
   { label: 'Electronics',    path: '/category/electronics' },
   { label: 'Mobiles',        path: '/category/mobiles' },
@@ -21,6 +22,13 @@ const NAV_CATS = [
   { label: 'Grocery',        path: '/category/grocery' },
 ];
 
+// These category values already exist as static entries above — skip them in dynamic list
+const STATIC_CATEGORY_KEYS = new Set([
+  'electronics', 'mobiles', 'fashion', 'appliances',
+  'home', 'beauty', 'sports', 'books', 'grocery',
+  'gaming', 'toys', 'furniture',
+]);
+
 const isCustomerRole = (role) => ['CUSTOMER', 'USER'].includes(String(role || '').toUpperCase());
 
 const Navbar = () => {
@@ -28,14 +36,55 @@ const Navbar = () => {
   const [userMenu, setUserMenu]       = useState(false);
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [scrolled, setScrolled]       = useState(false);
+
+  // Dynamic categories fetched from backend (custom "other" categories added by admin/seller)
+  const [dynamicCats, setDynamicCats] = useState([]);
+
   const { totalItems, cart, user, logout, wishlist } = useApp();
   const navigate = useNavigate();
 
+  // Scroll shadow effect
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', fn, { passive: true });
     return () => window.removeEventListener('scroll', fn);
   }, []);
+
+  // Fetch all unique product categories from the backend on mount.
+  // This ensures any custom category added via "Other" appears in the navbar automatically.
+  useEffect(() => {
+    const fetchDynamicCategories = async () => {
+      try {
+        // Expects the backend to return an array of unique category strings, e.g. ["pet supplies", "stationery"]
+        const res = await api.get('/products/categories');
+        const all = Array.isArray(res.data) ? res.data : [];
+
+        // Filter out categories that are already in the static list to avoid duplicates
+        const newCats = all
+          .filter(cat => {
+            const key = String(cat).toLowerCase().trim();
+            return key && !STATIC_CATEGORY_KEYS.has(key);
+          })
+          .map(cat => ({
+            // Capitalise first letter of each word for display
+            label: String(cat)
+              .split(' ')
+              .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+              .join(' '),
+            path: `/category/${encodeURIComponent(String(cat).toLowerCase().trim())}`,
+          }));
+
+        setDynamicCats(newCats);
+      } catch {
+        // Silently fail — static categories still show even if API is down
+      }
+    };
+
+    fetchDynamicCategories();
+  }, []);
+
+  // Merge static + dynamic categories for the navbar strip
+  const allNavCats = [...STATIC_CATS, ...dynamicCats];
 
   const handleSearch = e => {
     e.preventDefault();
@@ -220,12 +269,12 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Desktop category strip */}
+      {/* Desktop category strip — shows static + any dynamic custom categories */}
       <div className="hidden sm:block border-t border-eco-border" style={{ background:'#0B0B0B' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-0 overflow-x-auto" style={{ scrollbarWidth:'none' }}>
-            {NAV_CATS.map(cat => (
-              <NavLink key={cat.label} to={cat.path}
+            {allNavCats.map(cat => (
+              <NavLink key={cat.path} to={cat.path}
                        className={({ isActive }) =>
                          `px-3.5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2
                           ${isActive
@@ -239,11 +288,11 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — also includes dynamic categories */}
       {mobileOpen && (
         <div className="sm:hidden border-t border-eco-border" style={{ background:'#111827' }}>
-          {NAV_CATS.map(cat => (
-            <Link key={cat.label} to={cat.path} onClick={() => setMobileOpen(false)}
+          {allNavCats.map(cat => (
+            <Link key={cat.path} to={cat.path} onClick={() => setMobileOpen(false)}
                   className="flex items-center px-5 py-3.5 text-sm font-medium text-eco-sub
                              hover:bg-eco-elevated hover:text-eco-text border-b border-eco-border transition-colors">
               {cat.label}
