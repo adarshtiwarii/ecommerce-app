@@ -95,11 +95,23 @@ const CATEGORY_FIELDS = {
 
 const CATEGORIES = [
   { value: '',           label: '— Select Category —' },
+
+  // Default Categories
   { value: 'mobiles',    label: '📱 Mobiles & Tablets' },
   { value: 'fashion',    label: '👗 Clothing & Fashion' },
   { value: 'beauty',     label: '💄 Beauty & Personal Care' },
   { value: 'appliances', label: '🏠 Home Appliances' },
-  { value: 'other',      label: '📦 Other' },
+
+  // Additional Categories
+  { value: 'books',      label: '📚 Books' },
+  { value: 'sports',     label: '⚽ Sports' },
+  { value: 'toys',       label: '🧸 Toys' },
+  { value: 'furniture',  label: '🪑 Furniture' },
+  { value: 'grocery',    label: '🛒 Grocery' },
+  { value: 'gaming',     label: '🎮 Gaming' },
+
+  // Custom Category — triggers a text input asking for category name
+  { value: 'other',      label: '📦 Other (Custom Category)' },
 ];
 
 // ── Helpers ────────────────────────────────────────────────
@@ -126,6 +138,8 @@ const AddProduct = () => {
     mrp:           '',
     stockQuantity: '',
     category:      '',
+    // Stores the custom category name when "other" is selected
+    customCategory: '',
     brand:         '',
     images:        [],
     highlights:    ['', '', '', ''],
@@ -157,7 +171,8 @@ const AddProduct = () => {
   const handleChange = e => set(e.target.name, e.target.value);
 
   const handleCategoryChange = e => {
-    setForm(f => ({ ...f, category: e.target.value, categorySpecs: {} }));
+    // Reset categorySpecs and customCategory when switching categories
+    setForm(f => ({ ...f, category: e.target.value, categorySpecs: {}, customCategory: '' }));
   };
 
   const handleCategorySpec = (name, value) => {
@@ -176,10 +191,28 @@ const AddProduct = () => {
   const addSpec    = ()    => set('specifications', [...form.specifications, { key: '', value: '' }]);
   const removeSpec = idx  => set('specifications', form.specifications.filter((_, i) => i !== idx));
 
+  // Returns the final category string to send to backend:
+  // if "other" is selected and customCategory is filled, use customCategory (lowercased, trimmed),
+  // otherwise fall back to the selected category value.
+  const getFinalCategory = () => {
+    if (form.category === 'other' && form.customCategory.trim()) {
+      return form.customCategory.trim().toLowerCase();
+    }
+    return form.category;
+  };
+
   // ── Submit ─────────────────────────────────────────────
   const handleSubmit = async e => {
     e.preventDefault();
     if (form.images.length === 0) { setError('Please upload at least one product image'); return; }
+
+    // Validate that a custom category name is entered when "other" is selected
+    if (form.category === 'other' && !form.customCategory.trim()) {
+      setError('Please enter a custom category name');
+      setActiveSection('basic');
+      return;
+    }
+
     setLoading(true); setError('');
 
     // Merge categorySpecs into specifications array for backend
@@ -193,7 +226,8 @@ const AddProduct = () => {
       price:         parseFloat(form.price),
       mrp:           parseFloat(form.mrp || form.price),
       stockQuantity: parseInt(form.stockQuantity),
-      category:      form.category,
+      // Use the resolved final category (custom name or preset value)
+      category:      getFinalCategory(),
       brand:         form.brand,
       imageUrl:      form.images[0] || '',
       images:        form.images,
@@ -324,6 +358,30 @@ const AddProduct = () => {
                     <option key={c.value} value={c.value} className="bg-gray-900">{c.label}</option>
                   ))}
                 </select>
+
+                {/* Show custom category name input when "other" is selected */}
+                {form.category === 'other' && (
+                  <div className="mt-3">
+                    <label className={labelClass}>Custom Category Name *</label>
+                    <input
+                      type="text"
+                      name="customCategory"
+                      placeholder="e.g. Pet Supplies, Musical Instruments, Stationery..."
+                      value={form.customCategory}
+                      onChange={handleChange}
+                      required
+                      className={inputClass}
+                      autoFocus
+                    />
+                    {/* Live preview: shows what will be saved as the category */}
+                    {form.customCategory.trim() && (
+                      <p className="mt-1.5 text-xs font-semibold text-orange-400">
+                        ✓ Will be saved as category: "{form.customCategory.trim().toLowerCase()}"
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {catConfig && (
                   <p className="mt-1.5 text-xs font-semibold text-orange-600">
                     ✓ Category-specific fields unlocked in "🔧 Details" tab
@@ -595,5 +653,3 @@ const AddProduct = () => {
 };
 
 export default AddProduct;
-
-
