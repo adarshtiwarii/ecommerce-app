@@ -7,5 +7,6 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 10000
+# Reduced JVM memory flags for Render free tier — faster startup
+ENTRYPOINT ["java", "-Xms64m", "-Xmx256m", "-jar", "app.jar"]
