@@ -12,8 +12,11 @@
 
             <class name="tests.LogoutTest"/>
 
-        </classes>
+            <class name="tests.ProductListingTest"/>
 
+        </classes>
     </test>
+
+
 
 </suite>

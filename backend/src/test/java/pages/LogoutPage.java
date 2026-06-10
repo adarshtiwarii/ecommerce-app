@@ -15,17 +15,33 @@ public class LogoutPage {
     private By profileButton =
             By.xpath("//div[@class='fixed inset-0 z-40']");
 
-    // Logout option
+    // Logout button
     private By logoutButton =
             By.xpath("//button[@class='flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-eco-elevated w-full transition-colors border-t border-eco-border']");
 
-    // Click Profile
-    public void clickProfileButton() {
+    // Open profile menu
+    public void openProfileMenu() {
+
         driver.findElement(profileButton).click();
+
+        System.out.println("Profile menu opened");
     }
 
-    // Click Logout
+    // Logout user
     public void clickLogoutButton() {
+
         driver.findElement(logoutButton).click();
+
+        System.out.println("Logout button clicked");
+    }
+
+    // Logout flow
+    public void logout() {
+
+        openProfileMenu();
+
+        clickLogoutButton();
+
+        System.out.println("User logged out");
     }
 }

@@ -18,129 +18,191 @@ public class LoginPage {
         this.driver = driver;
     }
 
-    // ── Locators ──────────────────────────────────────────────────────────────
+    // Email field
+    private By emailField =
+            By.xpath("//input[@placeholder='Email Address']");
 
-    // Email input field on the login form
-    private By emailField = By.xpath("//input[@placeholder='Email Address']");
+    // Password field
+    private By passwordField =
+            By.xpath("//input[@placeholder='Password']");
 
-    // Password input field on the login form
-    private By passwordField = By.xpath("//input[@placeholder='Password']");
+    // Login button
+    private By loginButton =
+            By.xpath("//button[@type='submit'][normalize-space()='Login']");
 
-    // Login submit button
-    private By loginButton = By.xpath("//button[@type='submit'][normalize-space()='Login']");
+    // Error message
+    private By errorMessage =
+            By.xpath("//*[@id=\"root\"]/div/main/div/div[2]/div[4]");
 
-    // Error message shown when login fails (wrong credentials)
-    private By errorMessage = By.xpath(
-            "//*[@id=\"root\"]/div/main/div/div[2]/div[4]"
-    );
+    // Profile button after login
+    private By postLoginElement =
+            By.xpath("//*[@id='root']/div/nav[1]/div[1]/div[1]/div/div/button");
 
-    // Success indicator after login — navbar profile icon or user name
-    // Update this XPath to match your post-login UI element
-    private By postLoginElement = By.xpath(
-            "//*[@id='root']/div/nav[1]/div[1]/div[1]/div/div/button"
-    );
-
-    // ── Action Methods ────────────────────────────────────────────────────────
-
-    // Enter email — waits for field to be visible before typing
+    // Enter email
     public void enterEmail(String email) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.visibilityOfElementLocated(emailField));
+
+        WebDriverWait wait =
+                new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        wait.until(
+                ExpectedConditions.visibilityOfElementLocated(emailField)
+        );
+
         driver.findElement(emailField).sendKeys(email);
+
         System.out.println("Email Entered: " + email);
     }
 
     // Enter password
     public void enterPassword(String password) {
+
         driver.findElement(passwordField).sendKeys(password);
+
         System.out.println("Password Entered");
     }
 
-    // Click the Login button — waits until it is clickable
+    // Click login button
     public void clickLoginButton() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.elementToBeClickable(loginButton));
+
+        WebDriverWait wait =
+                new WebDriverWait(driver, Duration.ofSeconds(10));
+
+        wait.until(
+                ExpectedConditions.elementToBeClickable(loginButton)
+        );
+
         driver.findElement(loginButton).click();
+
         System.out.println("Login Button Clicked");
     }
 
-    // Returns the error message text shown after a failed login attempt.
-    //
-    // CHANGED METHOD — previous version only checked one location (errorMessage locator)
-    // and threw TimeoutException if the backend red box did not appear.
-    //
-    // Now checks 3 locations in order so any type of error is caught:
-    //   Location 1 — Global red error box (backend error e.g. "Invalid email or password")
-    //                Uses the original errorMessage locator — no locator change.
-    //   Location 2 — Large ValidationPopup message (shown for empty fields / bad format)
-    //                This is the popup added in LoginPage.jsx with a dark overlay.
-    //   Location 3 — Small inline red text shown below each input field on blur.
-    // Returns the first non-empty message found, or empty string if none found.
+    // Get error message
     public String getErrorMessage() {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
-        // Location 1: original global red error box (same locator as before — unchanged)
+        WebDriverWait wait =
+                new WebDriverWait(driver, Duration.ofSeconds(5));
+
         try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage));
-            String msg = driver.findElement(errorMessage).getText().trim();
+
+            wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(errorMessage)
+            );
+
+            String msg =
+                    driver.findElement(errorMessage).getText().trim();
+
             if (!msg.isEmpty()) {
+
                 System.out.println("Error Message: " + msg);
+
                 return msg;
             }
+
         } catch (Exception ignored) {
-            // Not found — try next location
         }
 
-        // Location 2: large ValidationPopup — dark overlay with a white card
-        // Targets the main message paragraph inside the popup card
         try {
+
             By popupMsg = By.xpath(
                     "//div[contains(@style,'rgba(0,0,0')]//p[contains(@class,'font-semibold')]"
             );
-            List<WebElement> popups = driver.findElements(popupMsg);
+
+            List<WebElement> popups =
+                    driver.findElements(popupMsg);
+
             for (WebElement el : popups) {
+
                 String msg = el.getText().trim();
+
                 if (!msg.isEmpty()) {
+
                     System.out.println("Error Message: " + msg);
+
                     return msg;
                 }
             }
+
         } catch (Exception ignored) {
-            // Not found — try next location
         }
 
-        // Location 3: small inline red error shown below an input field on blur
         try {
+
             By inlineError = By.xpath(
                     "//p[contains(@class,'text-red-4') or contains(@class,'text-red-5')]"
             );
-            List<WebElement> inlineErrors = driver.findElements(inlineError);
+
+            List<WebElement> inlineErrors =
+                    driver.findElements(inlineError);
+
             for (WebElement el : inlineErrors) {
+
                 String msg = el.getText().trim();
+
                 if (!msg.isEmpty()) {
+
                     System.out.println("Error Message: " + msg);
+
                     return msg;
                 }
             }
+
         } catch (Exception ignored) {
-            // Not found in any location
         }
 
-        // No error found anywhere on the page
         System.out.println("Error Message: (none found)");
+
         return "";
     }
 
-    // Returns true if login was successful by checking for a post-login element
+    // Verify login
     public boolean isLoginSuccessful() {
+
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            wait.until(ExpectedConditions.visibilityOfElementLocated(postLoginElement));
-            System.out.println("Login successful — post-login element found.");
+
+            WebDriverWait wait =
+                    new WebDriverWait(driver, Duration.ofSeconds(10));
+
+            wait.until(
+                    ExpectedConditions.visibilityOfElementLocated(postLoginElement)
+            );
+
+            System.out.println("Login successful");
+
             return true;
+
         } catch (Exception e) {
-            System.out.println("Login failed — post-login element not found.");
+
+            System.out.println("Login failed");
+
             return false;
         }
+    }
+
+    // Login
+    public void login(String email, String password) {
+
+        enterEmail(email);
+
+        enterPassword(password);
+
+        clickLoginButton();
+    }
+
+    // Login as user
+    public void loginAsUser() {
+
+        login(
+                "ashu23@gmail.com",
+                "Adarsh@123"
+        );
+    }
+
+    // Login as admin
+    public void loginAsAdmin() {
+
+        login(
+                "adarsht072@gmail.com",
+                "Adarsh@875579"
+        );
     }
 }

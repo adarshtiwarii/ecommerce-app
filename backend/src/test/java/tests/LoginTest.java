@@ -43,13 +43,10 @@ public class LoginTest {
 
         homePage.openLoginPage();
 
-        loginPage.enterEmail("ashu23@gmail.com");
+        // Login as user
+        loginPage.loginAsUser();
 
-        loginPage.enterPassword("Adarsh@123");
-
-        loginPage.clickLoginButton();
-
-        Thread.sleep(5000);
+        Thread.sleep(60000);
 
         Assert.assertTrue(
                 loginPage.isLoginSuccessful(),
@@ -65,13 +62,13 @@ public class LoginTest {
 
         homePage.openLoginPage();
 
-        loginPage.enterEmail("adarsht072@gmail.com");
+        // Invalid login
+        loginPage.login(
+                "adarsht072@gmail.com",
+                "WrongPassword123"
+        );
 
-        loginPage.enterPassword("WrongPassword123");
-
-        loginPage.clickLoginButton();
-
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         String error = loginPage.getErrorMessage();
 
@@ -83,8 +80,27 @@ public class LoginTest {
         System.out.println("Wrong password test passed.");
     }
 
-    // Assertion
+    // Admin Login
     @Test(priority = 3)
+    public void verifyAdminLogin() throws InterruptedException {
+
+        homePage.openLoginPage();
+
+        // Login as admin
+        loginPage.loginAsAdmin();
+
+        Thread.sleep(7000);
+
+        Assert.assertTrue(
+                loginPage.isLoginSuccessful(),
+                "Admin login should succeed."
+        );
+
+        System.out.println("Admin login test passed.");
+    }
+
+    // Page Title
+    @Test(priority = 4)
     public void verifyLoginPageTitle() {
 
         String actualTitle = driver.getTitle();

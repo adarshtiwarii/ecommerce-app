@@ -29,11 +29,10 @@ public class BaseTest {
         System.out.println("Browser launched and application opened successfully.");
     }
 
-    @AfterMethod
-    public void tearDown() {
 
-        // Keep browser open for manual verification
-        // Uncomment the line below to close the browser after test execution
+    @AfterMethod
+    public void tearDown() throws InterruptedException {
+        Thread.sleep(10000);
 
         driver.quit();
 
