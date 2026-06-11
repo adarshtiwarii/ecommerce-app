@@ -1,7 +1,9 @@
 package pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class HomePage {
 
@@ -19,13 +21,17 @@ public class HomePage {
     private By createAccountButton =
             By.xpath("//*[contains(text(),'Create Account')]");
 
-    // Login option inside dropdown
+    // Login option
     private By loginButton =
             By.xpath("//*[@id='root']/div/nav[1]/div[1]/div[1]/div/div/div/div/a[2]");
 
     // Logout option
     private By logoutButton =
             By.xpath("//*[contains(text(),'Logout')]");
+
+    // All category button
+    private By all =
+            By.xpath("//*[@id='root']/div/main/div/div/div/button[1]");
 
     // Open registration page
     public void openRegistrationPage() throws InterruptedException {
@@ -76,14 +82,29 @@ public class HomePage {
 
         System.out.println("Logout clicked");
     }
-    private By all =
-            By.xpath("//*[@id=\"root\"]/div/main/div/div/div/button[1]");
 
+    // Open product listing
     public void clickForYou() throws InterruptedException {
 
-        Thread.sleep(10000);
+        Thread.sleep(5000);
 
-        driver.findElement(all).click();
+        WebElement allButton =
+                driver.findElement(all);
+
+        JavascriptExecutor js =
+                (JavascriptExecutor) driver;
+
+        js.executeScript(
+                "arguments[0].scrollIntoView({block:'center'});",
+                allButton
+        );
+
+        Thread.sleep(1000);
+
+        js.executeScript(
+                "arguments[0].click();",
+                allButton
+        );
 
         System.out.println("All tab clicked");
 

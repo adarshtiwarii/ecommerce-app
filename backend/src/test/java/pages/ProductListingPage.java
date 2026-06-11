@@ -172,7 +172,37 @@ public class ProductListingPage {
             }
         }
     }
+    public void clickProductByName(String productName)
+            throws InterruptedException {
 
+        List<WebElement> products =
+                driver.findElements(
+                        By.cssSelector("article.card h3")
+                );
+
+        for (WebElement product : products) {
+
+            String name =
+                    product.getText().trim();
+
+            if (name.contains(productName)) {
+
+                ((JavascriptExecutor) driver)
+                        .executeScript(
+                                "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});",
+                                product
+                        );
+
+                Thread.sleep(2000);
+
+                product.click();
+
+                Thread.sleep(3000);
+
+                break;
+            }
+        }
+    }
     /**
      * Scrolls to last product card.
      */
@@ -199,6 +229,7 @@ public class ProductListingPage {
         System.out.println(
                 "Scrolled slowly till last product."
         );
+
 
     }
 }
