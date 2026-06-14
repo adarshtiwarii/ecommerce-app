@@ -136,6 +136,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+            <version>4.10.2</version>
+        </dependency>
+
         <!-- ═══════════════════════════════════════════════════════════
              TESTING — all test scope, NOT included in production JAR
              ═══════════════════════════════════════════════════════════ -->

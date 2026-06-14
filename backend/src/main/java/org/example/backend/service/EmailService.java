@@ -1,44 +1,63 @@
 package org.example.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    // SendGrid API key from application.properties
+    @Value("${sendgrid.api.key}")
+    private String sendGridApiKey;
 
-    // Sender email from application.properties
-    @Value("${spring.mail.username}")
+    // Sender email — must be verified in SendGrid
+    @Value("${APP_MAIL_FROM:noreply@ecomart.com}")
     private String fromEmail;
 
     /**
-     * Sends a password reset OTP email to the user.
-     * @param toEmail  recipient email address
-     * @param otp      6-digit OTP code
+     * Sends a password reset OTP email via SendGrid HTTP API.
+     * Does not use SMTP — works on Render free tier.
      */
     public void sendPasswordResetOtp(String toEmail, String otp) {
 
-        SimpleMailMessage message = new SimpleMailMessage();
+        Email from = new Email(fromEmail);
+        Email to = new Email(toEmail);
+        String subject = "EcoMart - Password Reset OTP";
 
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject("EcoMart - Password Reset OTP");
-        message.setText(
+        Content content = new Content(
+                "text/plain",
                 "Hello,\n\n" +
                         "Your password reset OTP is: " + otp + "\n\n" +
                         "This OTP is valid for 10 minutes.\n" +
                         "Do not share this OTP with anyone.\n\n" +
                         "If you did not request this, ignore this email.\n\n" +
-                        "Team EcoMart"
+                        "Team ECoMart"
         );
 
-        mailSender.send(message);
+        Mail mail = new Mail(from, subject, to, content);
 
-        System.out.println("OTP email sent to: " + toEmail);
+        SendGrid sg = new SendGrid(sendGridApiKey);
+        Request request = new Request();
+
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+
+            Response response = sg.api(request);
+
+            System.out.println("SendGrid status: " + response.getStatusCode());
+            System.out.println("OTP email sent to: " + toEmail);
+
+        } catch (IOException e) {
+            System.err.println("SendGrid error: " + e.getMessage());
+            throw new RuntimeException("Failed to send email: " + e.getMessage());
+        }
     }
 }
