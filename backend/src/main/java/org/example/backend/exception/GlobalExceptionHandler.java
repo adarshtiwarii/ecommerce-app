@@ -39,9 +39,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ApiError(400, "Invalid request body"));
     }
 
+    // Log exact error so Render logs show the real cause
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception ex) {
+        ex.printStackTrace(); // full stack trace Render logs mein aayega
+        System.err.println("UNEXPECTED ERROR: " + ex.getClass().getName() + " — " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiError(500, "Unexpected server error"));
+                .body(new ApiError(500, ex.getMessage())); // actual message response mein bhi aayega
     }
 }
