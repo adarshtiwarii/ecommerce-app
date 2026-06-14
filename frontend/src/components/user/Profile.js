@@ -217,7 +217,7 @@ const Profile = () => {
     try {
       const res = await api.post('/profile/forgot-password', { emailOrPhone: resetForm.emailOrPhone });
       setResetForm(prev => ({ ...prev, token: res.data.devResetToken || '' }));
-      showToast(res.data.emailSent ? 'Reset link sent to email' : 'Reset token generated');
+      showToast(res.data.emailSent ? 'OTP sent to email' : 'OTP sent to your registered email address');
     } catch {
       showToast('Reset request failed');
     }
@@ -446,8 +446,8 @@ const Profile = () => {
                       <h2 className="text-lg font-black">Forgot/reset password</h2>
                       <div className="mt-4 space-y-3">
                         <input value={resetForm.emailOrPhone} onChange={e => setResetForm({ ...resetForm, emailOrPhone: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Email or mobile" />
-                        <button onClick={forgotPassword} className="rounded-full border border-orange-200 px-5 py-3 font-black text-orange-600">Generate reset token</button>
-                        <input value={resetForm.token} onChange={e => setResetForm({ ...resetForm, token: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="Reset token" />
+                        <button onClick={forgotPassword} className="rounded-full border border-orange-200 px-5 py-3 font-black text-orange-600">Send OTP</button>
+                        <input value={resetForm.token} onChange={e => setResetForm({ ...resetForm, token: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="OTP" />
                         <input type="password" value={resetForm.newPassword} onChange={e => setResetForm({ ...resetForm, newPassword: e.target.value })} className="w-full rounded-md border border-white/10 bg-[#1E1E1E] px-3 py-3 text-white placeholder-white/30" placeholder="New password" />
                         <button onClick={resetPassword} className="rounded-full bg-gray-900 px-5 py-3 font-black text-white">Reset password</button>
                       </div>

@@ -106,12 +106,12 @@ public class OrderController {
     }
 
     // ============================================================
-    // 📋 ADMIN — ALL ORDERS
+    // ADMIN - ALL ORDERS
     // ============================================================
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Map<String, Object>>> getAllOrdersForAdmin() {
-        // ✅ orderService.getAllOrders() use karo — @Transactional wahan hai
+        // The service keeps this query transactional while mapping order items.
         List<Map<String, Object>> orders = orderService.getAllOrders().stream()
                 .sorted(Comparator.comparing(Order::getOrderDate,
                         Comparator.nullsLast(Comparator.reverseOrder())))

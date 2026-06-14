@@ -1,6 +1,7 @@
 package org.example.backend.controller;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.backend.dto.ChangePasswordRequest;
 import org.example.backend.dto.OtpVerifyRequest;
 import org.example.backend.dto.ProfileUpdateRequest;
@@ -25,6 +26,7 @@ import java.time.Duration;
 @RequestMapping("/api/profile")
 @CrossOrigin(origins = "http://localhost:3000")
 public class ProfileController {
+
     private final UserService userService;
     private final UserAddressService userAddressService;
     private final JwtUtil jwtUtil;
@@ -37,25 +39,41 @@ public class ProfileController {
         this.emailService = emailService;
     }
 
+    // ============================================================
+    // GET PROFILE — returns current authenticated user
+    // SECURITY: Password and sensitive fields excluded by @JsonIgnore
+    // ============================================================
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> me(Authentication authentication) {
         return ResponseEntity.ok(userService.getByEmail(authentication.getName()));
     }
 
+    // ============================================================
+    // UPDATE PROFILE — updates user info and reissues JWT cookie
+    // SECURITY: New token issued in HttpOnly cookie after update
+    // ============================================================
     @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateMe(Authentication authentication, @Valid @RequestBody ProfileUpdateRequest request) {
+    public ResponseEntity<?> updateMe(
+            Authentication authentication,
+            @Valid @RequestBody ProfileUpdateRequest profileRequest,
+            HttpServletRequest httpRequest) {
         try {
-            User user = userService.updateProfile(authentication.getName(), request);
+            User user = userService.updateProfile(authentication.getName(), profileRequest);
+
+            // Generate new JWT token with updated user information
             String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getTokenVersion());
+
+            // Store the refreshed JWT in an HttpOnly cookie after profile changes.
             ResponseCookie cookie = ResponseCookie.from("ECOM_AUTH", token)
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(isSecureRequest(httpRequest))
                     .sameSite("Lax")
                     .path("/")
                     .maxAge(Duration.ofDays(7))
                     .build();
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(Map.of("user", user, "token", token));
@@ -64,6 +82,9 @@ public class ProfileController {
         }
     }
 
+    // ============================================================
+    // CHANGE PASSWORD — requires current password to confirm identity
+    // ============================================================
     @PostMapping("/change-password")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> changePassword(Authentication authentication, @Valid @RequestBody ChangePasswordRequest request) {
@@ -75,20 +96,22 @@ public class ProfileController {
         }
     }
 
+    // ============================================================
+    // FORGOT PASSWORD — sends OTP to registered email
+    // SECURITY: Always returns same message whether email exists or not
+    //           (prevents email/phone enumeration attacks)
+    // ============================================================
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
-        String emailOrPhone = body.getOrDefault("emailOrPhone", "").trim();
-        String resetToken = userService.startPasswordReset(emailOrPhone);
-        boolean emailSent = emailService.sendPasswordReset(emailOrPhone, resetToken);
+        userService.startPasswordReset(body.get("emailOrPhone"));
         return ResponseEntity.ok(Map.of(
-                "message", emailSent
-                        ? "Reset instructions have been sent to your email."
-                        : "If the account exists, reset instructions have been generated.",
-                "emailSent", emailSent,
-                "devResetToken", resetToken == null ? "" : resetToken
+                "message", "OTP sent to your registered email address."
         ));
     }
 
+    // ============================================================
+    // RESET PASSWORD — verifies OTP and sets new password
+    // ============================================================
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
@@ -99,13 +122,20 @@ public class ProfileController {
         }
     }
 
+    // ============================================================
+    // SEND OTP — triggers OTP for email or phone verification
+    // SECURITY: OTP is sent via email/SMS only — not returned in response
+    // ============================================================
     @PostMapping("/verification/{channel}/send")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> sendOtp(Authentication authentication, @PathVariable String channel) {
-        String otp = userService.issueOtp(authentication.getName(), channel);
-        return ResponseEntity.ok(Map.of("message", "OTP generated", "devOtp", otp));
+        userService.issueOtp(authentication.getName(), channel);
+        return ResponseEntity.ok(Map.of("message", "OTP sent successfully"));
     }
 
+    // ============================================================
+    // VERIFY OTP — confirms OTP entered by user for email or phone
+    // ============================================================
     @PostMapping("/verification/{channel}/verify")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> verifyOtp(Authentication authentication, @PathVariable String channel, @Valid @RequestBody OtpVerifyRequest request) {
@@ -117,6 +147,9 @@ public class ProfileController {
         }
     }
 
+    // ============================================================
+    // GET ADDRESSES — lists all saved delivery addresses
+    // ============================================================
     @GetMapping("/addresses")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> addresses(Authentication authentication) {
@@ -124,6 +157,9 @@ public class ProfileController {
         return ResponseEntity.ok(userAddressService.list(user.getUserId()));
     }
 
+    // ============================================================
+    // ADD ADDRESS — saves a new delivery address for current user
+    // ============================================================
     @PostMapping("/addresses")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> saveAddress(Authentication authentication, @RequestBody UserAddress address) {
@@ -131,6 +167,9 @@ public class ProfileController {
         return ResponseEntity.ok(userAddressService.save(user.getUserId(), address));
     }
 
+    // ============================================================
+    // SET DEFAULT ADDRESS — marks an address as the default
+    // ============================================================
     @PatchMapping("/addresses/{id}/default")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> defaultAddress(Authentication authentication, @PathVariable Long id) {
@@ -139,6 +178,9 @@ public class ProfileController {
         return ResponseEntity.ok(Map.of("message", "Default address updated"));
     }
 
+    // ============================================================
+    // DELETE ADDRESS — removes an address from user profile
+    // ============================================================
     @DeleteMapping("/addresses/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteAddress(Authentication authentication, @PathVariable Long id) {
@@ -147,10 +189,19 @@ public class ProfileController {
         return ResponseEntity.ok(Map.of("message", "Address deleted"));
     }
 
+    // ============================================================
+    // LOGOUT ALL DEVICES — increments token version to invalidate
+    //                      all active JWTs across every device
+    // ============================================================
     @PostMapping("/logout-all")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> logoutAll(Authentication authentication) {
         userService.logoutAllDevices(authentication.getName());
         return ResponseEntity.ok(Map.of("message", "All sessions have been invalidated for future token-version checks"));
+    }
+
+    private boolean isSecureRequest(HttpServletRequest request) {
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+        return request.isSecure() || "https".equalsIgnoreCase(forwardedProto);
     }
 }

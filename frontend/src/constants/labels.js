@@ -39,7 +39,7 @@ export const AUTH_TEXT = {
   forgotTitle: 'Reset Password',
   loginSub: 'Sign in to manage orders, carts, and deals.',
   registerSub: 'Create your marketplace account in seconds.',
-  forgotSub: 'Generate a reset token, then set a new password.',
+  forgotSub: 'Send an OTP, then use it to set a new password.',
   login: 'Login',
   register: 'Register',
   createAccount: 'Create Account',
@@ -47,9 +47,9 @@ export const AUTH_TEXT = {
   forgotPassword: 'Forgot Password?',
   backToLogin: 'Back to Login',
   resetPassword: 'Reset Password',
-  sendReset: 'Generate Reset Token',
-  resetToken: 'Reset token',
-  devResetToken: 'Development reset token',
+  sendReset: 'Send OTP',
+  resetToken: 'OTP',
+  devResetToken: 'Development OTP',
   agreePrefix: 'By continuing, you agree to EcoMart terms and privacy policy.',
   noAccount: "Don't have an account?",
   hasAccount: 'Already have an account?',
@@ -62,7 +62,7 @@ export const AUTH_TEXT = {
   loadingLogin: 'Logging in...',
   loadingRegister: 'Creating account...',
   loadingReset: 'Resetting password...',
-  loadingToken: 'Generating token...',
+  loadingToken: 'Sending OTP...',
 };
 
 export const AUTH_GENDER_OPTIONS = [

@@ -66,21 +66,12 @@
             <!-- Version is managed by spring-boot-starter-parent -->
         </dependency>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             REMOVED: spring-boot-starter-webflux
-             REMOVED: reactor-netty-http
-             Reason: These were only used by KeepAliveScheduler (WebClient).
-             They pulled in Netty which added ~40s to startup time on
-             Render free tier. Replaced with lightweight RestTemplate +
-             Apache HttpClient5 in KeepAliveScheduler.java.
-             ═══════════════════════════════════════════════════════════ -->
-
-        <!-- ═══════════════════════════════════════════════════════════
-             REMOVED: spring-boot-devtools
-             Reason: DevTools is only useful during local development.
-             On Render (production), it loaded file watchers and restart
-             triggers unnecessarily, adding to startup time and memory.
-             ═══════════════════════════════════════════════════════════ -->
+        <!-- Add this inside <dependencies> in pom.xml -->
+        <!-- Spring Mail — Gmail se email bhejne ke liye -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
         <!-- ═══════════════════════════════════════════════════════════
              DATABASE

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import './App.css';
 import { AppProvider } from './context/AppContext';
 import Navbar from './components/Navbar/Navbar';
@@ -27,6 +27,22 @@ import { API_BASE_URL } from './utils/api';
 
 const BACKEND_URL = API_BASE_URL.replace(/\/api\/?$/, '');
 
+function LogoutRedirectHandler() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleLogout = () => {
+      navigate(ROUTES.LOGIN, { replace: true });
+    };
+
+    window.addEventListener('app-logout', handleLogout);
+
+    return () => window.removeEventListener('app-logout', handleLogout);
+  }, [navigate]);
+
+  return null;
+}
+
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
@@ -45,6 +61,7 @@ function App() {
   return (
     <AppProvider>
       <BrowserRouter>
+        <LogoutRedirectHandler />
         {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
         <div className="min-h-screen flex flex-col bg-eco-bg text-eco-text">
           <Navbar />

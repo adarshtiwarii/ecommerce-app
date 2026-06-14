@@ -24,28 +24,37 @@ public class AdminUserController {
         this.cartRepository = cartRepository;
     }
 
+    // Get total count of users in system
     @GetMapping("/count")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> getUserCount() {
         return ResponseEntity.ok(userRepository.count());
     }
 
+    // Get all users list
+    // SECURITY: Password hash is automatically excluded from JSON response by @JsonIgnore annotation
+    // on User.passwordHash field. No manual null setting required. This prevents sensitive password data
+    // from being exposed in the API response payload.
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userRepository.findAll();
-        users.forEach(user -> user.setPasswordHash(null));
+        // Password and sensitive fields automatically excluded by @JsonIgnore in User entity
         return ResponseEntity.ok(users);
     }
 
+    // Toggle user account status (activate/deactivate)
     @PatchMapping("/users/{id}/toggle")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> toggleUserStatus(@PathVariable Long id, Authentication authentication) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Prevent admin from deactivating their own account
         if (authentication != null && authentication.getName().equalsIgnoreCase(user.getEmail())) {
             return ResponseEntity.badRequest().body("You cannot deactivate your own account");
         }
+
         user.setEnabled(!user.isEnabled());
         userRepository.save(user);
         return ResponseEntity.ok(Map.of(
@@ -54,14 +63,19 @@ public class AdminUserController {
         ));
     }
 
+    // Delete user account permanently
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable Long id, Authentication authentication) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Prevent admin from deleting their own account
         if (authentication != null && authentication.getName().equalsIgnoreCase(user.getEmail())) {
             return ResponseEntity.badRequest().body("You cannot delete your own account");
         }
+
+        // Delete associated cart data first (referential integrity)
         cartRepository.findByUserId(id).ifPresent(cartRepository::delete);
         userRepository.delete(user);
         return ResponseEntity.ok(Map.of("message", "User deleted"));

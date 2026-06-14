@@ -25,10 +25,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // ─── FIX: Cache GET requests for 60 seconds ───
-    // After deploy on Render, every product page made 2 API calls and was slow.
-    // This tells the browser to cache GET responses for 60 seconds.
-    // So if user visits same product twice within 1 minute, second load is instant.
+    // Cache GET responses briefly so repeated product visits feel faster.
     if (config.method === 'get') {
       config.headers['Cache-Control'] = 'max-age=60';
     }

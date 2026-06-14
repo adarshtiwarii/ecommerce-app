@@ -1,6 +1,6 @@
 package org.example.backend.service;
 
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -8,41 +8,37 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
-    private final JavaMailSender mailSender;
 
-    @Value("${app.mail.from:no-reply@ecomart.local}")
-    private String fromAddress;
+    @Autowired
+    private JavaMailSender mailSender;
 
-    @Value("${app.frontend.reset-url:http://localhost:3000/forgot-password}")
-    private String resetUrl;
+    // Sender email from application.properties
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
-    public EmailService(ObjectProvider<JavaMailSender> mailSenderProvider) {
-        this.mailSender = mailSenderProvider.getIfAvailable();
-    }
+    /**
+     * Sends a password reset OTP email to the user.
+     * @param toEmail  recipient email address
+     * @param otp      6-digit OTP code
+     */
+    public void sendPasswordResetOtp(String toEmail, String otp) {
 
-    public boolean sendPasswordReset(String recipient, String token) {
-        if (mailSender == null || recipient == null || !recipient.contains("@") || token == null || token.isBlank()) {
-            return false;
-        }
+        SimpleMailMessage message = new SimpleMailMessage();
 
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromAddress);
-            message.setTo(recipient);
-            message.setSubject("EcoMart password reset");
-            message.setText("""
-                    Use this reset token to set a new EcoMart password:
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("EcoMart - Password Reset OTP");
+        message.setText(
+                "Hello,\n\n" +
+                        "Your password reset OTP is: " + otp + "\n\n" +
+                        "This OTP is valid for 10 minutes.\n" +
+                        "Do not share this OTP with anyone.\n\n" +
+                        "If you did not request this, ignore this email.\n\n" +
+                        "Team EcoMart"
+        );
 
-                    %s
+        mailSender.send(message);
 
-                    Reset page: %s
-
-                    This token expires in 20 minutes.
-                    """.formatted(token, resetUrl));
-            mailSender.send(message);
-            return true;
-        } catch (RuntimeException ex) {
-            return false;
-        }
+        System.out.println("OTP email sent to: " + toEmail);
     }
 }

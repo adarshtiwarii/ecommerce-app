@@ -63,13 +63,13 @@ public class Order {
 
     /**
      * T044: DB relationship - One-to-Many with OrderItem
-     * cascade = CascadeType.ALL: Order save/delete hone par items bhi save/delete honge
-     * orphanRemoval = true: Agar item list se hata diya to DB se bhi delete ho jayega
+     * cascade = CascadeType.ALL saves or deletes order items with the order.
+     * orphanRemoval = true deletes an item when it is removed from the order list.
      */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    // Default constructor (JPA ke liye mandatory)
+    // Default constructor required by JPA.
     public Order() {}
 
     // Constructor with essential fields (optional)

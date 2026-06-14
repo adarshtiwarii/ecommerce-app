@@ -93,7 +93,7 @@ const LoginPage = ({ initialMode = FORM_MODES.LOGIN }) => {
         if (!formData.resetToken) {
           const result = await requestPasswordReset(formData.email);
           if (result.success) {
-            setSuccess(result.emailSent ? 'Reset link sent to your email.' : result.message);
+            setSuccess(result.emailSent ? 'OTP sent to your email.' : result.message);
             setDevResetToken(result.devResetToken || '');
           } else {
             setError(result.message);
