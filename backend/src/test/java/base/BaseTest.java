@@ -9,6 +9,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.Duration;
 
 public class BaseTest {
@@ -16,8 +18,17 @@ public class BaseTest {
     // WebDriver instance used across test classes
     protected WebDriver driver;
 
+    // Backend health endpoint — used to wake up Render free-tier backend
+    // before the browser starts hitting login/API calls
+    private static final String BACKEND_HEALTH_URL = "https://ecommerce-app-rttb.onrender.com/api/health";
+
     @BeforeMethod
     public void setUp() {
+
+        // Wake up the backend first — Render free tier backend and frontend
+        // spin up independently, so the frontend can load while the backend
+        // is still cold, causing login/API timeouts later in the test
+        warmUpBackend();
 
         // Automatically download and configure the compatible ChromeDriver
         WebDriverManager.chromedriver().setup();
@@ -40,6 +51,30 @@ public class BaseTest {
         waitForAppToLoad();
 
         System.out.println("Browser launched and application opened successfully.");
+    }
+
+    /**
+     * Sends a request to the backend health endpoint to trigger Render
+     * cold-start spin-up before the browser starts interacting with the app.
+     * This prevents login/API timeouts caused by a sleeping backend.
+     */
+    private void warmUpBackend() {
+
+        try {
+
+            URL url = new URL(BACKEND_HEALTH_URL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(60000);
+            connection.setReadTimeout(60000);
+            connection.setRequestMethod("GET");
+
+            int responseCode = connection.getResponseCode();
+            System.out.println("Backend warm-up ping completed with status: " + responseCode);
+
+        } catch (Exception e) {
+
+            System.out.println("Backend warm-up ping failed: " + e.getMessage());
+        }
     }
 
     /**
