@@ -43,6 +43,8 @@ public class AddToCartPage {
 
     private final By cartLink = By.xpath("//nav//a[@href='/cart' and .//*[name()='svg']]");
     private final By emptyCartTitle = By.xpath("//*[normalize-space()='Your cart is empty' or contains(normalize-space(),'cart is empty')]");
+    private final By totalPriceSection = By.xpath("//*[normalize-space()='Total Amount']/ancestor::div[contains(@style,'border-top')]");
+    private final By totalPriceValue = By.xpath("//*[normalize-space()='Total Amount']/following-sibling::span");
     private int cartCountBeforeAdd;
     private int cartCountAfterAdd;
 
@@ -192,6 +194,52 @@ public class AddToCartPage {
             WebElement quantity = quantityControl.findElement(By.xpath("./span[1]"));
             return Integer.parseInt(quantity.getText().trim());
         });
+    }
+
+    /**
+     * Slowly scrolls to the cart total section and waits until it is visible.
+     */
+    public void slowlyScrollToTotalPriceSection() {
+        WebElement section = wait.until(ExpectedConditions.presenceOfElementLocated(totalPriceSection));
+
+        ((JavascriptExecutor) driver).executeScript(
+                "const element = arguments[0];" +
+                        "const top = element.getBoundingClientRect().top + window.pageYOffset - 120;" +
+                        "window.scrollTo({top: top, behavior: 'smooth'});",
+                section
+        );
+
+        wait.until(ExpectedConditions.visibilityOf(section));
+        wait.until(driver -> (Boolean) ((JavascriptExecutor) driver).executeScript(
+                "const rect = arguments[0].getBoundingClientRect();" +
+                        "return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);",
+                section
+        ));
+        System.out.println("Total Price section is fully visible.");
+    }
+
+    /**
+     * Returns the displayed cart total amount as a numeric value.
+     *
+     * @return displayed total price
+     */
+    public int getTotalPrice() {
+        return parsePrice(commonUtils.waitForVisible(totalPriceValue).getText());
+    }
+
+    /**
+     * Verifies that cart action buttons remain available.
+     *
+     * @return true when checkout and continue shopping buttons are visible and enabled
+     */
+    public boolean isCartFunctional() {
+        WebElement checkoutButton = commonUtils.waitForVisible(By.xpath("//button[normalize-space()='Checkout']"));
+        WebElement continueShoppingButton = commonUtils.waitForVisible(By.xpath("//button[normalize-space()='Continue Shopping']"));
+
+        return checkoutButton.isDisplayed()
+                && checkoutButton.isEnabled()
+                && continueShoppingButton.isDisplayed()
+                && continueShoppingButton.isEnabled();
     }
 
     /**
@@ -404,6 +452,22 @@ public class AddToCartPage {
     private WebElement findQuantityControl(String productName) {
         WebElement item = findCartItemByName(productName);
         return item.findElement(By.xpath(".//div[count(./button)=2 and count(./span)=1]"));
+    }
+
+    /**
+     * Converts visible Indian currency text to an integer amount.
+     *
+     * @param priceText visible price text
+     * @return numeric price
+     */
+    private int parsePrice(String priceText) {
+        String digitsOnly = priceText.replaceAll("[^0-9]", "");
+
+        if (digitsOnly.isEmpty()) {
+            return 0;
+        }
+
+        return Integer.parseInt(digitsOnly);
     }
 
     /**
