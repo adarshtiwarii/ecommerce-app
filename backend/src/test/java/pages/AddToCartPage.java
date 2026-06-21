@@ -247,8 +247,7 @@ public class AddToCartPage {
      *
      * @param productName product name in cart
      */
-    // Commented out: remove from cart step disabled for this test run
-    /*
+
     public void removeProductFromCart(String productName) {
         WebElement item = findCartItemByName(productName);
         WebElement removeButton = item.findElement(By.xpath(".//button[contains(normalize-space(),'Remove')]"));
@@ -257,7 +256,7 @@ public class AddToCartPage {
         waitUntilProductIsRemoved(productName);
         System.out.println("Product removed from cart.");
     }
-    */
+
 
     /**
      * Verifies that a specific product is no longer available in the cart.

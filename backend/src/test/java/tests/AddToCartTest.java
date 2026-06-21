@@ -55,8 +55,8 @@ public class AddToCartTest extends BaseTest {
             );
             System.out.println("Validation Passed: Correct product exists in cart: " + productName);
 
-            // Commented out: remove from cart step disabled for this test run
-            /*
+            // Commented out: remove from cart step
+
             addToCartPage.removeProductFromCart(productName);
             System.out.println("Validation Passed: Product removed from cart: " + productName);
 
@@ -68,7 +68,7 @@ public class AddToCartTest extends BaseTest {
                     "Product was still present in the cart after removal: " + productName
             );
             System.out.println("Validation Passed: Removed product is no longer present in cart: " + productName);
-            */
+
         }
 
         System.out.println("Add to Cart end-to-end validation completed successfully.");
