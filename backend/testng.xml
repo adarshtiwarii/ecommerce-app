@@ -16,6 +16,8 @@
 
             <class name="tests.ValidateCartItemsTest"/>
 
+            <class name="tests.CheckoutTest"/>
+
         </classes>
     </test>
 
